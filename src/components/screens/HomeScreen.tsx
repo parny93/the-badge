@@ -31,10 +31,10 @@ export default function HomeScreen({ dispatch }: Props) {
       {/* Logo */}
       <div className="mb-5">
         <Image
-          src="/logo.svg"
+          src="/logo.png"
           alt="The Badge"
           width={110}
-          height={121}
+          height={110}
           priority
           className="drop-shadow-[0_4px_24px_rgba(201,168,76,0.35)]"
         />

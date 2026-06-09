@@ -9,11 +9,11 @@ export const metadata: Metadata = {
     title: 'The Badge',
     description: 'Pick your greatest squad from 102 legends across 16 World Cups. Can you finally bring it home?',
     type: 'website',
-    images: [{ url: '/logo.svg', width: 200, height: 220 }],
+    images: [{ url: '/logo.png', width: 1254, height: 1254 }],
   },
   icons: {
-    icon: '/logo.svg',
-    apple: '/logo.svg',
+    icon: '/logo.png',
+    apple: '/logo.png',
   },
 }
 
