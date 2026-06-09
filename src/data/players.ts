@@ -68,7 +68,7 @@ export const ENGLAND_PLAYERS: Player[] = [
       'Safe hands from Seaman, holding it into his chest',
       'Seaman was beaten at his near post — he will not be happy',
     ],
-    ratingOverrides: { 2002: 81 }, // post-Ronaldinho lob decline in perception
+    // careerRatings in careerRatings.ts handle year-by-year quality
   },
   {
     id: 'joe_hart',
@@ -904,7 +904,7 @@ export const ENGLAND_PLAYERS: Player[] = [
       'Owen\'s run against Argentina — one of England\'s finest ever goals',
       'Owen with pure pace and a clinical finish',
     ],
-    ratingOverrides: { 2006: 72, 2010: 0 }, // injury decline post-2006
+    // careerRatings.ts: 2006→71, 2008→66; INTL_OVERRIDES: to 2008
   },
   {
     id: 'emile_heskey',
@@ -957,7 +957,7 @@ export const ENGLAND_PLAYERS: Player[] = [
       'Wayne Rooney — sheer force of will put England ahead',
       'Rooney holds it up, turns, and fires — it\'s in!',
     ],
-    ratingOverrides: { 2006: 78 }, // fractured metatarsal, came back too soon
+    // careerRatings.ts handles year-by-year form
   },
   {
     id: 'jermain_defoe',
@@ -1159,7 +1159,7 @@ export const ENGLAND_PLAYERS: Player[] = [
     peakAttributes: { pace: 58, shooting: 30, passing: 60, dribbling: 30, defending: 64, physical: 76, gk: 85 },
     caps: 53, goals: 0,
     moments: ['James with an athletic save — "Calamity" on a good day', 'James commanded his box well'],
-    ratingOverrides: { 2010: 80 },
+    // careerRatings.ts: 2010→79
   },
   {
     id: 'paul_robinson', name: 'Paul Robinson', positions: ['GK'],

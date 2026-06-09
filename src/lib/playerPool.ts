@@ -6,23 +6,28 @@ import { ratePlayerForYear } from './agingCurve'
 // England, where the simple age window would be wrong. Otherwise we assume a
 // player could realistically be picked from age 17 to 35.
 const INTL_OVERRIDES: Record<string, { from?: number; to?: number }> = {
-  paul_scholes: { to: 2004 },     // retired from England 2004
-  paul_gascoigne: { to: 1998 },   // last cap 1998
-  jimmy_greaves: { to: 1967 },
-  ledley_king: { to: 2010 },      // injuries curtailed his career
-  michael_carrick: { to: 2015 },
-  owen_hargreaves: { to: 2008 },  // injuries
-  wayne_rooney: { to: 2016 },
-  steven_gerrard: { to: 2014 },
-  frank_lampard: { to: 2014 },
-  david_beckham: { to: 2009 },
-  michael_owen: { to: 2008 },
-  peter_shilton: { to: 1990 },    // played to Italia '90 aged 40
-  ray_clemence: { to: 1983 },
-  gordon_banks: { to: 1972 },     // car crash ended his career
-  david_james: { to: 2010 },
-  gary_lineker: { to: 1992 },     // retired after Euro 92
-  alan_shearer: { to: 2000 },     // retired from England after Euro 2000
+  paul_scholes:     { to: 2004 },  // voluntarily retired from England after Euro 2004
+  paul_gascoigne:   { to: 1998 },  // last cap 1998
+  jimmy_greaves:    { to: 1967 },
+  ledley_king:      { to: 2010 },  // injuries curtailed career
+  michael_carrick:  { to: 2015 },
+  owen_hargreaves:  { to: 2008 },  // injuries ended career
+  wayne_rooney:     { to: 2016 },
+  steven_gerrard:   { to: 2014 },
+  frank_lampard:    { to: 2014 },
+  david_beckham:    { to: 2009 },  // last cap May 2009
+  michael_owen:     { to: 2008 },  // last cap Nov 2008; post-injury decline
+  peter_shilton:    { to: 1990 },  // played to Italia '90 aged 40
+  ray_clemence:     { to: 1983 },
+  gordon_banks:     { to: 1972 },  // car crash ended career
+  david_james:      { to: 2010 },
+  gary_lineker:     { to: 1992 },  // retired after Euro 92
+  alan_shearer:     { to: 2000 },  // retired from England after Euro 2000
+  // Players whose age window (bornYear+35) is too generous:
+  gary_neville:     { to: 2006 },  // last tournament WC 2006; retired from England Feb 2007
+  david_seaman:     { to: 2002 },  // last cap Sep 2002; Ronaldinho ended England career
+  sol_campbell:     { to: 2006 },  // last meaningful tournament; drifted out 2007
+  emile_heskey:     { to: 2010 },  // retired from England after 2010 WC
 }
 
 export function eligibleYears(player: Player): { from: number; to: number } {
