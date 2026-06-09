@@ -43,20 +43,33 @@ export interface RatedPlayer extends Player {
   ageAtYear: number
 }
 
-// ─── Roles & Chemistry ────────────────────────────────────────────────────────
+// ─── Chemistry styles (FUT-inspired) ─────────────────────────────────────────
+// Each player is assigned a chemistry style derived from their primary position
+// and peak attributes. Styles drive per-player pip scores and team synergy bonuses.
 
-export type PlayerRole =
-  | 'GK'
-  | 'FB'        // full-back / wing-back
-  | 'CB'        // centre-back
-  | 'DM'        // holding / destroyer
-  | 'B2B'       // box-to-box runner
-  | 'DLP'       // deep-lying playmaker
-  | 'AP'        // advanced playmaker / number 10
-  | 'WIDE'      // winger / wide mid
-  | 'TARGET'    // target man
-  | 'POACHER'   // fox in the box
-  | 'PACE'      // pace striker
+export type ChemistryStyle =
+  | 'ANCHOR'      // hard defending, no-nonsense — Adams, Terry, Rice, Stiles
+  | 'SHADOW'      // pace + defending — Ashley Cole, Des Walker, Kyle Walker
+  | 'ENGINE'      // box-to-box, workhorse — Gerrard, Robson, Lampard
+  | 'MAESTRO'     // technical passer — Scholes, Hoddle, Foden, Wilkins
+  | 'PLAYMAKER'   // dribbler, creator — Gascoigne, Bellingham, Wilshere
+  | 'ARCHITECT'   // set-piece / crossing specialist — Beckham, Carrick
+  | 'CATALYST'    // pure pace wide — Walcott, Sterling, Rashford (winger)
+  | 'CREATIVE'    // dribbling wide — Barnes, Waddle, Saka, Sancho
+  | 'POWERHOUSE'  // complete striker — Shearer, Rooney, Hurst, Charlton B
+  | 'HUNTER'      // pace + goal threat — Owen, Vardy, Cole, Defoe
+  | 'SNIPER'      // clinical finisher — Lineker, Greaves, Fowler, Kane
+  | 'TARGET'      // physical hold-up — Crouch, Heskey, Chivers
+  | 'STOPPER_GK'  // traditional keeper — Banks, Shilton, Seaman
+  | 'SWEEPER_GK'  // active, comes off line — Pickford, Hart
+
+export interface PlayerChemEntry {
+  playerId: string
+  name: string
+  pips: number           // 0–3 (like FUT chem pip dots)
+  style: ChemistryStyle
+  slotLabel: string
+}
 
 export interface ChemistryNote {
   text: string
@@ -68,6 +81,7 @@ export interface ChemistryReport {
   notes: ChemistryNote[]
   attackMod: number              // points applied to attack score
   defenseMod: number             // points applied to defense score
+  players: PlayerChemEntry[]     // FUT-style per-player breakdown
 }
 
 export interface TeamStrength {

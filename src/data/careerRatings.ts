@@ -855,4 +855,127 @@ export const CAREER_RATINGS: Record<string, Record<number, number>> = {
     2024: 91,   // Euro 2024 — that bicycle kick vs Slovakia; world-class
     2026: 92,
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NEW ADDITIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // DEFENDERS
+
+  martin_keown: {
+    1992: 73,
+    1994: 76,
+    1996: 78,
+    1998: 80,   // Arsenal double era — one of the best CBs in the PL
+    2000: 80,   // Absolute peak — Invincibles era approach
+    2002: 79,
+    2004: 72,
+  },
+
+  graeme_le_saux: {
+    1992: 72,
+    1994: 78,   // Blackburn title winners — underrated key man
+    1996: 79,   // Euro 96
+    1998: 79,   // Peak — Chelsea's most technical LB
+    2000: 75,
+    2002: 70,
+  },
+
+  wayne_bridge: {
+    2001: 72,
+    2002: 74,
+    2004: 78,   // Chelsea under Mourinho — key part of the defence
+    2006: 77,
+    2008: 74,
+    2010: 70,
+  },
+
+  // MIDFIELDERS
+
+  bobby_charlton: {
+    // One of England's greatest ever — WC winner, European Footballer of Year
+    // Pre-FIFA era: estimated from contemporary press, statistical records, retrospective analysis
+    1958: 73,   // Munich survivor; already electric in short spells
+    1960: 79,
+    1962: 83,   // WC 62 — quarter final
+    1964: 88,
+    1966: 91,   // WC winner; European Footballer of Year; Man Utd's heartbeat
+    1968: 90,   // European Cup winner — his crowning Man Utd moment
+    1970: 87,   // WC 70 — substituted against West Germany
+    1972: 78,   // Twilight of a remarkable career
+  },
+
+  darren_anderton: {
+    1994: 74,
+    1996: 79,   // Euro 96 — key starter for Venables' creative system
+    1997: 77,
+    1998: 76,   // WC 98 — injury-disrupted (the "Sicknote" years)
+    2000: 73,
+    2001: 70,
+  },
+
+  jack_wilshere: {
+    2012: 78,   // First full Arsenal season — absolutely extraordinary on the ball
+    2013: 79,   // Standout CL goal vs Napoli; genuine world-class contender
+    2014: 77,   // Injuries beginning to bite
+    2016: 74,
+  },
+
+  james_milner: {
+    2008: 72,
+    2010: 75,
+    2012: 78,
+    2014: 79,   // Peak years at Man City
+    2016: 79,   // Champions League winner's medal at Liverpool
+    2018: 76,
+    2020: 72,
+  },
+
+  // FORWARDS
+
+  robbie_fowler: {
+    // God — one of the most natural goalscorers English football has produced
+    1995: 82,   // First full season — 25 goals in all competitions
+    1996: 85,   // Peak — 36 goals all comps in 95-96; should have gone to Euro 96
+    1997: 84,
+    1998: 81,
+    2000: 77,   // Start of knee injury problems
+    2002: 72,
+  },
+
+  andy_cole: {
+    // 34 goals for Newcastle (PL record at the time), Man Utd treble hero
+    1994: 77,   // Newcastle 34-goal PL record season
+    1996: 80,   // Man Utd double winners — found his feet after slow start
+    1998: 82,
+    1999: 83,   // Treble season — vital contributor
+    2000: 80,
+    2002: 75,
+    2004: 70,
+  },
+
+  martin_chivers: {
+    // Tottenham's big striker of the early 70s — 44 goals in 71-72
+    1968: 70,
+    1970: 73,
+    1972: 77,   // Peak — UEFA Cup, League Cup; England's lead striker
+    1974: 73,
+  },
+
+  jamie_vardy: {
+    2016: 79,   // Euro 2016 — top form after historic PL title
+    2018: 83,   // WC 2018 — scored vs Iran, pace terrifying at 31
+    2020: 79,
+    2022: 74,
+  },
+
+  theo_walcott: {
+    2006: 68,   // 17yo at WC — selected but didn't play; pace already frightening
+    2008: 73,
+    2010: 75,
+    2012: 78,   // Peak Arsenal — 14 PL goals, PFA Team of Year
+    2014: 76,
+    2016: 72,
+    2018: 68,
+  },
 }

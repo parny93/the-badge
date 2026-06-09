@@ -28,6 +28,19 @@ const INTL_OVERRIDES: Record<string, { from?: number; to?: number }> = {
   david_seaman:     { to: 2002 },  // last cap Sep 2002; Ronaldinho ended England career
   sol_campbell:     { to: 2006 },  // last meaningful tournament; drifted out 2007
   emile_heskey:     { to: 2010 },  // retired from England after 2010 WC
+  // New players
+  bobby_charlton:   { to: 1970 },  // last cap 1970 WC; retired from England
+  martin_chivers:   { to: 1974 },  // last cap 1974
+  darren_anderton:  { to: 2001 },  // last cap 2001
+  graeme_le_saux:   { to: 2000 },  // last cap 2000 after Euro 2000
+  robbie_fowler:    { to: 2002 },  // last cap 2002
+  andy_cole:        { to: 2002 },  // last cap 2002
+  martin_keown:     { to: 2002 },  // last cap 2002
+  wayne_bridge:     { to: 2010 },  // withdrew from 2010 WC squad
+  jack_wilshere:    { to: 2016 },  // injuries effectively ended international career
+  james_milner:     { to: 2016 },  // last cap 2016
+  theo_walcott:     { to: 2018 },  // last cap 2018
+  jamie_vardy:      { to: 2021 },  // retired from international football after Euro 2020
 }
 
 export function eligibleYears(player: Player): { from: number; to: number } {

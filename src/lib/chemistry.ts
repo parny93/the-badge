@@ -1,43 +1,11 @@
 import {
-  Player, RatedPlayer, Position, PlayerRole, FormationSlot, ChemistryReport, ChemistryNote,
+  Player, Position, FormationSlot, ChemistryReport, ChemistryNote,
+  ChemistryStyle, PlayerChemEntry, RatedPlayer,
 } from '@/types'
 
-// ─── Role derivation ──────────────────────────────────────────────────────────
-// We derive a footballing role from a player's primary position + attributes so
-// we don't have to hand-tag every player. This drives the balance analysis.
+// ─── Position coordinates (kept for familiarity() used by teamStrength.ts) ──
 
-export function deriveRole(player: Player): PlayerRole {
-  const pos = player.positions[0]
-  const a = player.peakAttributes
-
-  switch (pos) {
-    case 'GK': return 'GK'
-    case 'RB':
-    case 'LB': return 'FB'
-    case 'CB': return 'CB'
-    case 'CDM': return 'DM'
-    case 'CM':
-      if (a.defending >= 80) return 'DM'          // disciplined holder (Rice, Hargreaves)
-      if (a.passing >= 87) return 'DLP'           // deep playmaker (Carrick, Scholes)
-      return 'B2B'                                 // runner (Lampard, Gerrard, Robson)
-    case 'CAM': return 'AP'
-    case 'RM':
-    case 'LM':
-    case 'RW':
-    case 'LW': return 'WIDE'
-    case 'ST':
-      if (a.physical >= 85) return 'TARGET'        // Shearer, Hurst, Heskey
-      if (a.pace >= 88) return 'PACE'              // Owen, Rashford
-      return 'POACHER'                             // Lineker, Greaves, Kane-ish
-    default: return 'B2B'
-  }
-}
-
-// ─── Position familiarity ─────────────────────────────────────────────────────
-// Coordinate model: each position sits at (x,y) on the pitch. Familiarity falls
-// off with distance from a player's natural position. Listed positions are full.
-
-const POS_COORDS: Record<Position, [number, number]> = {
+export const POS_COORDS: Record<Position, [number, number]> = {
   GK:  [50, 5],
   CB:  [50, 25], RB: [85, 28], LB: [15, 28],
   CDM: [50, 42], CM: [50, 55], CAM: [50, 68],
@@ -46,29 +14,163 @@ const POS_COORDS: Record<Position, [number, number]> = {
   ST:  [50, 85],
 }
 
+// familiarity() is still used by teamStrength.ts for phase contribution scaling
 export function familiarity(player: Player, slot: Position): number {
-  // Listed as a natural position
   if (player.positions.includes(slot)) {
     return player.positions[0] === slot ? 1.0 : 0.95
   }
-  // GK is a hard boundary — never play an outfielder in goal (or vice versa)
   const naturalIsGK = player.positions[0] === 'GK'
   if (naturalIsGK !== (slot === 'GK')) return 0.4
-
   const [ax, ay] = POS_COORDS[player.positions[0]]
   const [bx, by] = POS_COORDS[slot]
   const dist = Math.hypot(ax - bx, ay - by)
-  // dist ~0 → 1.0, dist ~70 (opposite flank / line) → ~0.68
   return Math.max(0.65, Math.min(0.95, 1 - dist / 200))
 }
 
-// ─── Squad balance analysis ───────────────────────────────────────────────────
+// ─── FUT-style chemistry style derivation ────────────────────────────────────
+// Derived from primary position + peak attributes. No per-player hand-tagging.
+
+export function deriveChemistryStyle(player: Player): ChemistryStyle {
+  const pos = player.positions[0]
+  const a = player.peakAttributes
+
+  // Goalkeepers
+  if (pos === 'GK') return a.pace >= 58 ? 'SWEEPER_GK' : 'STOPPER_GK'
+
+  // Centre-backs
+  if (pos === 'CB') return a.pace >= 80 ? 'SHADOW' : 'ANCHOR'
+
+  // Full-backs
+  if (pos === 'RB' || pos === 'LB') return a.pace >= 78 ? 'SHADOW' : 'ANCHOR'
+
+  // Defensive midfielder — always an anchor
+  if (pos === 'CDM') return 'ANCHOR'
+
+  // Central midfielder
+  if (pos === 'CM') {
+    if (a.defending >= 83) return 'ANCHOR'     // Rice, Hargreaves in CM
+    if (a.passing >= 88) return 'MAESTRO'      // Scholes, Hoddle, Foden, Wilkins
+    if (a.dribbling >= 85) return 'PLAYMAKER'  // Gascoigne, Wilshere
+    if (a.physical >= 80) return 'ENGINE'      // Gerrard, Lampard, Robson, Henderson
+    return 'ARCHITECT'                         // Carrick, Charlton B (lower energy, passing-focused)
+  }
+
+  // Attacking midfielder
+  if (pos === 'CAM') {
+    if (a.dribbling >= 85) return 'PLAYMAKER'  // Gascoigne, Bellingham
+    if (a.passing >= 88) return 'MAESTRO'      // Hoddle
+    return 'ARCHITECT'                         // Platt, Mount
+  }
+
+  // Wide midfielders / wingers
+  if (pos === 'RM' || pos === 'LM' || pos === 'RW' || pos === 'LW') {
+    if (a.passing >= 88) return 'ARCHITECT'    // Beckham — deliverer supreme
+    if (a.pace >= 87) return 'CATALYST'        // Walcott, Sterling
+    if (a.dribbling >= 85) return 'CREATIVE'   // Barnes, Waddle, Saka
+    return 'CREATIVE'
+  }
+
+  // Strikers
+  if (pos === 'ST') {
+    // Pure pace merchants
+    if (a.pace >= 88) return 'HUNTER'
+    // Physical target men (powerful but not rapid and not clinical enough for SNIPER)
+    if (a.physical >= 83 && a.shooting < 83 && a.pace < 82) return 'TARGET'
+    // Clinical finishers (world-class shooting but not blazing pace)
+    if (a.shooting >= 90 && a.pace < 86) return 'SNIPER'
+    // Quick enough to be a running threat
+    if (a.pace >= 82) return 'HUNTER'
+    // Default: powerful complete striker
+    return 'POWERHOUSE'
+  }
+
+  return 'ENGINE'
+}
+
+// ─── Per-player pip score ─────────────────────────────────────────────────────
+// 3 pips = natural primary position
+// 2 pips = tagged secondary position
+// 1 pip  = adjacent group or close coordinate
+// 0 pips = wrong side of the pitch or nowhere near
+
+// Local copy of the role groups (mirrors playerPool.ts to avoid circular deps)
+const ROLE_GROUPS: Position[][] = [
+  ['CDM', 'CM', 'CAM'],
+  ['RM', 'RW'],
+  ['LM', 'LW'],
+]
+
+export function playerPips(player: Player, slot: Position): number {
+  // Hard GK boundary
+  const isGK = player.positions[0] === 'GK'
+  if (isGK !== (slot === 'GK')) return 0
+
+  // Natural primary position: 3 pips
+  if (player.positions[0] === slot) return 3
+
+  // Tagged secondary position: 2 pips
+  if (player.positions.includes(slot)) return 2
+
+  // Adjacent role group: 1 pip
+  const group = ROLE_GROUPS.find(g => g.includes(slot))
+  if (group && player.positions.some(p => group.includes(p))) return 1
+
+  // Close coordinate neighbour: 1 pip
+  const [ax, ay] = POS_COORDS[player.positions[0]]
+  const [bx, by] = POS_COORDS[slot]
+  if (Math.hypot(ax - bx, ay - by) <= 24) return 1
+
+  return 0
+}
+
+// ─── Style labels & colours ───────────────────────────────────────────────────
+
+export const STYLE_LABEL: Record<ChemistryStyle, string> = {
+  ANCHOR:     'Anchor',
+  SHADOW:     'Shadow',
+  ENGINE:     'Engine',
+  MAESTRO:    'Maestro',
+  PLAYMAKER:  'Playmaker',
+  ARCHITECT:  'Architect',
+  CATALYST:   'Catalyst',
+  CREATIVE:   'Creative',
+  POWERHOUSE: 'Powerhouse',
+  HUNTER:     'Hunter',
+  SNIPER:     'Sniper',
+  TARGET:     'Target',
+  STOPPER_GK: 'Stopper',
+  SWEEPER_GK: 'Sweeper',
+}
+
+export const STYLE_COLOUR: Record<ChemistryStyle, string> = {
+  STOPPER_GK: 'text-slate-400',
+  SWEEPER_GK: 'text-slate-300',
+  ANCHOR:     'text-sky-400',
+  SHADOW:     'text-cyan-400',
+  ENGINE:     'text-orange-400',
+  MAESTRO:    'text-violet-400',
+  PLAYMAKER:  'text-purple-400',
+  ARCHITECT:  'text-indigo-400',
+  CATALYST:   'text-green-400',
+  CREATIVE:   'text-emerald-400',
+  POWERHOUSE: 'text-red-400',
+  HUNTER:     'text-rose-400',
+  SNIPER:     'text-yellow-400',
+  TARGET:     'text-amber-500',
+}
+
+// ─── Team chemistry analysis ──────────────────────────────────────────────────
+// FUT-inspired scoring model:
+//   • Base (up to 76): sum of each player's pips / 33 (11 players × 3 max) × 76
+//   • Three style synergy bonuses (up to +8 each = +24 max)
+//   • Small modifiers for CB pace, world-class GK, etc.
+// Perfect team = everyone in position (76) + all three synergies (24) = 100
 
 interface SlottedPlayer {
   player: RatedPlayer
   slot: FormationSlot
-  role: PlayerRole
-  fam: number
+  style: ChemistryStyle
+  pips: number
 }
 
 export function analyzeChemistry(
@@ -80,119 +182,139 @@ export function analyzeChemistry(
     if (p) filled.push({
       player: p,
       slot: slots[i],
-      role: deriveRole(p),
-      fam: familiarity(p, slots[i].position),
+      style: deriveChemistryStyle(p),
+      pips: playerPips(p, slots[i].position),
     })
   })
 
   const notes: ChemistryNote[] = []
-  let score = 100
   let attackMod = 0
   let defenseMod = 0
 
-  // ── 1. Out-of-position players ──────────────────────────────────────────
-  for (const sp of filled) {
-    if (sp.fam < 0.9) {
-      const severity = (1 - sp.fam)
-      const surname = sp.player.name.split(' ').pop()
-      notes.push({
-        type: 'bad',
-        text: `${surname} is out of position at ${sp.slot.label} — not his game`,
-      })
-      score -= Math.round(severity * 40)
-      // Out-of-position hurts the relevant phase
-      const grp = sp.slot.position
-      if (['RW', 'LW', 'ST'].includes(grp)) attackMod -= Math.round(severity * 22)
-      else if (['CB', 'RB', 'LB', 'CDM'].includes(grp)) defenseMod -= Math.round(severity * 22)
-    }
+  // ── 1. Per-player pip base score ───────────────────────────────────────────
+  const totalPips = filled.reduce((sum, sp) => sum + sp.pips, 0)
+  const rawScore = (totalPips / 33) * 76   // 33 = 11 players × 3 pips max
+
+  // ── 2. Out-of-position notes (no hard penalty — pips already reflect it) ──
+  const oop = filled.filter(sp => sp.pips <= 1)
+  for (const sp of oop) {
+    const surname = sp.player.name.split(' ').pop()!
+    notes.push({
+      type: 'bad',
+      text: sp.pips === 0
+        ? `${surname} is completely out of position at ${sp.slot.label}`
+        : `${surname} is a stretch at ${sp.slot.label} — only 1 pip`,
+    })
   }
 
-  // ── 2. Midfield balance — the Lampard–Gerrard problem ────────────────────
+  // ── 3. Style synergy bonuses ───────────────────────────────────────────────
+  let bonus = 0
+
+  // Synergy A: Defensive foundation (+8)
+  // At least one ANCHOR or SHADOW in the defensive block (CB/FB/CDM)
+  const hasDefenderAnchor = filled.some(sp =>
+    ['CB', 'RB', 'LB'].includes(sp.slot.position) &&
+    (sp.style === 'ANCHOR' || sp.style === 'SHADOW')
+  )
+  const hasMidAnchor = filled.some(sp =>
+    sp.slot.position === 'CDM' ||
+    (sp.slot.position === 'CM' && sp.style === 'ANCHOR')
+  )
+  if (hasDefenderAnchor && hasMidAnchor) {
+    bonus += 8
+    defenseMod += 5
+    notes.push({ type: 'good', text: 'Defensive anchor locked in — the back four is well protected' })
+  } else if (hasDefenderAnchor || hasMidAnchor) {
+    bonus += 4
+    defenseMod += 2
+  }
+
+  // Synergy B: Creative midfield (+8)
   const centralMids = filled.filter(sp =>
     ['CDM', 'CM', 'CAM'].includes(sp.slot.position)
   )
-  if (centralMids.length >= 3) {
-    // A true anchor screens the back four. A deep playmaker controls but does NOT
-    // do that defensive job — which is exactly why Scholes behind Lampard & Gerrard
-    // still left England exposed.
-    // Anchor = a player who actually does the destroyer's job (by role), not just
-    // whoever happens to occupy the CDM slot. A playmaker parked at CDM is not an anchor.
-    const anchors = centralMids.filter(sp => sp.role === 'DM')
-    const deepCreators = centralMids.filter(sp => sp.role === 'DLP')
-    const runners = centralMids.filter(sp => sp.role === 'B2B' || sp.role === 'AP')
-
-    if (anchors.length === 0 && runners.length >= 2) {
-      if (deepCreators.length === 0) {
-        notes.push({
-          type: 'bad',
-          text: 'No holding midfielder — you\'ll be overrun in transition. (Ask Sven about Lampard & Gerrard.)',
-        })
-        score -= 30
-        defenseMod -= 11
-      } else {
-        notes.push({
-          type: 'bad',
-          text: 'Loads of quality, but no destroyer to protect the back four — it never worked for Sven either',
-        })
-        score -= 22
-        defenseMod -= 8
-      }
-    } else if (anchors.length >= 1) {
-      const distinctRoles = new Set(centralMids.map(sp => sp.role)).size
-      if (distinctRoles >= 3) {
-        notes.push({ type: 'good', text: 'Balanced midfield — anchor, creator and runner all covered' })
-        score += 6
-        attackMod += 3
-        defenseMod += 3
-      } else {
-        notes.push({ type: 'good', text: 'Midfield has a solid base to build from' })
-        score += 3
-      }
-    }
+  const hasCreativeMid = centralMids.some(sp =>
+    ['MAESTRO', 'ARCHITECT', 'PLAYMAKER'].includes(sp.style)
+  )
+  const hasWorkerMid = centralMids.some(sp =>
+    ['ENGINE', 'ANCHOR'].includes(sp.style)
+  )
+  if (hasCreativeMid && hasWorkerMid) {
+    bonus += 8
+    attackMod += 3
+    defenseMod += 2
+    notes.push({ type: 'good', text: 'Balanced midfield — craft and graft in equal measure' })
+  } else if (hasCreativeMid) {
+    bonus += 4
+    attackMod += 2
+    notes.push({ type: 'good', text: 'Creative midfielder pulling the strings — this team can unlock anyone' })
+  } else if (centralMids.length >= 2 && !hasCreativeMid) {
+    notes.push({
+      type: 'info',
+      text: 'All runners in midfield — dangerous going forward, but exposed when you turn the ball over',
+    })
   }
 
-  // ── 3. Pace at the back ──────────────────────────────────────────────────
+  // Synergy C: Forward threat (+8)
+  const attackers = filled.filter(sp =>
+    ['ST', 'RW', 'LW', 'RM', 'LM'].includes(sp.slot.position)
+  )
+  const hasPaceAttack = attackers.some(sp =>
+    sp.style === 'HUNTER' || sp.style === 'CATALYST'
+  )
+  const hasFocalAttack = attackers.some(sp =>
+    sp.style === 'POWERHOUSE' || sp.style === 'TARGET' || sp.style === 'SNIPER'
+  )
+  if (hasPaceAttack && hasFocalAttack) {
+    bonus += 8
+    attackMod += 5
+    notes.push({ type: 'good', text: 'Strike force has focal point and pace in behind — defenders face a nightmare' })
+  } else if (hasPaceAttack || hasFocalAttack) {
+    bonus += 4
+    attackMod += 2
+  }
+
+  // ── 4. CB pace check ──────────────────────────────────────────────────────
   const cbs = filled.filter(sp => sp.slot.position === 'CB')
   if (cbs.length >= 2) {
-    const slow = cbs.filter(sp => sp.player.peakAttributes.pace < 64)
-    if (slow.length === cbs.length) {
-      notes.push({ type: 'bad', text: 'Slow centre-back pairing — vulnerable to pace in behind' })
-      score -= 6
-      defenseMod -= 5
-    } else if (cbs.every(sp => sp.player.peakAttributes.pace >= 75)) {
-      notes.push({ type: 'good', text: 'Quick, mobile centre-backs — can defend a high line' })
-      score += 3
-      defenseMod += 3
+    const avgPace = cbs.reduce((s, sp) => s + sp.player.peakAttributes.pace, 0) / cbs.length
+    if (avgPace < 64) {
+      notes.push({ type: 'bad', text: 'Slow centre-back pairing — one ball in behind and they\'re in trouble' })
+      bonus -= 4
+      defenseMod -= 4
+    } else if (avgPace >= 78) {
+      notes.push({ type: 'good', text: 'Quick, mobile CBs — confident playing a high line' })
+      defenseMod += 2
     }
   }
 
-  // ── 4. Attacking outlet ──────────────────────────────────────────────────
-  const forwards = filled.filter(sp => ['ST', 'RW', 'LW'].includes(sp.slot.position))
-  const hasTarget = forwards.some(sp => sp.role === 'TARGET')
-  const hasPace = forwards.some(sp => sp.role === 'PACE' || sp.player.peakAttributes.pace >= 85)
-  if (forwards.length > 0 && hasTarget && hasPace) {
-    notes.push({ type: 'good', text: 'Strike force has both a focal point and pace in behind' })
-    score += 4
-    attackMod += 3
-  } else if (forwards.length >= 2 && !hasPace) {
-    notes.push({ type: 'info', text: 'No real pace up top — you\'ll need to break teams down patiently' })
-  }
-
-  // ── 5. Goalkeeper present? ────────────────────────────────────────────────
+  // ── 5. World-class goalkeeper ─────────────────────────────────────────────
   const gk = filled.find(sp => sp.slot.position === 'GK')
   if (gk && (gk.player.peakAttributes.gk ?? 0) >= 90) {
-    notes.push({ type: 'good', text: `${gk.player.name.split(' ').pop()} is a world-class keeper — pens hold no fear` })
-    score += 2
+    const surname = gk.player.name.split(' ').pop()!
+    notes.push({ type: 'good', text: `${surname} between the sticks — opponents will need to be perfect` })
+    bonus += 2
   }
 
-  score = Math.max(35, Math.min(100, Math.round(score)))
+  const score = Math.max(35, Math.min(100, Math.round(rawScore + bonus)))
 
   if (notes.length === 0) {
     notes.push({ type: 'info', text: 'A sensible, well-balanced selection' })
   }
 
-  return { score, notes, attackMod, defenseMod }
+  // ── Per-player chem data (FUT-style) ──────────────────────────────────────
+  const players: PlayerChemEntry[] = filled.map(sp => ({
+    playerId: sp.player.id,
+    name: sp.player.name,
+    pips: sp.pips,
+    style: sp.style,
+    slotLabel: sp.slot.label,
+  }))
+
+  return { score, notes, attackMod, defenseMod, players }
 }
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 export const CHEM_LABEL = (score: number): string =>
   score >= 90 ? 'Perfect Understanding' :
