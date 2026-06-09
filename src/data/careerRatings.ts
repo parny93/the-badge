@@ -978,4 +978,224 @@ export const CAREER_RATINGS: Record<string, Record<number, number>> = {
     2016: 72,
     2018: 68,
   },
+
+  // ─── Era-gap defenders ────────────────────────────────────────────────────
+
+  jimmy_armfield: {
+    1958: 70,
+    1962: 77,
+    1964: 80,   // England's first-choice RB, captain
+    1966: 76,
+  },
+
+  george_cohen: {
+    1962: 72,
+    1966: 80,   // World Cup winner — peak season
+    1968: 74,
+  },
+
+  keith_newton: {
+    1964: 68,
+    1966: 74,
+    1968: 77,   // Peak form — Blackburn/Everton
+    1970: 75,   // 1970 WC squad
+  },
+
+  paul_parker: {
+    1986: 70,
+    1988: 74,
+    1990: 79,   // Peak — World Cup semi-final; QPR then Man Utd
+    1992: 77,
+    1994: 73,
+  },
+
+  ray_wilson: {
+    1960: 74,
+    1962: 79,
+    1966: 83,   // World Cup winner — best LB in the tournament
+    1968: 75,
+  },
+
+  mick_mills: {
+    1966: 62,
+    1970: 69,
+    1974: 75,
+    1978: 78,   // Peak — Ipswich FA Cup; regular England full-back
+    1980: 77,
+    1982: 73,
+  },
+
+  dave_watson: {
+    1970: 69,
+    1974: 77,
+    1976: 79,
+    1978: 79,   // Peak — Sunderland, Man City, England regular
+    1980: 76,
+    1982: 72,
+  },
+
+  phil_thompson: {
+    1974: 70,
+    1978: 78,
+    1980: 80,   // Peak — Liverpool dominate Europe; Thompson is captain
+    1982: 76,
+    1984: 70,
+  },
+
+  phil_jagielka: {
+    2006: 72,
+    2008: 75,
+    2010: 78,
+    2012: 80,   // Peak — England first choice
+    2014: 79,
+    2016: 74,
+    2018: 68,
+  },
+
+  mark_wright: {
+    1986: 74,
+    1988: 77,
+    1990: 81,   // Peak — Italia '90 semi-final run; scored vs Belgium
+    1992: 79,
+    1994: 74,
+    1996: 68,
+  },
+
+  leighton_baines: {
+    2008: 72,
+    2010: 76,
+    2012: 80,
+    2014: 82,   // Peak — Everton's outstanding LB; excellent set-pieces
+    2016: 75,
+  },
+
+  danny_rose: {
+    2012: 68,
+    2014: 73,
+    2016: 78,
+    2018: 80,   // Peak — Spurs LB; excellent WC campaign
+    2020: 70,
+  },
+
+  ben_chilwell: {
+    2018: 73,
+    2020: 79,
+    2022: 83,   // Peak — Chelsea starting LB; attacking threat
+    2024: 80,
+    2026: 78,
+  },
+
+  eric_dier: {
+    2016: 76,
+    2018: 79,
+    2020: 80,
+    2022: 79,   // Reinvented as CB at Spurs and England
+    2024: 74,
+  },
+
+  tyrone_mings: {
+    2019: 74,
+    2020: 78,
+    2022: 80,   // Peak — regular England CB under Southgate
+  },
+
+  marc_guehi: {
+    2022: 75,
+    2024: 80,
+    2026: 82,   // Rising star — Crystal Palace then regular England CB
+  },
+
+  // ─── Era-gap forwards ─────────────────────────────────────────────────────
+
+  dominic_calvert_lewin: {
+    2020: 76,
+    2021: 83,   // Peak — 16 PL goals for Everton; England's first-choice ST
+    2022: 80,
+    2024: 78,
+    2026: 77,
+  },
+
+  ollie_watkins: {
+    2020: 72,
+    2022: 78,
+    2024: 83,   // Peak — Aston Villa's top scorer; won England's EURO semi-final
+    2026: 83,
+  },
+
+  // ─── Additional era-gap players ───────────────────────────────────────────
+
+  norman_hunter: {
+    1966: 77,
+    1968: 80,
+    1970: 81,   // Peak — Leeds dominate England football
+    1972: 80,
+    1974: 77,
+    1976: 72,
+  },
+
+  michael_keane: {
+    2016: 72,
+    2018: 79,   // Peak — regular England CB under Southgate
+    2020: 74,
+  },
+
+  levi_colwill: {
+    2022: 72,
+    2024: 78,
+    2026: 82,   // Rising England regular; CB and LB for Chelsea
+  },
+
+  tony_dorigo: {
+    1988: 73,
+    1990: 78,
+    1992: 80,   // Peak — Leeds title-winning season; Euro squad
+    1994: 75,
+  },
+
+  wes_brown: {
+    2002: 73,
+    2004: 77,
+    2006: 79,   // Peak — Man Utd first team; versatile and athletic
+    2008: 76,
+    2010: 72,
+  },
+
+  peter_bonetti: {
+    1964: 74,
+    1966: 77,
+    1968: 79,   // Peak — Chelsea FA Cup era
+    1970: 76,
+    1972: 70,
+  },
+
+  callum_wilson: {
+    2018: 74,
+    2020: 78,
+    2022: 80,   // Peak — Newcastle's top scorer; strong England cameos
+    2024: 76,
+  },
+
+  tammy_abraham: {
+    2020: 73,
+    2022: 78,
+    2024: 81,   // Peak — Roma form; physical presence at 6ft4
+    2026: 79,
+  },
+
+  francis_lee: {
+    1966: 72,
+    1968: 77,
+    1970: 80,   // Peak — Man City title; regular England scorer
+    1972: 78,
+    1974: 72,
+  },
+
+  mick_channon: {
+    1970: 68,
+    1972: 74,
+    1974: 78,
+    1976: 80,   // Peak — Southampton era; 46 caps, 21 goals
+    1978: 77,
+    1980: 70,
+  },
 }

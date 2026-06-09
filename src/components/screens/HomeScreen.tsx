@@ -22,7 +22,7 @@ const MODES = [
   },
 ]
 
-const STATS = ['102 legends', '16 World Cups', 'FUT chemistry', '5 formations']
+const STATS = ['120+ legends', '16 World Cups', 'FUT chemistry', '5 formations']
 
 export default function HomeScreen({ dispatch }: Props) {
   return (
@@ -79,7 +79,7 @@ export default function HomeScreen({ dispatch }: Props) {
       {/* Feature highlights */}
       <div className="w-full max-w-sm grid grid-cols-2 gap-3 mb-10">
         <div className="rounded-xl bg-white/5 border border-white/8 px-4 py-3.5">
-          <div className="text-amber-400 font-black text-2xl leading-none">102</div>
+          <div className="text-amber-400 font-black text-2xl leading-none">120+</div>
           <div className="text-slate-400 text-xs mt-1 leading-snug">England legends from every era</div>
         </div>
         <div className="rounded-xl bg-white/5 border border-white/8 px-4 py-3.5">

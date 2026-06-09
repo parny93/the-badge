@@ -41,6 +41,46 @@ const INTL_OVERRIDES: Record<string, { from?: number; to?: number }> = {
   james_milner:     { to: 2016 },  // last cap 2016
   theo_walcott:     { to: 2018 },  // last cap 2018
   jamie_vardy:      { to: 2021 },  // retired from international football after Euro 2020
+  // Stuart Pearce's last cap was 1999 (37) — outlasted default age-35 cutoff
+  stuart_pearce:    { to: 1999 },
+  // 1960s full-backs
+  jimmy_armfield:   { to: 1966 },  // England's captain at 1966 WC; last cap 1966
+  george_cohen:     { to: 1969 },  // World Cup winner; last cap 1969
+  keith_newton:     { to: 1971 },  // 1970 WC; retired 1971
+  ray_wilson:       { to: 1968 },  // World Cup winner; car crash ended career
+  // 1970–80s full-backs
+  terry_cooper:     { to: 1975 },  // last cap 1975
+  mick_mills:       { to: 1982 },  // played both flanks; last England tournament 1982
+  phil_neal:        { to: 1983 },  // last cap 1983
+  kenny_sansom:     { to: 1988 },  // 86 caps; last cap 1988
+  // 1986–94 defenders
+  paul_parker:      { to: 1999 },  // last cap 1994, extended for game coverage
+  mark_wright:      { to: 1996 },  // last cap 1996
+  phil_jagielka:    { to: 2017 },  // last cap 2017
+  // 2000s–2010s defenders
+  leighton_baines:  { to: 2015 },  // last cap 2015
+  danny_rose:       { to: 2019 },  // last cap 2019
+  // 2018–2022 CB window
+  tyrone_mings:     { from: 2019, to: 2022 },
+  eric_dier:        { from: 2015 },  // CB/CDM role from 2015
+  // 2020s generation
+  marc_guehi:       { from: 2021 },
+  dominic_calvert_lewin: { from: 2019 },
+  ollie_watkins:    { from: 2020 },
+  // Era-gap players (secondary additions)
+  norman_hunter:    { to: 1978 },  // last cap 1974; extended slightly for coverage
+  michael_keane:    { from: 2017, to: 2019 },
+  levi_colwill:     { from: 2022 },
+  tony_dorigo:      { to: 1994 },  // last cap 1994
+  wes_brown:        { from: 2001, to: 2010 },
+  peter_bonetti:    { to: 1974 },  // backup to Banks; extended for GK coverage
+  callum_wilson:    { from: 2018, to: 2023 },
+  tammy_abraham:    { from: 2020 },
+  // 1966–1978 era strikers
+  francis_lee:      { from: 1966, to: 1972 },  // 27 caps 1968–1972; available from 1966 (22yo, Man City pro)
+  mick_channon:     { from: 1972, to: 1978 },  // 46 caps 1972–1977; extended to 1978
+  // Fix Kyle Walker's window — played at 2026 WC
+  kyle_walker:      { to: 2026 },
 }
 
 export function eligibleYears(player: Player): { from: number; to: number } {
