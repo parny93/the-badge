@@ -10,6 +10,70 @@ interface Props {
   compact?: boolean
 }
 
+// ─── Pitch markings SVG ───────────────────────────────────────────────────────
+// Proportions based on a standard 105m × 68m pitch, mapped to a 100×100 viewBox.
+// preserveAspectRatio="none" stretches to fill the container; the slight ellipse
+// on circles is imperceptible at typical screen sizes.
+//
+// Key measurements (as % of pitch dimensions):
+//   Penalty area  — 40.32m wide (59.3%), 16.5m deep (15.7%)   → x=20 w=60 h=16
+//   6-yard box    — 18.32m wide (26.9%), 5.5m deep (5.2%)     → x=36.5 w=27 h=5.5
+//   Penalty spot  — 11m from goal (10.5%)                     → y=10.5 / 89.5
+//   Penalty arc   — 9.15m radius (8.7%)                       → r=9
+//   Corner arc    — 1m radius (1.5%)                          → r=1.5
+//   Centre circle — 9.15m radius                              → r=9
+
+function PitchMarkings() {
+  return (
+    <svg
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      style={{ opacity: 0.38 }}
+    >
+      {/* ── Touchline border ── */}
+      <rect x="0" y="0" width="100" height="100" fill="none" stroke="white" strokeWidth="0.6" />
+
+      {/* ── Top goal (opponent) ── */}
+      {/* Goal frame (sits on the goal line) */}
+      <rect x="43" y="-2.5" width="14" height="2.5" fill="none" stroke="white" strokeWidth="0.5" />
+      {/* 6-yard box */}
+      <rect x="36.5" y="0" width="27" height="5.5" fill="none" stroke="white" strokeWidth="0.45" />
+      {/* Penalty area */}
+      <rect x="20" y="0" width="60" height="16" fill="none" stroke="white" strokeWidth="0.5" />
+      {/* Penalty spot */}
+      <circle cx="50" cy="10.5" r="0.9" fill="white" />
+      {/* Penalty arc — only the portion outside the penalty area (below y=16) */}
+      <path d="M 42.88 16 A 9 9 0 0 1 57.12 16" fill="none" stroke="white" strokeWidth="0.5" />
+
+      {/* ── Halfway line + centre circle ── */}
+      <line x1="0" y1="50" x2="100" y2="50" stroke="white" strokeWidth="0.5" />
+      <circle cx="50" cy="50" r="9" fill="none" stroke="white" strokeWidth="0.5" />
+      <circle cx="50" cy="50" r="0.9" fill="white" />
+
+      {/* ── Bottom goal (England's) ── */}
+      {/* Goal frame */}
+      <rect x="43" y="100" width="14" height="2.5" fill="none" stroke="white" strokeWidth="0.5" />
+      {/* 6-yard box */}
+      <rect x="36.5" y="94.5" width="27" height="5.5" fill="none" stroke="white" strokeWidth="0.45" />
+      {/* Penalty area */}
+      <rect x="20" y="84" width="60" height="16" fill="none" stroke="white" strokeWidth="0.5" />
+      {/* Penalty spot */}
+      <circle cx="50" cy="89.5" r="0.9" fill="white" />
+      {/* Penalty arc — only outside penalty area (above y=84) */}
+      <path d="M 42.88 84 A 9 9 0 0 0 57.12 84" fill="none" stroke="white" strokeWidth="0.5" />
+
+      {/* ── Corner arcs ── */}
+      <path d="M 2 0 A 2 2 0 0 1 0 2"   fill="none" stroke="white" strokeWidth="0.4" />
+      <path d="M 98 0 A 2 2 0 0 0 100 2" fill="none" stroke="white" strokeWidth="0.4" />
+      <path d="M 0 98 A 2 2 0 0 1 2 100" fill="none" stroke="white" strokeWidth="0.4" />
+      <path d="M 100 98 A 2 2 0 0 0 98 100" fill="none" stroke="white" strokeWidth="0.4" />
+    </svg>
+  )
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
 export default function FormationDisplay({ squad, formation, activeIndex, onSelectSlot, compact }: Props) {
   const slots = FORMATIONS[formation]
   const pitchH = compact ? 260 : 360
@@ -17,22 +81,28 @@ export default function FormationDisplay({ squad, formation, activeIndex, onSele
   return (
     <div
       className="relative w-full rounded-xl overflow-hidden"
-      style={{ height: pitchH, background: 'linear-gradient(180deg, #166534 0%, #15803d 40%, #16a34a 60%, #166534 100%)' }}
+      style={{
+        height: pitchH,
+        // Alternating grass stripes — 10 horizontal bands
+        background: `repeating-linear-gradient(
+          to bottom,
+          #165e2f 0%,
+          #165e2f 10%,
+          #1c7238 10%,
+          #1c7238 20%
+        )`,
+      }}
     >
+      {/* Edge vignette for depth */}
+      <div
+        className="absolute inset-0 pointer-events-none rounded-xl"
+        style={{
+          boxShadow: 'inset 0 0 32px rgba(0,0,0,0.45)',
+        }}
+      />
+
       {/* Pitch markings */}
-      <svg className="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 100 100" preserveAspectRatio="none">
-        {/* Centre circle */}
-        <circle cx="50" cy="50" r="12" fill="none" stroke="white" strokeWidth="0.5" />
-        <circle cx="50" cy="50" r="0.8" fill="white" />
-        {/* Halfway line */}
-        <line x1="0" y1="50" x2="100" y2="50" stroke="white" strokeWidth="0.5" />
-        {/* Penalty areas */}
-        <rect x="22" y="82" width="56" height="16" fill="none" stroke="white" strokeWidth="0.5" />
-        <rect x="22" y="2" width="56" height="16" fill="none" stroke="white" strokeWidth="0.5" />
-        {/* Goals */}
-        <rect x="38" y="97" width="24" height="3" fill="none" stroke="white" strokeWidth="0.5" />
-        <rect x="38" y="0" width="24" height="3" fill="none" stroke="white" strokeWidth="0.5" />
-      </svg>
+      <PitchMarkings />
 
       {/* Player tokens */}
       {slots.map((slot, i) => {
@@ -44,10 +114,24 @@ export default function FormationDisplay({ squad, formation, activeIndex, onSele
         const bottom = `${slot.y}%`
         const size = compact ? 36 : 44
 
+        // Token ring colour based on state
+        const ringCls = isActive
+          ? 'ring-4 ring-amber-400'
+          : isFilled
+            ? 'ring-2 ring-white/50'
+            : 'ring-2 ring-white/30'
+
+        // Token background
+        const bgCls = isActive
+          ? 'bg-amber-400 text-slate-900'
+          : isFilled
+            ? 'bg-white text-slate-900'
+            : 'bg-white/15 text-white/70'
+
         return (
           <div
             key={i}
-            className="absolute flex flex-col items-center gap-0.5 cursor-pointer"
+            className="absolute flex flex-col items-center gap-0.5 cursor-pointer select-none"
             style={{
               left,
               bottom,
@@ -56,15 +140,9 @@ export default function FormationDisplay({ squad, formation, activeIndex, onSele
             }}
             onClick={() => onSelectSlot?.(i)}
           >
+            {/* Avatar circle */}
             <div
-              className={[
-                'rounded-full flex items-center justify-center font-bold text-xs transition-all',
-                isActive
-                  ? 'ring-4 ring-yellow-400 bg-yellow-400 text-slate-900'
-                  : isFilled
-                    ? 'bg-white text-slate-900 ring-2 ring-white/60'
-                    : 'bg-white/20 text-white ring-2 ring-white/40',
-              ].join(' ')}
+              className={`rounded-full flex items-center justify-center font-bold transition-all shadow-md ${ringCls} ${bgCls}`}
               style={{ width: size, height: size }}
             >
               {isFilled ? (
@@ -75,9 +153,18 @@ export default function FormationDisplay({ squad, formation, activeIndex, onSele
                 <span style={{ fontSize: compact ? 9 : 11 }}>{slot.label}</span>
               )}
             </div>
+
+            {/* Rating badge (non-compact only) */}
             {!compact && isFilled && (
-              <span className="text-white text-center font-medium leading-none bg-black/40 rounded px-1"
-                style={{ fontSize: 9, maxWidth: 52 }}>
+              <span
+                className="text-white text-center font-bold leading-none rounded px-1.5 py-0.5"
+                style={{
+                  fontSize: 9,
+                  maxWidth: 52,
+                  background: 'rgba(0,0,0,0.55)',
+                  backdropFilter: 'blur(2px)',
+                }}
+              >
                 {player.ratingAtYear}
               </span>
             )}

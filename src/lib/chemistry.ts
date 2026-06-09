@@ -35,56 +35,56 @@ export function deriveChemistryStyle(player: Player): ChemistryStyle {
   const a = player.peakAttributes
 
   // Goalkeepers
-  if (pos === 'GK') return a.pace >= 58 ? 'SWEEPER_GK' : 'STOPPER_GK'
+  if (pos === 'GK') return a.pace >= 58 ? 'LIBERO' : 'GUARDIAN'
 
   // Centre-backs
-  if (pos === 'CB') return a.pace >= 80 ? 'SHADOW' : 'ANCHOR'
+  if (pos === 'CB') return a.pace >= 80 ? 'RAZOR' : 'SENTINEL'
 
   // Full-backs
-  if (pos === 'RB' || pos === 'LB') return a.pace >= 78 ? 'SHADOW' : 'ANCHOR'
+  if (pos === 'RB' || pos === 'LB') return a.pace >= 78 ? 'RAZOR' : 'SENTINEL'
 
-  // Defensive midfielder — always an anchor
-  if (pos === 'CDM') return 'ANCHOR'
+  // Defensive midfielder — always a sentinel
+  if (pos === 'CDM') return 'SENTINEL'
 
   // Central midfielder
   if (pos === 'CM') {
-    if (a.defending >= 83) return 'ANCHOR'     // Rice, Hargreaves in CM
-    if (a.passing >= 88) return 'MAESTRO'      // Scholes, Hoddle, Foden, Wilkins
-    if (a.dribbling >= 85) return 'PLAYMAKER'  // Gascoigne, Wilshere
-    if (a.physical >= 80) return 'ENGINE'      // Gerrard, Lampard, Robson, Henderson
-    return 'ARCHITECT'                         // Carrick, Charlton B (lower energy, passing-focused)
+    if (a.defending >= 83) return 'SENTINEL'    // Rice, Hargreaves in CM
+    if (a.passing >= 88) return 'CONDUCTOR'     // Scholes, Hoddle, Foden, Wilkins
+    if (a.dribbling >= 85) return 'WIZARD'      // Gascoigne, Wilshere
+    if (a.physical >= 80) return 'DYNAMO'       // Gerrard, Lampard, Robson, Henderson
+    return 'SCHEMER'                            // Carrick, Charlton B (lower energy, passing-focused)
   }
 
   // Attacking midfielder
   if (pos === 'CAM') {
-    if (a.dribbling >= 85) return 'PLAYMAKER'  // Gascoigne, Bellingham
-    if (a.passing >= 88) return 'MAESTRO'      // Hoddle
-    return 'ARCHITECT'                         // Platt, Mount
+    if (a.dribbling >= 85) return 'WIZARD'      // Gascoigne, Bellingham
+    if (a.passing >= 88) return 'CONDUCTOR'     // Hoddle
+    return 'SCHEMER'                            // Platt, Mount
   }
 
   // Wide midfielders / wingers
   if (pos === 'RM' || pos === 'LM' || pos === 'RW' || pos === 'LW') {
-    if (a.passing >= 88) return 'ARCHITECT'    // Beckham — deliverer supreme
-    if (a.pace >= 87) return 'CATALYST'        // Walcott, Sterling
-    if (a.dribbling >= 85) return 'CREATIVE'   // Barnes, Waddle, Saka
-    return 'CREATIVE'
+    if (a.passing >= 88) return 'SCHEMER'       // Beckham — deliverer supreme
+    if (a.pace >= 87) return 'ROCKET'           // Walcott, Sterling
+    if (a.dribbling >= 85) return 'ARTIST'      // Barnes, Waddle, Saka
+    return 'ARTIST'
   }
 
   // Strikers
   if (pos === 'ST') {
     // Pure pace merchants
-    if (a.pace >= 88) return 'HUNTER'
-    // Physical target men (powerful but not rapid and not clinical enough for SNIPER)
-    if (a.physical >= 83 && a.shooting < 83 && a.pace < 82) return 'TARGET'
+    if (a.pace >= 88) return 'RAPTOR'
+    // Physical target men (powerful but not rapid and not clinical)
+    if (a.physical >= 83 && a.shooting < 83 && a.pace < 82) return 'TOWER'
     // Clinical finishers (world-class shooting but not blazing pace)
-    if (a.shooting >= 90 && a.pace < 86) return 'SNIPER'
+    if (a.shooting >= 90 && a.pace < 86) return 'MARKSMAN'
     // Quick enough to be a running threat
-    if (a.pace >= 82) return 'HUNTER'
+    if (a.pace >= 82) return 'RAPTOR'
     // Default: powerful complete striker
-    return 'POWERHOUSE'
+    return 'COLOSSUS'
   }
 
-  return 'ENGINE'
+  return 'DYNAMO'
 }
 
 // ─── Per-player pip score ─────────────────────────────────────────────────────
@@ -126,37 +126,37 @@ export function playerPips(player: Player, slot: Position): number {
 // ─── Style labels & colours ───────────────────────────────────────────────────
 
 export const STYLE_LABEL: Record<ChemistryStyle, string> = {
-  ANCHOR:     'Anchor',
-  SHADOW:     'Shadow',
-  ENGINE:     'Engine',
-  MAESTRO:    'Maestro',
-  PLAYMAKER:  'Playmaker',
-  ARCHITECT:  'Architect',
-  CATALYST:   'Catalyst',
-  CREATIVE:   'Creative',
-  POWERHOUSE: 'Powerhouse',
-  HUNTER:     'Hunter',
-  SNIPER:     'Sniper',
-  TARGET:     'Target',
-  STOPPER_GK: 'Stopper',
-  SWEEPER_GK: 'Sweeper',
+  SENTINEL:   'Sentinel',
+  RAZOR:      'Razor',
+  DYNAMO:     'Dynamo',
+  CONDUCTOR:  'Conductor',
+  WIZARD:     'Wizard',
+  SCHEMER:    'Schemer',
+  ROCKET:     'Rocket',
+  ARTIST:     'Artist',
+  COLOSSUS:   'Colossus',
+  RAPTOR:     'Raptor',
+  MARKSMAN:   'Marksman',
+  TOWER:      'Tower',
+  GUARDIAN:   'Guardian',
+  LIBERO:     'Libero',
 }
 
 export const STYLE_COLOUR: Record<ChemistryStyle, string> = {
-  STOPPER_GK: 'text-slate-400',
-  SWEEPER_GK: 'text-slate-300',
-  ANCHOR:     'text-sky-400',
-  SHADOW:     'text-cyan-400',
-  ENGINE:     'text-orange-400',
-  MAESTRO:    'text-violet-400',
-  PLAYMAKER:  'text-purple-400',
-  ARCHITECT:  'text-indigo-400',
-  CATALYST:   'text-green-400',
-  CREATIVE:   'text-emerald-400',
-  POWERHOUSE: 'text-red-400',
-  HUNTER:     'text-rose-400',
-  SNIPER:     'text-yellow-400',
-  TARGET:     'text-amber-500',
+  GUARDIAN:   'text-slate-400',
+  LIBERO:     'text-slate-300',
+  SENTINEL:   'text-sky-400',
+  RAZOR:      'text-cyan-400',
+  DYNAMO:     'text-orange-400',
+  CONDUCTOR:  'text-violet-400',
+  WIZARD:     'text-purple-400',
+  SCHEMER:    'text-indigo-400',
+  ROCKET:     'text-green-400',
+  ARTIST:     'text-emerald-400',
+  COLOSSUS:   'text-red-400',
+  RAPTOR:     'text-rose-400',
+  MARKSMAN:   'text-yellow-400',
+  TOWER:      'text-amber-500',
 }
 
 // ─── Team chemistry analysis ──────────────────────────────────────────────────
@@ -211,14 +211,14 @@ export function analyzeChemistry(
   let bonus = 0
 
   // Synergy A: Defensive foundation (+8)
-  // At least one ANCHOR or SHADOW in the defensive block (CB/FB/CDM)
+  // At least one SENTINEL or RAZOR in the defensive block (CB/FB/CDM)
   const hasDefenderAnchor = filled.some(sp =>
     ['CB', 'RB', 'LB'].includes(sp.slot.position) &&
-    (sp.style === 'ANCHOR' || sp.style === 'SHADOW')
+    (sp.style === 'SENTINEL' || sp.style === 'RAZOR')
   )
   const hasMidAnchor = filled.some(sp =>
     sp.slot.position === 'CDM' ||
-    (sp.slot.position === 'CM' && sp.style === 'ANCHOR')
+    (sp.slot.position === 'CM' && sp.style === 'SENTINEL')
   )
   if (hasDefenderAnchor && hasMidAnchor) {
     bonus += 8
@@ -234,10 +234,10 @@ export function analyzeChemistry(
     ['CDM', 'CM', 'CAM'].includes(sp.slot.position)
   )
   const hasCreativeMid = centralMids.some(sp =>
-    ['MAESTRO', 'ARCHITECT', 'PLAYMAKER'].includes(sp.style)
+    ['CONDUCTOR', 'SCHEMER', 'WIZARD'].includes(sp.style)
   )
   const hasWorkerMid = centralMids.some(sp =>
-    ['ENGINE', 'ANCHOR'].includes(sp.style)
+    ['DYNAMO', 'SENTINEL'].includes(sp.style)
   )
   if (hasCreativeMid && hasWorkerMid) {
     bonus += 8
@@ -260,10 +260,10 @@ export function analyzeChemistry(
     ['ST', 'RW', 'LW', 'RM', 'LM'].includes(sp.slot.position)
   )
   const hasPaceAttack = attackers.some(sp =>
-    sp.style === 'HUNTER' || sp.style === 'CATALYST'
+    sp.style === 'RAPTOR' || sp.style === 'ROCKET'
   )
   const hasFocalAttack = attackers.some(sp =>
-    sp.style === 'POWERHOUSE' || sp.style === 'TARGET' || sp.style === 'SNIPER'
+    sp.style === 'COLOSSUS' || sp.style === 'TOWER' || sp.style === 'MARKSMAN'
   )
   if (hasPaceAttack && hasFocalAttack) {
     bonus += 8

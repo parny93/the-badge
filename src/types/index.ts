@@ -43,25 +43,25 @@ export interface RatedPlayer extends Player {
   ageAtYear: number
 }
 
-// ─── Chemistry styles (FUT-inspired) ─────────────────────────────────────────
-// Each player is assigned a chemistry style derived from their primary position
-// and peak attributes. Styles drive per-player pip scores and team synergy bonuses.
+// ─── Badge chemistry styles ───────────────────────────────────────────────────
+// Each player is assigned a style derived from their primary position + peak
+// attributes. Styles drive per-player pip scores and team synergy bonuses.
 
 export type ChemistryStyle =
-  | 'ANCHOR'      // hard defending, no-nonsense — Adams, Terry, Rice, Stiles
-  | 'SHADOW'      // pace + defending — Ashley Cole, Des Walker, Kyle Walker
-  | 'ENGINE'      // box-to-box, workhorse — Gerrard, Robson, Lampard
-  | 'MAESTRO'     // technical passer — Scholes, Hoddle, Foden, Wilkins
-  | 'PLAYMAKER'   // dribbler, creator — Gascoigne, Bellingham, Wilshere
-  | 'ARCHITECT'   // set-piece / crossing specialist — Beckham, Carrick
-  | 'CATALYST'    // pure pace wide — Walcott, Sterling, Rashford (winger)
-  | 'CREATIVE'    // dribbling wide — Barnes, Waddle, Saka, Sancho
-  | 'POWERHOUSE'  // complete striker — Shearer, Rooney, Hurst, Charlton B
-  | 'HUNTER'      // pace + goal threat — Owen, Vardy, Cole, Defoe
-  | 'SNIPER'      // clinical finisher — Lineker, Greaves, Fowler, Kane
-  | 'TARGET'      // physical hold-up — Crouch, Heskey, Chivers
-  | 'STOPPER_GK'  // traditional keeper — Banks, Shilton, Seaman
-  | 'SWEEPER_GK'  // active, comes off line — Pickford, Hart
+  | 'SENTINEL'    // hard defending, no-nonsense — Adams, Terry, Rice, Stiles
+  | 'RAZOR'       // pace + defending — Ashley Cole, Des Walker, Kyle Walker
+  | 'DYNAMO'      // box-to-box, workhorse — Gerrard, Robson, Lampard
+  | 'CONDUCTOR'   // technical passer — Scholes, Hoddle, Foden, Wilkins
+  | 'WIZARD'      // dribbler, creator — Gascoigne, Bellingham, Wilshere
+  | 'SCHEMER'     // set-piece / crossing specialist — Beckham, Carrick
+  | 'ROCKET'      // pure pace wide — Walcott, Sterling, Rashford (winger)
+  | 'ARTIST'      // dribbling wide — Barnes, Waddle, Saka, Sancho
+  | 'COLOSSUS'    // complete striker — Shearer, Rooney, Hurst, Charlton B
+  | 'RAPTOR'      // pace + goal threat — Owen, Vardy, Cole, Defoe
+  | 'MARKSMAN'    // clinical finisher — Lineker, Greaves, Fowler, Kane
+  | 'TOWER'       // physical hold-up — Crouch, Heskey, Chivers
+  | 'GUARDIAN'    // traditional keeper — Banks, Shilton, Seaman
+  | 'LIBERO'      // active, comes off line — Pickford, Hart
 
 export interface PlayerChemEntry {
   playerId: string
