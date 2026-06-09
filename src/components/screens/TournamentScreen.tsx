@@ -1,7 +1,53 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { Formation, GameAction, RatedPlayer, WorldCupData } from '@/types'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { Formation, GameAction, MatchMoment, MatchResult, RatedPlayer, TournamentResult, WorldCupData } from '@/types'
 import { runTournament } from '@/lib/tournament'
+import { calculateTeamStrength } from '@/lib/teamStrength'
+import { FORMATIONS } from '@/lib/teamStrength'
+import { getTeamRating } from '@/data/teamRatings'
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface MatchDisplay {
+  match: MatchResult
+  roundLabel: string
+  isKnockout: boolean
+  isGroupFinal: boolean  // last group game
+  isFinal: boolean       // the actual WC Final
+}
+
+type Phase = 'loading' | 'prematch' | 'live' | 'scoreboard'
+
+const ROUND_LABELS: Record<string, string> = {
+  Group: 'Group Stage',
+  R16:   'Round of 16',
+  QF:    'Quarter-Final',
+  SF:    'Semi-Final',
+  Final: 'The Final',
+}
+
+const MOMENT_ICON: Record<string, string> = {
+  goal:    '⚽',
+  save:    '🧤',
+  miss:    '😬',
+  post:    '🥊',
+  card:    '🟥',
+  penalty: '🎯',
+  chance:  '💨',
+  info:    '📢',
+}
+
+const TENSION_LINES = [
+  'The nation watches with bated breath.',
+  'Sixty years of hurt. Can this be the day?',
+  'Your squad. Your legacy. Make it count.',
+  'A nation dares to dream.',
+  'Everything comes down to this.',
+  'Three lions on the shirt. Time to roar.',
+  'The whole country has stopped.',
+]
+
+// ─── Props ────────────────────────────────────────────────────────────────────
 
 interface Props {
   worldCup: WorldCupData
@@ -10,37 +56,353 @@ interface Props {
   dispatch: React.Dispatch<GameAction>
 }
 
-export default function TournamentScreen({ worldCup, squad, formation, dispatch }: Props) {
-  const [status, setStatus] = useState<'simulating' | 'done'>('simulating')
+// ─── Component ────────────────────────────────────────────────────────────────
 
+export default function TournamentScreen({ worldCup, squad, formation, dispatch }: Props) {
+  const [phase, setPhase]           = useState<Phase>('loading')
+  const [matches, setMatches]       = useState<MatchDisplay[]>([])
+  const [matchIdx, setMatchIdx]     = useState(0)
+  const [momentIdx, setMomentIdx]   = useState(0)   // how many moments are visible
+  const [finalResult, setFinalResult] = useState<TournamentResult | null>(null)
+  const [tensionLine]               = useState(() => TENSION_LINES[Math.floor(Math.random() * TENSION_LINES.length)])
+
+  const timer   = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+
+  const clearTimer = () => { if (timer.current) clearTimeout(timer.current) }
+
+  // ── Compute full tournament on mount ──────────────────────────────────────
   useEffect(() => {
-    // Small delay so the user sees the loading state
-    const t = setTimeout(() => {
-      const result = runTournament(worldCup, squad, formation)
-      dispatch({ type: 'SET_TOURNAMENT', result })
-      setStatus('done')
-    }, 1800)
-    return () => clearTimeout(t)
+    const res = runTournament(worldCup, squad, formation)
+
+    const flat: MatchDisplay[] = []
+    const groupRound = res.rounds.find(r => r.type === 'Group')
+    const groupMatches = groupRound?.matches.filter(m => m.home === 'England' || m.away === 'England') ?? []
+
+    res.rounds.forEach(round => {
+      round.matches
+        .filter(m => m.home === 'England' || m.away === 'England')
+        .forEach(m => {
+          flat.push({
+            match: m,
+            roundLabel: ROUND_LABELS[round.type] ?? round.type,
+            isKnockout: round.type !== 'Group',
+            isGroupFinal: round.type === 'Group' && groupMatches.indexOf(m) === groupMatches.length - 1,
+            isFinal: round.type === 'Final',
+          })
+        })
+    })
+
+    setFinalResult(res)
+    setMatches(flat)
+    timer.current = setTimeout(() => setPhase('prematch'), 800)
+    return clearTimer
   }, [])
 
+  // ── Prematch → live auto-advance ──────────────────────────────────────────
+  useEffect(() => {
+    if (phase !== 'prematch') return
+    timer.current = setTimeout(() => { setPhase('live'); setMomentIdx(0) }, 2200)
+    return clearTimer
+  }, [phase, matchIdx])
+
+  // ── Moment drip-feed ──────────────────────────────────────────────────────
+  useEffect(() => {
+    if (phase !== 'live') return
+    const m = matches[matchIdx]
+    if (!m) return
+    const total = m.match.moments.length
+
+    if (momentIdx < total) {
+      const isPenalty = m.match.moments[momentIdx]?.type === 'penalty'
+      timer.current = setTimeout(() => {
+        setMomentIdx(i => i + 1)
+        // scroll to bottom of feed
+        scrollRef.current?.scrollTo({ top: 99999, behavior: 'smooth' })
+      }, isPenalty ? 1100 : 950)
+    } else {
+      // All moments shown → pause for drama then reveal scoreboard
+      timer.current = setTimeout(() => setPhase('scoreboard'), 800)
+    }
+    return clearTimer
+  }, [phase, momentIdx, matchIdx, matches])
+
+  // ── Skip / tap-through ────────────────────────────────────────────────────
+  const skipPhase = useCallback(() => {
+    clearTimer()
+    const m = matches[matchIdx]
+    if (!m) return
+
+    if (phase === 'prematch') {
+      setPhase('live')
+      setMomentIdx(0)
+    } else if (phase === 'live') {
+      setMomentIdx(m.match.moments.length)
+      setPhase('scoreboard')
+    }
+    // scoreboard phase: tap does nothing — must use the button
+  }, [phase, matchIdx, matches])
+
+  // ── Advance to next match or end ──────────────────────────────────────────
+  const advance = useCallback(() => {
+    clearTimer()
+    if (!finalResult) return
+
+    if (matchIdx < matches.length - 1) {
+      setMatchIdx(i => i + 1)
+      setMomentIdx(0)
+      setPhase('prematch')
+    } else {
+      dispatch({ type: 'SET_TOURNAMENT', result: finalResult })
+    }
+  }, [finalResult, matchIdx, matches, dispatch])
+
+  // ── Loading screen ────────────────────────────────────────────────────────
+  if (phase === 'loading' || matches.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-5 px-4">
+        <div className="text-5xl animate-spin" style={{ animationDuration: '1.5s' }}>⚽</div>
+        <p className="text-slate-400 text-sm">Drawing the brackets...</p>
+      </div>
+    )
+  }
+
+  const { match, roundLabel, isKnockout, isFinal } = matches[matchIdx]
+  const opponent     = match.home === 'England' ? match.away : match.home
+  const oppRating    = getTeamRating(opponent, worldCup.year)
+  const engStrength  = calculateTeamStrength(squad, formation)
+  const visibleMoments = match.moments.slice(0, momentIdx)
+
+  // Running score — derived from visible goal moments
+  let engScore = 0, oppScore = 0
+  for (const m of visibleMoments) {
+    if (m.type === 'goal' && m.team === 'england')   engScore++
+    if (m.type === 'goal' && m.team === 'opponent')  oppScore++
+  }
+  // In scoreboard phase, show the real final score
+  const showFinalScore = phase === 'scoreboard'
+  const displayEng = showFinalScore ? match.homeGoals : engScore
+  const displayOpp = showFinalScore ? match.awayGoals : oppScore
+
+  const engWon  = match.englandWon
+  const isDraw  = !isKnockout && match.homeGoals === match.awayGoals
+  const scoreColour =
+    showFinalScore
+      ? engWon  ? 'text-emerald-400'
+        : isDraw ? 'text-yellow-400'
+        : 'text-red-400'
+      : 'text-white'
+
+  // Is this the last match we'll ever see? (knocked out or won)
+  const isEliminated = isKnockout && !engWon
+  const isChampion   = finalResult?.exitRound === 'Winner' && matchIdx === matches.length - 1
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 gap-6 text-center">
-      <div className="text-6xl animate-bounce">⚽</div>
-      <div>
-        <h2 className="text-2xl font-black text-white">Simulating...</h2>
-        <p className="text-slate-400 mt-1">
-          Your England XI are taking on the {worldCup.year} World Cup.
-        </p>
+    <div
+      className="min-h-screen flex flex-col bg-slate-900 overflow-hidden"
+      onClick={phase !== 'scoreboard' ? skipPhase : undefined}
+    >
+      {/* ── Top bar ─────────────────────────────────────────────── */}
+      <div className="px-4 pt-5 pb-3 flex flex-col items-center gap-1 border-b border-white/8">
+        <div className="text-slate-500 text-xs font-bold uppercase tracking-widest">
+          {worldCup.year} World Cup · {roundLabel}
+        </div>
+
+        {/* Teams + score */}
+        <div className="flex items-center gap-4 w-full max-w-sm mt-1">
+          <div className="flex-1 text-center">
+            <div className="text-2xl mb-0.5">🏴󠁧󠁢󠁥󠁮󠁧󠁿</div>
+            <div className="text-white font-black text-sm leading-tight">England</div>
+            <div className="text-slate-600 text-xs">{engStrength.overall} OVR</div>
+          </div>
+
+          {/* Score */}
+          <div className="text-center min-w-[72px]">
+            {phase === 'prematch' ? (
+              <div className="text-slate-400 font-black text-2xl">vs</div>
+            ) : (
+              <div className={`font-black text-3xl transition-all duration-500 ${scoreColour}`}>
+                {displayEng} – {displayOpp}
+              </div>
+            )}
+            {showFinalScore && match.wentToPenalties && (
+              <div className="text-slate-400 text-xs mt-0.5">
+                pens {match.homePenalties}–{match.awayPenalties}
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1 text-center">
+            <div className="text-2xl mb-0.5">🌍</div>
+            <div className="text-white font-black text-sm leading-tight">{opponent}</div>
+            <div className="text-slate-600 text-xs">{oppRating} OVR</div>
+          </div>
+        </div>
       </div>
-      <div className="flex gap-1">
-        {[0, 1, 2].map(i => (
-          <div
-            key={i}
-            className="w-2 h-2 rounded-full bg-white/40 animate-pulse"
-            style={{ animationDelay: `${i * 0.2}s` }}
-          />
-        ))}
-      </div>
+
+      {/* ── Prematch splash ──────────────────────────────────────── */}
+      {phase === 'prematch' && (
+        <div className="flex-1 flex flex-col items-center justify-center gap-6 px-6 text-center">
+          <div className="flex gap-3">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce"
+                style={{ animationDelay: `${i * 0.15}s` }} />
+            ))}
+          </div>
+          <p className="text-slate-300 text-base leading-relaxed max-w-xs">{tensionLine}</p>
+          <p className="text-slate-600 text-xs">Tap to kick off</p>
+        </div>
+      )}
+
+      {/* ── Live moment feed ─────────────────────────────────────── */}
+      {(phase === 'live' || phase === 'scoreboard') && (
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2.5">
+          {visibleMoments.map((moment, i) => (
+            <MomentCard key={i} moment={moment} opponent={opponent} />
+          ))}
+
+          {/* Typing indicator while waiting for next moment */}
+          {phase === 'live' && momentIdx < match.moments.length && (
+            <div className="flex gap-1 items-center px-3 py-2">
+              {[0, 1, 2].map(i => (
+                <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/25 animate-pulse"
+                  style={{ animationDelay: `${i * 0.18}s` }} />
+              ))}
+            </div>
+          )}
+
+          {/* Full time banner once all moments are shown */}
+          {phase === 'scoreboard' && (
+            <div className="text-center py-2">
+              <span className="text-slate-500 text-xs font-bold uppercase tracking-widest">
+                {match.wentToPenalties ? '— Penalty Shootout —' : '— Full Time —'}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Scoreboard result panel ──────────────────────────────── */}
+      {phase === 'scoreboard' && (
+        <div className="px-4 pb-8 pt-2 border-t border-white/8 flex flex-col gap-3">
+          {/* Result verdict */}
+          <div className={`rounded-2xl px-4 py-4 text-center ${
+            isChampion        ? 'bg-amber-400/20 border border-amber-400/40' :
+            isEliminated      ? 'bg-red-500/15 border border-red-500/30' :
+            engWon            ? 'bg-emerald-500/15 border border-emerald-500/30' :
+            isDraw            ? 'bg-yellow-500/15 border border-yellow-500/30' :
+                                'bg-red-500/10 border border-red-500/20'
+          }`}>
+            <div className="text-3xl mb-1.5">
+              {isChampion ? '🏆' : isEliminated ? '💀' : engWon ? '✅' : isDraw ? '🤝' : '❌'}
+            </div>
+            <div className={`font-black text-xl leading-tight ${
+              isChampion   ? 'text-amber-300' :
+              isEliminated ? 'text-red-300' :
+              engWon       ? 'text-emerald-300' :
+              isDraw       ? 'text-yellow-300' :
+                             'text-red-300'
+            }`}>
+              {isChampion        ? 'WORLD CHAMPIONS!' :
+               isEliminated      ? 'England are out.' :
+               engWon && isFinal ? 'INTO THE FINAL!' :
+               engWon            ? 'England through!' :
+               isDraw            ? 'Honours even.' :
+                                   'England lose.'}
+            </div>
+            {isEliminated && (
+              <p className="text-slate-500 text-xs mt-1 leading-snug">
+                {match.wentToPenalties ? 'Knocked out on penalties. The cruelest way to go.' : 'Better luck next time.'}
+              </p>
+            )}
+            {isChampion && (
+              <p className="text-amber-400/70 text-xs mt-1">
+                Sixty years of hurt. Finally.
+              </p>
+            )}
+          </div>
+
+          <button
+            onClick={(e) => { e.stopPropagation(); advance() }}
+            className={`w-full py-4 rounded-2xl font-black text-lg active:scale-95 transition-all ${
+              isEliminated || isChampion
+                ? 'bg-amber-400 text-slate-900 shadow-[0_0_24px_rgba(251,191,36,0.3)]'
+                : engWon
+                  ? 'bg-white text-slate-900'
+                  : 'bg-white/10 text-white'
+            }`}
+          >
+            {isEliminated || isChampion || (matchIdx === matches.length - 1)
+              ? 'See Full Campaign →'
+              : 'Next Match →'}
+          </button>
+
+          {phase !== 'scoreboard' && (
+            <p className="text-center text-slate-700 text-xs">Tap anywhere to skip</p>
+          )}
+        </div>
+      )}
+
+      {/* Tap-to-skip hint during live feed */}
+      {phase === 'live' && (
+        <div className="px-4 pb-3 text-center">
+          <p className="text-slate-700 text-xs">Tap to skip</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Moment card ──────────────────────────────────────────────────────────────
+
+function MomentCard({ moment, opponent }: { moment: MatchMoment; opponent: string }) {
+  const isEngGoal  = moment.type === 'goal'    && moment.team === 'england'
+  const isOppGoal  = moment.type === 'goal'    && moment.team === 'opponent'
+  const isPenEng   = moment.type === 'penalty' && moment.team === 'england'
+  const isPenOpp   = moment.type === 'penalty' && moment.team === 'opponent'
+  const isBadCard  = moment.type === 'card'    && moment.team === 'england'
+  const isGoodCard = moment.type === 'card'    && moment.team === 'opponent'
+
+  const bg =
+    isEngGoal                        ? 'bg-emerald-500/20 border-emerald-500/40' :
+    isOppGoal                        ? 'bg-red-500/15 border-red-500/30' :
+    isPenEng && moment.text.includes('SCORED') ? 'bg-emerald-500/15 border-emerald-500/30' :
+    isPenOpp && moment.text.includes('aved')   ? 'bg-emerald-500/10 border-emerald-500/20' :
+    moment.type === 'save'           ? 'bg-sky-500/15 border-sky-500/30' :
+    moment.type === 'post'           ? 'bg-orange-500/10 border-orange-500/20' :
+    moment.type === 'miss'           ? 'bg-slate-500/10 border-white/8' :
+    isBadCard                        ? 'bg-red-500/20 border-red-500/40' :
+    isGoodCard                       ? 'bg-amber-500/10 border-amber-500/20' :
+                                       'bg-white/5 border-white/8'
+
+  const textColour =
+    isEngGoal                        ? 'text-emerald-200' :
+    isOppGoal                        ? 'text-red-300' :
+    moment.type === 'save'           ? 'text-sky-300' :
+    moment.type === 'post'           ? 'text-orange-300' :
+    moment.type === 'miss'           ? 'text-slate-400' :
+    isBadCard                        ? 'text-red-300' :
+    isGoodCard                       ? 'text-amber-300' :
+                                       'text-slate-300'
+
+  // Make England goals extra prominent
+  const isHighlight = isEngGoal || isOppGoal
+
+  return (
+    <div className={`flex items-start gap-3 rounded-xl border px-3 py-2.5 ${bg} ${
+      isHighlight ? 'shadow-lg' : ''
+    }`}>
+      <span className="text-slate-500 text-xs font-mono tabular-nums shrink-0 mt-0.5 w-7 text-right">
+        {moment.minute}'
+      </span>
+      <span className="text-lg shrink-0">
+        {MOMENT_ICON[moment.type] ?? '📢'}
+      </span>
+      <span className={`text-sm leading-snug font-medium ${textColour} ${
+        isHighlight ? 'font-bold' : ''
+      }`}>
+        {moment.text}
+      </span>
     </div>
   )
 }

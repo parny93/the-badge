@@ -137,7 +137,8 @@ export type Difficulty = 'prime' | 'historical' | 'nightmare'
 export interface MatchMoment {
   minute: number
   text: string
-  type: 'goal' | 'save' | 'miss' | 'card' | 'chance' | 'info'
+  type: 'goal' | 'save' | 'miss' | 'card' | 'chance' | 'info' | 'post' | 'penalty'
+  team?: 'england' | 'opponent'  // present on goal / card / penalty moments
 }
 
 export interface MatchResult {
