@@ -13,6 +13,28 @@ export const INITIAL_STATE: GameState = {
   tournament: null,
 }
 
+const STORAGE_KEY = 'thebadge.state.v1'
+
+// Restore in-progress games across reloads so a refresh (or a mobile tab being
+// evicted from memory) never dumps the player back to the home screen.
+export function loadState(): GameState {
+  if (typeof window === 'undefined') return INITIAL_STATE
+  try {
+    const raw = window.sessionStorage.getItem(STORAGE_KEY)
+    if (!raw) return INITIAL_STATE
+    const parsed = JSON.parse(raw) as GameState
+    if (parsed && typeof parsed.screen === 'string') return parsed
+  } catch {}
+  return INITIAL_STATE
+}
+
+export function saveState(state: GameState): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  } catch {}
+}
+
 function firstEmpty(squad: GameState['squad'], from = 0): number {
   for (let i = from; i < squad.length; i++) if (!squad[i]) return i
   for (let i = 0; i < squad.length; i++) if (!squad[i]) return i
@@ -88,6 +110,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         default: return { ...state, screen: 'home' }
       }
     }
+
+    case 'HYDRATE':
+      return action.state
 
     case 'RESTART':
       return { ...INITIAL_STATE }

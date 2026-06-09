@@ -196,5 +196,6 @@ export type GameAction =
   | { type: 'CONFIRM_SQUAD' }
   | { type: 'SELECT_TOURNAMENT'; worldCup: WorldCupData }
   | { type: 'SET_TOURNAMENT'; result: TournamentResult }
+  | { type: 'HYDRATE'; state: GameState }
   | { type: 'BACK' }
   | { type: 'RESTART' }

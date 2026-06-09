@@ -1,6 +1,6 @@
 'use client'
-import { useReducer } from 'react'
-import { gameReducer, INITIAL_STATE } from '@/lib/gameReducer'
+import { useReducer, useEffect, useRef } from 'react'
+import { gameReducer, INITIAL_STATE, loadState, saveState } from '@/lib/gameReducer'
 
 import HomeScreen from '@/components/screens/HomeScreen'
 import ModeSelectScreen from '@/components/screens/ModeSelectScreen'
@@ -24,6 +24,20 @@ function TopBar({ onBack }: { onBack: () => void }) {
 
 export default function Page() {
   const [state, dispatch] = useReducer(gameReducer, INITIAL_STATE)
+  const hydrated = useRef(false)
+
+  // Restore any in-progress game after mount (avoids SSR hydration mismatch).
+  useEffect(() => {
+    const saved = loadState()
+    if (saved.screen !== 'home') dispatch({ type: 'HYDRATE', state: saved })
+    hydrated.current = true
+  }, [])
+
+  // Persist on every change once we've hydrated.
+  useEffect(() => {
+    if (hydrated.current) saveState(state)
+  }, [state])
+
   const { screen, mode, squadYear, worldCup, formation, squad, pickIndex, tournament } = state
   const back = () => dispatch({ type: 'BACK' })
 

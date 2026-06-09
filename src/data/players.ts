@@ -440,7 +440,7 @@ export const ENGLAND_PLAYERS: Player[] = [
   {
     id: 'martin_peters',
     name: 'Martin Peters',
-    positions: ['CM', 'CAM'],
+    positions: ['CM', 'CAM', 'LM'],
     bornYear: 1943,
     peakYear: 1966,
     peakRating: 84,
@@ -1134,6 +1134,173 @@ export const ENGLAND_PLAYERS: Player[] = [
       'Sancho drove at the full-back — 1v1, nobody to help',
       'Jadon Sancho with a silky move and a driven cross',
     ],
+  },
+
+  // ─── ADDED DEPTH — keepers, full-backs and squad players across every era ────
+
+  // Goalkeepers
+  {
+    id: 'chris_woods', name: 'Chris Woods', positions: ['GK'],
+    bornYear: 1959, peakYear: 1988, peakRating: 80,
+    peakAttributes: { pace: 50, shooting: 30, passing: 58, dribbling: 30, defending: 62, physical: 70, gk: 82 },
+    caps: 43, goals: 0,
+    moments: ['Woods was a reliable presence between the sticks', 'A smart save from Woods'],
+  },
+  {
+    id: 'nigel_martyn', name: 'Nigel Martyn', positions: ['GK'],
+    bornYear: 1966, peakYear: 1999, peakRating: 82,
+    peakAttributes: { pace: 52, shooting: 30, passing: 62, dribbling: 30, defending: 64, physical: 72, gk: 84 },
+    caps: 23, goals: 0,
+    moments: ['Martyn — calm, assured, criminally under-capped', 'A composed stop from Martyn'],
+  },
+  {
+    id: 'david_james', name: 'David James', positions: ['GK'],
+    bornYear: 1970, peakYear: 2004, peakRating: 83,
+    peakAttributes: { pace: 58, shooting: 30, passing: 60, dribbling: 30, defending: 64, physical: 76, gk: 85 },
+    caps: 53, goals: 0,
+    moments: ['James with an athletic save — "Calamity" on a good day', 'James commanded his box well'],
+    ratingOverrides: { 2010: 80 },
+  },
+  {
+    id: 'paul_robinson', name: 'Paul Robinson', positions: ['GK'],
+    bornYear: 1979, peakYear: 2006, peakRating: 82,
+    peakAttributes: { pace: 52, shooting: 30, passing: 64, dribbling: 30, defending: 62, physical: 74, gk: 84 },
+    caps: 41, goals: 0,
+    moments: ['Robinson got down well to his left', 'A strong save from Robinson'],
+  },
+  {
+    id: 'rob_green', name: 'Rob Green', positions: ['GK'],
+    bornYear: 1980, peakYear: 2008, peakRating: 80,
+    peakAttributes: { pace: 54, shooting: 30, passing: 60, dribbling: 30, defending: 60, physical: 72, gk: 82 },
+    caps: 12, goals: 0,
+    moments: ['Green made the stop look routine', 'Green claimed the cross confidently'],
+  },
+  {
+    id: 'nick_pope', name: 'Nick Pope', positions: ['GK'],
+    bornYear: 1992, peakYear: 2022, peakRating: 82,
+    peakAttributes: { pace: 56, shooting: 30, passing: 66, dribbling: 30, defending: 62, physical: 78, gk: 84 },
+    caps: 12, goals: 0,
+    moments: ['Pope — huge frame, huge save', 'Pope kept another clean sheet'],
+  },
+  {
+    id: 'aaron_ramsdale', name: 'Aaron Ramsdale', positions: ['GK'],
+    bornYear: 1998, peakYear: 2022, peakRating: 81,
+    peakAttributes: { pace: 58, shooting: 30, passing: 72, dribbling: 30, defending: 60, physical: 72, gk: 83 },
+    caps: 5, goals: 0,
+    moments: ['Ramsdale with a sharp reaction save', 'Ramsdale started the attack with his distribution'],
+  },
+
+  // Full-backs
+  {
+    id: 'terry_cooper', name: 'Terry Cooper', positions: ['LB'],
+    bornYear: 1944, peakYear: 1970, peakRating: 80,
+    peakAttributes: { pace: 80, shooting: 50, passing: 70, dribbling: 70, defending: 82, physical: 74 },
+    caps: 20, goals: 0,
+    moments: ['Cooper overlapped down the left — ahead of his time', 'Cooper got back to make the tackle'],
+  },
+  {
+    id: 'phil_neal', name: 'Phil Neal', positions: ['RB'],
+    bornYear: 1951, peakYear: 1979, peakRating: 81,
+    peakAttributes: { pace: 74, shooting: 58, passing: 74, dribbling: 64, defending: 84, physical: 76 },
+    caps: 50, goals: 5,
+    moments: ['Neal — dependable, decorated, never flustered', 'Neal tucked away the penalty'],
+  },
+  {
+    id: 'viv_anderson', name: 'Viv Anderson', positions: ['RB'],
+    bornYear: 1956, peakYear: 1984, peakRating: 80,
+    peakAttributes: { pace: 82, shooting: 55, passing: 70, dribbling: 68, defending: 82, physical: 80 },
+    caps: 30, goals: 2,
+    moments: ['Anderson — a trailblazer and a fine attacking full-back', 'Anderson surged forward on the overlap'],
+  },
+  {
+    id: 'lee_dixon', name: 'Lee Dixon', positions: ['RB'],
+    bornYear: 1964, peakYear: 1992, peakRating: 80,
+    peakAttributes: { pace: 76, shooting: 55, passing: 74, dribbling: 66, defending: 84, physical: 78 },
+    caps: 22, goals: 1,
+    moments: ['Dixon overlapped and delivered', 'Dixon read the danger and stepped in'],
+  },
+  {
+    id: 'glen_johnson', name: 'Glen Johnson', positions: ['RB'],
+    bornYear: 1984, peakYear: 2010, peakRating: 81,
+    peakAttributes: { pace: 84, shooting: 62, passing: 74, dribbling: 76, defending: 80, physical: 76 },
+    caps: 54, goals: 1,
+    moments: ['Johnson drove forward from right-back', 'Johnson with a surging run and a shot'],
+  },
+  {
+    id: 'kieran_trippier', name: 'Kieran Trippier', positions: ['RB', 'RM'],
+    bornYear: 1990, peakYear: 2021, peakRating: 83,
+    peakAttributes: { pace: 76, shooting: 64, passing: 86, dribbling: 72, defending: 80, physical: 72 },
+    caps: 54, goals: 1,
+    moments: ['Trippier whipped in a gorgeous delivery', 'TRIPPIER! Free kick into the top corner — England lead the final!'],
+  },
+
+  // Centre-backs
+  {
+    id: 'jack_charlton', name: 'Jack Charlton', positions: ['CB'],
+    bornYear: 1935, peakYear: 1966, peakRating: 84,
+    peakAttributes: { pace: 58, shooting: 50, passing: 66, dribbling: 48, defending: 88, physical: 88 },
+    caps: 35, goals: 6,
+    moments: ['Big Jack won everything in the air', 'Charlton was a colossus at the back'],
+  },
+  {
+    id: 'gary_cahill', name: 'Gary Cahill', positions: ['CB'],
+    bornYear: 1985, peakYear: 2013, peakRating: 82,
+    peakAttributes: { pace: 70, shooting: 56, passing: 70, dribbling: 58, defending: 86, physical: 84 },
+    caps: 61, goals: 5,
+    moments: ['Cahill threw himself in front of the shot', 'Cahill rose highest to head clear'],
+  },
+  {
+    id: 'harry_maguire', name: 'Harry Maguire', positions: ['CB'],
+    bornYear: 1993, peakYear: 2019, peakRating: 82,
+    peakAttributes: { pace: 64, shooting: 58, passing: 76, dribbling: 60, defending: 85, physical: 88 },
+    caps: 63, goals: 7,
+    moments: ['MAGUIRE! Towering header from the corner!', 'Maguire strode out of defence with the ball'],
+  },
+
+  // Midfielders
+  {
+    id: 'trevor_brooking', name: 'Trevor Brooking', positions: ['CAM', 'CM'],
+    bornYear: 1948, peakYear: 1978, peakRating: 83,
+    peakAttributes: { pace: 66, shooting: 76, passing: 86, dribbling: 82, defending: 56, physical: 70 },
+    caps: 47, goals: 5,
+    moments: ['Brooking glided past two with a drop of the shoulder', 'A sumptuous pass from Brooking'],
+  },
+  {
+    id: 'ray_wilkins', name: 'Ray Wilkins', positions: ['CM', 'CDM'],
+    bornYear: 1956, peakYear: 1984, peakRating: 82,
+    peakAttributes: { pace: 64, shooting: 68, passing: 86, dribbling: 72, defending: 78, physical: 72 },
+    caps: 84, goals: 3,
+    moments: ['Wilkins kept it ticking over in midfield', 'A pinpoint diagonal from Wilkins'],
+  },
+  {
+    id: 'david_platt', name: 'David Platt', positions: ['CM'],
+    bornYear: 1966, peakYear: 1991, peakRating: 83,
+    peakAttributes: { pace: 76, shooting: 82, passing: 78, dribbling: 72, defending: 70, physical: 80 },
+    caps: 62, goals: 27,
+    moments: ['PLATT! Last-minute volley — he\'s broken Belgian hearts!', 'Platt timed his run into the box perfectly'],
+  },
+  {
+    id: 'paul_ince', name: 'Paul Ince', positions: ['CDM', 'CM'],
+    bornYear: 1967, peakYear: 1995, peakRating: 83,
+    peakAttributes: { pace: 72, shooting: 70, passing: 78, dribbling: 72, defending: 84, physical: 86 },
+    caps: 53, goals: 2,
+    moments: ['Ince — head bandaged, blood and thunder, wouldn\'t give an inch', 'The Guv\'nor won it back in midfield'],
+  },
+  {
+    id: 'jordan_henderson', name: 'Jordan Henderson', positions: ['CM', 'CDM'],
+    bornYear: 1990, peakYear: 2019, peakRating: 82,
+    peakAttributes: { pace: 72, shooting: 68, passing: 82, dribbling: 70, defending: 82, physical: 82 },
+    caps: 81, goals: 3,
+    moments: ['Henderson drove the team forward — relentless engine', 'Henderson with a raking pass out wide'],
+  },
+
+  // Winger
+  {
+    id: 'steve_coppell', name: 'Steve Coppell', positions: ['RM', 'RW'],
+    bornYear: 1955, peakYear: 1980, peakRating: 80,
+    peakAttributes: { pace: 84, shooting: 70, passing: 76, dribbling: 80, defending: 58, physical: 70 },
+    caps: 42, goals: 7,
+    moments: ['Coppell tore down the right wing', 'Coppell beat his man and crossed'],
   },
 ]
 

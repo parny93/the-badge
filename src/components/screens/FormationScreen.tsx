@@ -24,7 +24,7 @@ export default function FormationScreen({ dispatch }: Props) {
             onClick={() => dispatch({ type: 'SELECT_FORMATION', formation: f.id })}
             className="rounded-2xl p-4 text-left border border-white/10 bg-white/5 hover:border-white/30 active:scale-95 transition-all flex items-center gap-4"
           >
-            <span className="font-black text-3xl text-white w-20 shrink-0">{f.shape}</span>
+            <span className="font-black text-xl text-white w-24 shrink-0 whitespace-nowrap tabular-nums">{f.shape}</span>
             <span className="text-slate-300 text-sm">{f.desc}</span>
           </button>
         ))}

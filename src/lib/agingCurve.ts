@@ -13,23 +13,26 @@ export function getRatingAtYear(player: Player, wcYear: number): number {
 
   const age = wcYear - player.bornYear
   const peakAge = player.peakYear - player.bornYear
-  const ageDelta = age - peakAge // negative = before peak, positive = after
+  const d = age - peakAge // negative = before peak, positive = after
 
-  if (age < 15 || age > 42) return 0   // ineligible
+  if (age < 16 || age > 41) return 0   // ineligible
 
+  // Footballers hold a broad prime (roughly 25–31) and decline gently, not
+  // off a cliff. The plateau runs from one year before nominal peak to three
+  // years after, so a 30-year-old at the back end of his prime stays elite.
   let multiplier: number
 
-  if (ageDelta < -9) multiplier = 0.60  // very young — raw talent
-  else if (ageDelta < -7) multiplier = 0.68
-  else if (ageDelta < -5) multiplier = 0.76
-  else if (ageDelta < -3) multiplier = 0.84
-  else if (ageDelta < -1) multiplier = 0.92
-  else if (ageDelta <= 1) multiplier = 1.00  // peak window
-  else if (ageDelta <= 3) multiplier = 0.93
-  else if (ageDelta <= 5) multiplier = 0.84
-  else if (ageDelta <= 7) multiplier = 0.74
-  else if (ageDelta <= 9) multiplier = 0.65
-  else multiplier = 0.58  // deep decline
+  if (d <= -10) multiplier = 0.60      // a kid, years away
+  else if (d <= -8) multiplier = 0.70
+  else if (d <= -6) multiplier = 0.80
+  else if (d <= -4) multiplier = 0.88
+  else if (d <= -2) multiplier = 0.95  // knocking on the door
+  else if (d <= 3) multiplier = 1.00   // prime plateau (−1 … +3)
+  else if (d <= 5) multiplier = 0.96   // still excellent (e.g. Gerrard at 30)
+  else if (d <= 7) multiplier = 0.90
+  else if (d <= 9) multiplier = 0.82
+  else if (d <= 11) multiplier = 0.73
+  else multiplier = 0.64               // veteran twilight
 
   return Math.round(player.peakRating * multiplier)
 }
@@ -39,12 +42,12 @@ export function getTrend(
   wcYear: number
 ): RatedPlayer['trend'] {
   const age = wcYear - player.bornYear
-  if (age < 15 || age > 42) return 'ineligible'
+  if (age < 16 || age > 41) return 'ineligible'
 
-  const ageDelta = age - (player.peakYear - player.bornYear)
+  const d = age - (player.peakYear - player.bornYear)
 
-  if (ageDelta < -3) return 'rising'
-  if (ageDelta <= 2) return 'peak'
+  if (d < -3) return 'rising'
+  if (d <= 3) return 'peak'
   return 'declining'
 }
 
