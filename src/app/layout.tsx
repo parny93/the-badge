@@ -2,12 +2,18 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://thebadge.app'),
   title: 'The Badge — Build Your Golden Generation',
-  description: 'Pick your all-time England XI and take them to the World Cup. 16 tournaments, 1966–2026.',
+  description: 'Pick your greatest squad from 102 legends, face real World Cup opponents, and find out if you can finally bring it home.',
   openGraph: {
     title: 'The Badge',
-    description: 'Build your England Golden Generation and take on the World Cup.',
+    description: 'Pick your greatest squad from 102 legends across 16 World Cups. Can you finally bring it home?',
     type: 'website',
+    images: [{ url: '/logo.svg', width: 200, height: 220 }],
+  },
+  icons: {
+    icon: '/logo.svg',
+    apple: '/logo.svg',
   },
 }
 

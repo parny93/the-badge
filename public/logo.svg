@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" fill="none">
+  <!-- Star above shield -->
+  <polygon
+    points="100,6 106,22 123,22 110,32 115,48 100,38 85,48 90,32 77,22 94,22"
+    fill="none" stroke="#C9A84C" stroke-width="2.5" stroke-linejoin="round"
+  />
+
+  <!-- Shield outer (gold border) -->
+  <path
+    d="M18,52 L18,138 Q18,178 100,210 Q182,178 182,138 L182,52 Q150,52 100,44 Q50,52 18,52 Z"
+    fill="#C9A84C"
+  />
+  <!-- Shield inner (cream fill) -->
+  <path
+    d="M24,57 L24,138 Q24,172 100,202 Q176,172 176,138 L176,57 Q146,57 100,49.5 Q54,57 24,57 Z"
+    fill="#EDE8DC"
+  />
+
+  <!-- "THE" text with rules -->
+  <line x1="30" y1="79" x2="70" y2="79" stroke="#C9A84C" stroke-width="1.5"/>
+  <text x="100" y="83" text-anchor="middle" font-family="Georgia, serif" font-size="13" font-weight="700" fill="#0f172a" letter-spacing="4">THE</text>
+  <line x1="130" y1="79" x2="170" y2="79" stroke="#C9A84C" stroke-width="1.5"/>
+
+  <!-- "BADGE" text -->
+  <text x="100" y="116" text-anchor="middle" font-family="Georgia, serif" font-size="38" font-weight="900" fill="#0f172a" letter-spacing="1">BADGE</text>
+
+  <!-- Divider rule -->
+  <line x1="30" y1="124" x2="170" y2="124" stroke="#C9A84C" stroke-width="1.5"/>
+
+  <!-- Gold diamond pip -->
+  <rect x="97" y="128" width="6" height="6" fill="#C9A84C" transform="rotate(45 100 131)"/>
+
+  <!-- Bottom stripe rule -->
+  <line x1="30" y1="138" x2="170" y2="138" stroke="#C9A84C" stroke-width="1.5"/>
+
+  <!-- Three vertical stripes (navy panels) -->
+  <path d="M30,141 L30,178 Q32,185 38,190 L38,141 Z" fill="#0f172a"/>
+  <rect x="42" y="141" width="32" height="55" fill="#0f172a"/>
+  <rect x="84" y="141" width="32" height="62" fill="#0f172a"/>
+  <rect x="126" y="141" width="32" height="55" fill="#0f172a"/>
+  <path d="M162,141 L162,190 Q168,185 170,178 L170,141 Z" fill="#0f172a"/>
+</svg>
