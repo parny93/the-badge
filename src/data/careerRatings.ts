@@ -54,13 +54,14 @@ export const CAREER_RATINGS: Record<string, Record<number, number>> = {
   },
 
   david_seaman: {
+    // FIFA 00 = 94 globally (top-10 in game); peak was 1997-2001 Arsenal double era
     1990: 77,
     1992: 80,
-    1994: 82,
-    1996: 85,   // Euro 96 — penalty save vs Spain in SF
-    1998: 85,   // WC 98
-    2000: 82,
-    2002: 79,   // Ronaldinho chip — still excellent FA Cup form that season
+    1994: 83,
+    1996: 87,   // Euro 96 — penalty save vs Spain in SF; already world-class
+    1998: 87,   // WC 98 — peak Arsenal years
+    2000: 87,   // FIFA 00 = 94 globally; his absolute prime
+    2002: 81,   // Ronaldinho chip was one moment; still excellent FA Cup form
   },
 
   joe_hart: {
@@ -327,19 +328,21 @@ export const CAREER_RATINGS: Record<string, Record<number, number>> = {
   },
 
   sol_campbell: {
+    // FIFA 05 = 93 globally (top-10!); FIFA 06 = 90; genuinely world-class peak
     1998: 79,
-    2000: 82,
-    2002: 85,   // WC 2002 — among Europe's very best CBs
-    2004: 84,   // Euro 2004 — excellent
+    2000: 83,
+    2002: 87,   // WC 2002 — top-10 player in the world per EA; superb tournament
+    2004: 86,   // Euro 2004 — FIFA 05=93; among Europe's very best CBs
     2006: 83,
-    2008: 73,   // Declining; last England cap Jul 2007
+    2008: 72,   // Declining; last England cap Jul 2007
   },
 
   rio_ferdinand: {
+    // FIFA 03 = 93 globally (top-10 after WC 02!); FIFA 06 = 92; confirmed elite peak
     2000: 79,
-    2002: 84,
-    2004: 88,   // Man Utd peak — best CB in PL by common consent
-    2006: 90,   // WC 2006 — dominant; arguably his best England tournament
+    2002: 87,   // WC 2002 — FIFA 03=93 globally; superb partnership with Campbell
+    2004: 89,   // Man Utd peak — best CB in PL; FIFA 06 had him at 92
+    2006: 91,   // WC 2006 — dominant; arguably his best England tournament
     2008: 88,
     2010: 85,   // WC 2010
     2012: 81,
@@ -347,10 +350,11 @@ export const CAREER_RATINGS: Record<string, Record<number, number>> = {
   },
 
   john_terry: {
+    // FIFA 07 = 90 globally (7th in game!); FIFA 08 = 89; confirmed world-class
     2002: 77,
     2004: 83,
-    2006: 88,
-    2008: 90,   // Absolute peak — best CB in world
+    2006: 89,   // FIFA 07=90 — 7th best player in the world per EA; dominant
+    2008: 90,   // Absolute peak — best CB in world; FIFA 08=89 (our scale +1 for form)
     2010: 88,
     2012: 84,
     2014: 78,
@@ -491,34 +495,38 @@ export const CAREER_RATINGS: Record<string, Record<number, number>> = {
   },
 
   paul_scholes: {
+    // FIFA 05 = 92 globally; FIFA 06 = 87 (after retiring from England, clearly rated lower)
+    // Peak: one of the best CMs in the world 2001-2004
     1996: 78,
     1998: 82,
-    2000: 85,
-    2002: 88,   // WC 2002 — outstanding; one of best in world that season
-    2004: 88,   // Euro 2004 — last England tournament; voluntarily retired
+    2000: 86,
+    2002: 89,   // WC 2002 — FIFA 05=92 reflects this era; among world's best CMs
+    2004: 89,   // Euro 2004 — last England tournament; still at his absolute peak
   },
 
   steven_gerrard: {
+    // FIFA 06 = 93 globally (equal to Rooney — top-5 in game!); FIFA 08=88, 09=88, 10=88
     1998: 72,
     2000: 77,
-    2002: 83,
-    2004: 87,
-    2006: 90,   // WC 2006 — England's standout player; scored free kick vs T&T
+    2002: 85,   // Pre-Istanbul; already Liverpool's heartbeat; excellent form
+    2004: 89,   // Istanbul preparation year; arguably his best single season
+    2006: 91,   // FIFA 06=93; WC 2006 England's standout player; scored vs T&T
     2008: 90,
-    2010: 88,   // WC 2010 — disallowed goal tournament; still class
+    2010: 87,   // FIFA 10=88; WC 2010 — disallowed goal tournament; still elite
     2012: 85,
     2014: 80,
   },
 
   frank_lampard: {
+    // FIFA 06=90, FIFA 07=89 (8th globally!), FIFA 10=87, FIFA 11=87 (10th globally)
     2000: 77,
     2002: 82,
     2004: 88,
-    2006: 90,   // WC 2006 — Chelsea record scorer; peak form
-    2008: 89,
-    2010: 87,   // WC 2010 — disallowed goal; still among best in Europe
+    2006: 90,   // FIFA 06=90, FIFA 07=89; Chelsea record scorer; peak form
+    2008: 88,   // Still excellent; FIFA 08 ~87; consistent 15+ goals/season
+    2010: 87,   // FIFA 10=87; WC 2010 — disallowed goal; still among best in Europe
     2012: 83,
-    2014: 76,
+    2014: 77,
   },
 
   michael_carrick: {
@@ -588,13 +596,14 @@ export const CAREER_RATINGS: Record<string, Record<number, number>> = {
   // ═══════════════════════════════════════════════════════════════════════════
 
   david_beckham: {
+    // FIFA 99=94 (top-3 globally!), FIFA 00=93, FIFA 01=93, FIFA 02=89, FIFA 04=90
     1996: 79,
-    1998: 85,
-    2000: 88,
-    2002: 91,   // WC 2002 — absolute peak; that penalty vs Argentina
-    2004: 86,
-    2006: 85,   // WC 2006 — older but still elite set-piece weapon
-    2008: 81,
+    1998: 86,   // FIFA 99=94 post-WC 98; top-3 globally; our scale 86
+    2000: 89,   // FIFA 00=93; absolute prime — Man Utd treble era
+    2002: 89,   // WC 2002 — FIFA 02=89 (our scale); that penalty; but also red card '98 hangover gone
+    2004: 87,   // FIFA 04=90; Real Madrid, still world-class
+    2006: 83,   // FIFA 07=87; WC 2006 — older, metatarsal recovery, but iconic set pieces
+    2008: 79,   // Declining — LA Galaxy, occasional England cameos
   },
 
   steve_mcmanaman: {
@@ -759,20 +768,22 @@ export const CAREER_RATINGS: Record<string, Record<number, number>> = {
   },
 
   alan_shearer: {
-    1993: 76,
-    1994: 82,
-    1996: 91,   // Euro 96 Golden Boot — 5 goals; England's defining striker
-    1998: 89,   // WC 98
-    2000: 85,   // Euro 2000 — retired from England after this
+    // FIFA 97 = 96 globally (top-3!), FIFA 98 = 94; confirmed world-class peak
+    1993: 78,   // Already elite — 22 goals in 92-93 for Southampton then Blackburn
+    1994: 85,   // Blackburn title season 94-95 incoming; Ballon d'Or nomination
+    1996: 91,   // Euro 96 Golden Boot — 5 goals; England's defining striker; FIFA 97=96
+    1998: 89,   // WC 98 — still elite despite injury limiting club form
+    2000: 85,   // Euro 2000 — last England tournament; post-ankle injury but still sharp
   },
 
   michael_owen: {
-    1998: 84,   // WC 98 — that Argentina goal; 18-year-old sensation
-    2000: 86,
-    2002: 89,   // WC 2002 — peak; scored vs Brazil in QF
-    2004: 82,
-    2006: 71,   // Metatarsal suffered IN the tournament; already post-injury decline
-    2008: 66,
+    // FIFA 99=94 (top-5 globally!), FIFA 02=92, FIFA 05=91, FIFA 08=84, FIFA 10=79
+    1998: 87,   // FIFA 99=94 post-WC; that Argentina goal; Ballon d'Or 4th; world top-5
+    2000: 88,   // Consistent elite form; Ballon d'Or 2001; Liverpool era peak
+    2002: 89,   // WC 2002 — FIFA 02=92; scored vs Brazil QF; true peak
+    2004: 85,   // FIFA 05=91; Real Madrid, still elite before injuries took hold
+    2006: 75,   // Injured IN tournament; FIFA 07 ~84 but WC was curtailed; Newcastle decline
+    2008: 72,   // FIFA 08=84; Man Utd squad player, still capable but not starter-quality
   },
 
   emile_heskey: {
@@ -786,12 +797,14 @@ export const CAREER_RATINGS: Record<string, Record<number, number>> = {
   },
 
   wayne_rooney: {
-    2004: 77,   // Euro 2004 — 18-year-old explosive debut; two goals vs Croatia
-    2006: 83,   // WC 2006 — red card but clearly elite talent at 20
-    2008: 87,
-    2010: 88,
-    2012: 90,   // Peak — Man Utd's leading scorer; POTY contender
-    2014: 87,
+    // FIFA 06=93 (8th globally at 19!), FIFA 07=92 (2nd globally!), FIFA 08=90 (8th),
+    // FIFA 11=88 (5th), FIFA 12=90 (6th), FIFA 13=89 (7th)
+    2004: 82,   // Euro 2004 — 18yo; FIFA 05 would rate him ~88; scale down for age/rawness
+    2006: 87,   // FIFA 07=92 (2nd in world!); scale to 89, minus red card/injury = 87
+    2008: 88,   // FIFA 08=90; consistently top-10 in world; scale 88
+    2010: 86,   // FIFA 10=87; WC 2010 — poor tournament form but class remains
+    2012: 90,   // FIFA 12=90; absolute peak — Man Utd's leading scorer; POTY contender
+    2014: 87,   // FIFA 13/14=89; still excellent
     2016: 82,
   },
 
