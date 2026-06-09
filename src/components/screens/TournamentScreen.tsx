@@ -205,7 +205,7 @@ export default function TournamentScreen({ worldCup, squad, formation, dispatch 
       {/* ── Top bar ─────────────────────────────────────────────── */}
       <div className="px-4 pt-5 pb-3 flex flex-col items-center gap-1 border-b border-white/8">
         <div className="text-slate-500 text-xs font-bold uppercase tracking-widest">
-          {worldCup.year} World Cup · {roundLabel}
+          {worldCup.year} {worldCup.competition === 'Euro' ? 'European Championship' : 'World Cup'} · {roundLabel}
         </div>
 
         {/* Teams + score */}
@@ -303,7 +303,8 @@ export default function TournamentScreen({ worldCup, squad, formation, dispatch 
               isDraw       ? 'text-yellow-300' :
                              'text-red-300'
             }`}>
-              {isChampion        ? 'WORLD CHAMPIONS!' :
+              {isChampion && worldCup.competition === 'Euro' ? 'EURO CHAMPIONS!' :
+               isChampion        ? 'WORLD CHAMPIONS!' :
                isEliminated      ? 'England are out.' :
                engWon && isFinal ? 'INTO THE FINAL!' :
                engWon            ? 'England through!' :
@@ -317,7 +318,9 @@ export default function TournamentScreen({ worldCup, squad, formation, dispatch 
             )}
             {isChampion && (
               <p className="text-amber-400/70 text-xs mt-1">
-                Sixty years of hurt. Finally.
+                {worldCup.competition === 'Euro'
+                  ? "They've only gone and done it. England are European Champions!"
+                  : 'Sixty years of hurt. Finally.'}
               </p>
             )}
           </div>

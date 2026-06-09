@@ -13,16 +13,16 @@ const MODES = [
   {
     icon: '🗓️',
     label: 'Manager Mode',
-    desc: 'Pick any era from 1966 to 2026. Build the best squad from players who were actually available that year.',
+    desc: 'Pick any era from 1966 to 2026. Build the best squad from players who were available that year.',
   },
   {
     icon: '🏆',
     label: 'All-Time XI',
-    desc: 'No era restrictions — pick England\'s greatest players ever and take them straight to the World Cup.',
+    desc: 'No era restrictions — pick England\'s greatest players ever and enter any World Cup or Euro.',
   },
 ]
 
-const STATS = ['120+ legends', '16 World Cups', 'FUT chemistry', '5 formations']
+const STATS = ['130+ legends', '16 World Cups', '17 European Championships', 'Badge chemistry', '5 formations']
 
 export default function HomeScreen({ dispatch }: Props) {
   return (
@@ -50,7 +50,7 @@ export default function HomeScreen({ dispatch }: Props) {
 
       {/* Hero copy */}
       <p className="text-slate-300 text-center max-w-sm leading-relaxed mb-8">
-        Pick your greatest England squad, face real World Cup opponents,
+        Pick your greatest England squad, face real World Cup and European Championship opponents,
         and find out if you can finally bring it home.
       </p>
 
@@ -87,8 +87,8 @@ export default function HomeScreen({ dispatch }: Props) {
           <div className="text-slate-400 text-xs mt-1 leading-snug">World Cups from 1966 to 2026</div>
         </div>
         <div className="rounded-xl bg-white/5 border border-white/8 px-4 py-3.5">
-          <div className="text-amber-400 font-black text-2xl leading-none">FUT</div>
-          <div className="text-slate-400 text-xs mt-1 leading-snug">Chemistry — per-player pip scoring</div>
+          <div className="text-amber-400 font-black text-2xl leading-none">17</div>
+          <div className="text-slate-400 text-xs mt-1 leading-snug">European Championships from 1960</div>
         </div>
         <div className="rounded-xl bg-white/5 border border-white/8 px-4 py-3.5">
           <div className="text-amber-400 font-black text-2xl leading-none">Real</div>

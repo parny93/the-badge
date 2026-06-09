@@ -23,16 +23,21 @@ const EXIT_COPY: Record<string, { emoji: string; headline: string; sub: string }
   Group:    { emoji: '💀', headline: 'Couldn\'t get out of the group.', sub: 'Classic England. Somehow, they found a way out. Oh wait — they didn\'t.' },
 }
 
+const EURO_WINNER_COPY = { emoji: '🏆', headline: 'EURO CHAMPIONS!', sub: "They've done it. England are European Champions. The whole nation erupts." }
+
 export default function ResultScreen({ worldCup, squad, formation, result, dispatch }: Props) {
   const [tab, setTab] = useState<Tab>('result')
-  const copy = EXIT_COPY[result.exitRound] ?? EXIT_COPY['Group']
+  const isEuro = worldCup.competition === 'Euro'
+  const compLabel = isEuro ? 'European Championship' : 'World Cup'
+  const rawCopy = EXIT_COPY[result.exitRound] ?? EXIT_COPY['Group']
+  const copy = result.exitRound === 'Winner' && isEuro ? EURO_WINNER_COPY : rawCopy
 
   const allEnglandMatches = result.rounds.flatMap(r =>
     r.matches.filter(m => m.home === 'England' || m.away === 'England')
   )
 
   const shareText = [
-    `🏴󠁧󠁢󠁥󠁧󠁧󠁮󠁧󠁿 THE BADGE — ${worldCup.year} World Cup`,
+    `🏴󠁧󠁢󠁥󠁮󠁧󠁿 THE BADGE — ${worldCup.year} ${compLabel}`,
     `${copy.emoji} ${copy.headline}`,
     `Formation: ${formation}`,
     allEnglandMatches.slice(0, 4).map(m =>
@@ -61,7 +66,7 @@ export default function ResultScreen({ worldCup, squad, formation, result, dispa
         <h1 className="text-2xl font-black text-white leading-tight">{copy.headline}</h1>
         <p className="text-slate-400 mt-2 text-sm leading-snug">{copy.sub}</p>
         <div className="mt-3 inline-block bg-white/10 rounded-full px-3 py-1">
-          <span className="text-slate-300 text-xs">{worldCup.year} World Cup · {formation}</span>
+          <span className="text-slate-300 text-xs">{worldCup.year} {compLabel} · {formation}</span>
         </div>
       </div>
 

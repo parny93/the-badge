@@ -282,4 +282,9 @@ export const KNOCKOUT_ROUNDS: Record<string, string[]> = {
   '24-team': ['R16', 'QF', 'SF', 'Final'],
   '32-team': ['R16', 'QF', 'SF', 'Final'],
   '48-team': ['R32', 'R16', 'QF', 'SF', 'Final'],
+  // ── European Championship formats ──
+  'euro-4-team':  ['Final'],                    // 1960–1976: 4 teams, 1 group, top 2 meet in Final
+  'euro-8-team':  ['SF', 'Final'],              // 1980–1992: 2 groups of 4, top 2 each → SF → Final
+  'euro-16-team': ['QF', 'SF', 'Final'],        // 1996–2012: same KO depth as 16-team WC
+  'euro-24-team': ['R16', 'QF', 'SF', 'Final'], // 2016–2024: same KO depth as 24-team WC
 }

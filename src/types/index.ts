@@ -106,7 +106,9 @@ export interface FormationSlot {
 
 // ─── World Cup data ───────────────────────────────────────────────────────────
 
-export type WCFormat = '16-team' | '24-team' | '32-team' | '48-team'
+export type WCFormat =
+  | '16-team' | '24-team' | '32-team' | '48-team'
+  | 'euro-4-team' | 'euro-8-team' | 'euro-16-team' | 'euro-24-team'
 
 export interface WCGroup {
   name: string
@@ -121,6 +123,7 @@ export interface WorldCupData {
   groups: WCGroup[]
   englandGroup: string           // which group England are placed in
   englandQualified: boolean      // did England actually qualify
+  competition?: 'WorldCup' | 'Euro'  // omit = WorldCup (back-compat)
 }
 
 // ─── Team ratings ─────────────────────────────────────────────────────────────

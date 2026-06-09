@@ -451,6 +451,253 @@ export const TEAM_RATINGS: TeamRatings = {
     'Poland': 71,      // Lewandowski declining
     'Scotland': 70,
   },
+
+  // ── European Championship years (don't overlap with WC years) ──────────────
+  1960: {
+    'USSR':           86, // Yashin era — won Euro 1960 (beat Yugoslavia 2-1)
+    'Yugoslavia':     82, // Džajić, Šekularac — strong side
+    'Czechoslovakia': 80,
+    'France':         75, // host, finished 4th
+    'England':        82, // Banks, Charlton R, Haynes era (wildcard)
+  },
+  1964: {
+    'Spain':          83, // won it — Suárez, Amancio era
+    'USSR':           84, // Yashin, Voronin — finalists
+    'Hungary':        82, // Grosics era winding down, still very good
+    'Denmark':        70,
+    'England':        80, // Moore, Banks, Greaves (wildcard)
+  },
+  1968: {
+    'Italy':          85, // won it — Riva, Facchetti, Mazzola, Rivera
+    'Yugoslavia':     82, // Džajić magnificent — unlucky finalists
+    'England':        82, // Charlton B, Hurst, Banks, Moore — 3 years after '66 win
+    'USSR':           81, // Yashin final year, still formidable
+  },
+  1972: {
+    'West Germany':   90, // won it — Beckenbauer, Müller, Breitner, Netzer; peak generation
+    'USSR':           83, // Blokhin emerging, still strong — finalists
+    'Belgium':        78, // host, 3rd place
+    'Hungary':        76, // fading from golden era
+    'England':        82, // Chivers, Ball, Hunter era (wildcard)
+  },
+  1976: {
+    'Czechoslovakia': 84, // won it on Panenka penalty — Nehoda, Masný, Viktor
+    'West Germany':   87, // defending WC champions — Beckenbauer, Müller, Maier
+    'Netherlands':    87, // without Cruyff but still superb — Rep, Neeskens, Rensenbrink
+    'Yugoslavia':     76, // host, finished 4th
+    'England':        78, // Revie era — Keegan emerging (wildcard)
+  },
+  1980: {
+    'West Germany':   87, // won it — Rummenigge, Hrubesch, Stielike, Schuster
+    'Czechoslovakia': 79,
+    'Netherlands':    84, // Cruyff era ending, still van Hanegem, Krol, Rep
+    'Greece':         68,
+    'Belgium':        80, // Ceulemans, Van den Berghe era — finalists
+    'England':        80, // Keegan (injury), Clemence, Coppell, Woodcock
+    'Spain':          77,
+    'Italy':          83, // host, Zoff, Gentile, Tardelli — just before '82 WC
+  },
+  1984: {
+    'France':         90, // WON IT — Platini 9 goals, Giresse, Tigana, Battiston, Bossis
+    'Denmark':        84, // Laudrup, Elkjær — brilliant football
+    'Belgium':        78,
+    'Yugoslavia':     76,
+    'Spain':          82, // Butragueño emerging, Camacho, Arconada
+    'Portugal':       78, // Chalana, Jordão
+    'West Germany':   84, // Rummenigge, Allofs — defending Euro champions
+    'England':        80, // Robson, Wilkins, Woodcock (wildcard)
+    'Romania':        73,
+  },
+  1988: {
+    'Netherlands':    91, // WON IT — Van Basten hat-trick final, Gullit, Rijkaard; arguably best Dutch side ever
+    'USSR':           83, // Dasayev, Rats, Mikhailichenko, Zavarov — finalists
+    'West Germany':   84, // Matthäus, Klinsmann, Brehme — host, semi-final exit
+    'Italy':          83,
+    'England':        78, // lost all 3 — Lineker, Robson, Beardsley
+    'Republic of Ireland': 74, // Jack Charlton debut at major tournament — Stapleton, Aldridge
+    'Spain':          79, // Butragueño, Michel, Hierro emerging
+    'Denmark':        79, // Laudrup, Elkjær going strong
+  },
+  1992: {
+    'Denmark':        83, // WON IT as shock replacement for Yugoslavia — Schmeichel, M.Laudrup, B.Laudrup, Povlsen
+    'Germany':        89, // reigning WC champions — Klinsmann, Effenberg, Häßler, Brehme, Matthaus
+    'Netherlands':    88, // Van Basten, Bergkamp emerging, Gullit, Rijkaard, Koeman
+    'France':         82, // Papin, Cantona — QF upset loss to Denmark
+    'Sweden':         82, // Brolin, Larsson, Dahlin — hosts
+    'England':        78, // Taylor era — Shearer, Platt, Lineker final tournament
+    'CIS':            78, // Commonwealth of Independent States (ex-Soviet Union) — Onopko, Dobrovolski
+    'Scotland':       72,
+  },
+  1996: {
+    'Germany':        88, // WON IT — Sammer (Ballon d'Or), Klinsmann, Ziege, Kuntz
+    'Czech Republic': 82, // finalists — Poborský, Nedvěd, Berger, Čech not yet
+    'France':         85, // Zidane, Djorkaeff, Desailly, Blanc — SF loss on pens
+    'England':        83, // host — Shearer (golden boot), Gazza goal vs Scotland, McManaman, Adams; SF exit (Southgate pen miss)
+    'Netherlands':    83, // Seedorf, Davids, Bergkamp, De Boer brothers — QF exit
+    'Spain':          82, // Hierro, Amor, Kiko — SF exit vs France
+    'Croatia':        80, // debut at major tournament — Šuker, Boban, Prosinečki
+    'Portugal':       80, // Figo, João Pinto, Rui Costa
+    'Italy':          81, // Maldini, Del Piero, Albertini, Buffon — debut at Euros
+    'Romania':        77, // Hagi still going
+    'Turkey':         68,
+    'Switzerland':    73,
+    'Scotland':       75, // McStay, Gallacher
+    'Bulgaria':       77, // Stoichkov — WC bronze the previous year
+    'Denmark':        78, // Schmeichel, M.Laudrup — defending champions
+    'Russia':         74,
+  },
+  2000: {
+    'France':         93, // WON IT — Zidane, Henry, Vieira, Desailly, Thuram, Barthez, Trezeguet golden goal
+    'Portugal':       86, // Figo (Ballon d'Or), João Pinto, Nuno Gomes, Pauleta — SF run
+    'Netherlands':    86, // Davids, Kluivert, De Boer brothers, van Nistelrooy — host, SF loss on pens
+    'Italy':          85, // Totti, Del Piero, Nesta, Toldo, Maldini — finalists (Trezeguet golden goal)
+    'Spain':          81, // Raúl, Mendieta, Hierro, Casillas emerging
+    'Germany':        82, // Ballack emerging, Rummenigge-era icons gone — shock group exit
+    'Romania':        79, // Hagi's last major tournament
+    'England':        80, // Scholes, Owen, Gerrard, Beckham, Shearer — group exit (2L)
+    'Yugoslavia':     78, // Stojković, Savičević last Euros
+    'Czech Republic': 77, // Nedvěd, Poborský, Berger
+    'Norway':         73,
+    'Denmark':        76, // Schmeichel, M.Laudrup last Euros
+    'Belgium':        76, // host, Wilmots, de Bilde
+    'Turkey':         75, // Süleyman Seba era
+    'Sweden':         76, // Larsson peak
+    'Slovenia':       66, // debut at major tournament
+  },
+  2004: {
+    'Greece':         78, // WON IT — most shocking Euro ever; Charisteas, Dellas, Nikopolidis; Rehhagel
+    'Portugal':       84, // host & favourites — Figo, Ronaldo emerging, Deco, Maniche; lost final to Greece
+    'Czech Republic': 82, // Baroš (golden boot), Nedvěd, Čech — SF, lost to Greece
+    'Netherlands':    83, // Robben, van Nistelrooy, Sneijder, van der Sar — SF, pens
+    'England':        83, // Rooney stunning (until injury), Beckham, Gerrard, Lampard, Terry — QF pens to Portugal
+    'France':         86, // Zidane last Euros, Henry, Vieira, Makelele, Trézeguet — QF exit
+    'Sweden':         80, // Zlatan (debut at senior Euros), Larsson, Ljungberg
+    'Spain':          80, // Raúl, Casillas, Puyol, Villa debut
+    'Croatia':        77, // Šuker, Prso — group stage
+    'Germany':        81, // Ballack, Kahn, Frings, Klose
+    'Latvia':         66, // first and only Euros — Verpakovskis
+    'Switzerland':    74,
+    'Bulgaria':       73, // Berbatov emerging
+    'Italy':          82, // Cannavaro, Buffon, Pirlo, Totti — shock group exit
+    'Russia':         75, // Alenichev, Titov
+    'Denmark':        75, // Tomasson, Jensen
+  },
+  2008: {
+    'Spain':          93, // WON IT — peak era beginning; Xavi, Iniesta, Villa, Casillas, Puyol, Ramos, Torres
+    'Germany':        87, // Lahm, Ballack, Klose, Lehmann — finalists (lost 0-1 to Spain)
+    'Russia':         80, // Arshavin superb — SF run; Akinfeev, Pavlyuchenko
+    'Turkey':         79, // incredible comeback semi-final story — Nihat, Tuncay, Rüştü
+    'Netherlands':    87, // Robben, van Nistelrooy, van Persie, Sneijder, van der Sar — QF shock loss to Russia
+    'Croatia':        81, // Srna, Modrić, Klasnić, Šuker (manager) — QF loss to Turkey
+    'Portugal':       83, // Ronaldo, Deco, Nani — QF loss to Germany
+    'Italy':          82, // Totti, Del Piero, Pirlo, Buffon, Cannavaro — QF loss to Spain on pens
+    'France':         81, // Ribéry, Henry, Vieira last Euros — group exit
+    'Sweden':         76, // Zlatan, Ljungberg
+    'Greece':         78, // defending champions — group exit
+    'Switzerland':    73, // host, Senderos, Barnetta
+    'Czech Republic': 78, // Čech, Baroš, Rosický — QF loss to Turkey
+    'Romania':        73,
+    'Austria':        69, // host, Arnautović emerging
+    'Poland':         72,
+    'England':        83, // didn't qualify — wildcard; Gerrard, Rooney, Terry era
+  },
+  2012: {
+    'Spain':          94, // WON IT — defending WC+Euro double; Xavi-Iniesta at absolute peak; 4-0 final vs Italy
+    'Italy':          84, // Pirlo masterclass; Balotelli 2 vs Germany; finalists; Buffon, Bonucci, Chiellini
+    'Germany':        87, // Kroos, Müller, Özil, Neuer, Lahm — SF loss to Italy
+    'Portugal':       83, // Ronaldo in form, Pepe — SF pens loss to Spain
+    'England':        81, // Rooney, Gerrard, Lescott, Walcott — QF loss to Italy on pens
+    'France':         82, // Ribéry, Benzema, Nasri — QF loss to Spain
+    'Croatia':        77, // Modrić, Srna, Mandžukić
+    'Czech Republic': 77, // Čech, Rosický, Baroš
+    'Greece':         76, // Samaras, Ninis
+    'Denmark':        74,
+    'Netherlands':    83, // van Persie, Robben, Sneijder — catastrophic group exit (3 losses)
+    'Russia':         77, // Arshavin, Pavlyuchenko
+    'Sweden':         76, // Zlatan, Larsson
+    'Ukraine':        73, // host; Shevchenko's last tournament
+    'Republic of Ireland': 71, // Duff, Keane last Euros — group exit (3 losses)
+    'Poland':         74, // host; Lewandowski debut
+  },
+  2016: {
+    'Portugal':       82, // WON IT — Ronaldo injured in final; Eder golden goal vs France in extra time
+    'France':         86, // home final — Griezmann 6 goals, Pogba, Payet, Lloris; lost to Portugal aet
+    'Germany':        87, // Özil, Müller, Kroos, Neuer, Hummels, Boateng — SF loss to France
+    'Wales':          76, // Bale, Ramsey, Allen — stunning SF run, first major SF ever
+    'Belgium':        87, // Hazard, De Bruyne, Lukaku, Courtois, Kompany — QF loss to Wales!
+    'Hungary':        73, // Szalai, Guzmics — impressive draw vs Portugal & France
+    'Italy':          83, // Buffon, Chiellini, Bonucci, Pirlo (last Euros), De Rossi
+    'Spain':          83, // Ramos, Silva, Morata, Busquets, Iniesta, Casillas/De Gea
+    'Croatia':        79, // Modrić, Rakitić, Mandžukić
+    'Poland':         77, // Lewandowski — QF loss to Portugal on pens
+    'Albania':        67,
+    'Turkey':         74, // Çalhanoğlu, Under
+    'Republic of Ireland': 73, // Martin O'Neill era, R16 loss to France
+    'Austria':        75, // Arnautović, Sabitzer
+    'England':        80, // Kane (no goals in group), Dier, Smalling, Hart — R16 Iceland!
+    'Slovakia':       72,
+    'Northern Ireland': 70, // historic qualification — Lafferty, Davis
+    'Switzerland':    77, // Shaqiri, Xhaka, Sommer — R16 loss to Poland
+    'Czech Republic': 74,
+    'Russia':         74,
+    'Romania':        72,
+    'Iceland':        73, // SHOCKED ENGLAND 2-1 — Sigurðsson, Guðmundsson, Hannes Halldórsson
+    'Sweden':         73,
+    'Ukraine':        71,
+  },
+  2020: {
+    // Played July 2021 due to COVID-19
+    'Italy':          90, // WON IT — Donnarumma MOTM/golden glove; Bonucci, Chiellini, Barella, Verratti, Insigne, Immobile
+    'England':        86, // FINAL loss on pens — Kane, Bellingham, Saka, Grealish, Rice, Trippier, Pickford; 26 years of Euros hurt
+    'Spain':          87, // Pedri, Olmo, Morata, Jordi Alba, Laporte — SF loss to Italy
+    'Belgium':        89, // QF loss to Italy — De Bruyne, Hazard (injury), Lukaku, Courtois; best squad, worst result
+    'Denmark':        82, // Eriksen (cardiac arrest → comeback!!), Dolberg, Damsgaard — SF
+    'France':         88, // Benzema, Mbappé, Pogba, Griezmann — QF pens SHOCK loss to Switzerland!
+    'Germany':        85, // Müller, Gnabry, Havertz, Kroos, Neuer — R16 loss to England
+    'Switzerland':    80, // Shaqiri, Xhaka, Sommer, Embolo — BEAT FRANCE on pens in R16
+    'Netherlands':    84, // Dumfries, de Ligt, Memphis Depay, De Jong — R16 loss to Czech Republic
+    'Portugal':       88, // Ronaldo won golden boot (5 goals), Bruno Fernandes, Bernardo Silva, Días — R16 loss to Belgium
+    'Croatia':        81, // Modrić still elite, Perišić, Brozović — R16 loss to Spain aet
+    'Czech Republic': 77, // Schick (goal of tournament vs Scotland), Souček — QF loss to Denmark
+    'Austria':        77, // Arnautović, Sabitzer — beat North Macedonia, R16 loss to Italy
+    'Ukraine':        76, // Zinchenko, Yarmolenko, Yaremchuk — beat Sweden in R16 extra time
+    'Sweden':         74, // Forsberg, Isak — R16 loss to Ukraine
+    'Hungary':        70, // Szoboszlai, Szalai — drew with France AND Germany; impressive
+    'Scotland':       73, // Robertson, McGinn, Adams — group exit
+    'Finland':        68, // debut at Euros! Pukki
+    'Turkey':         71, // Çalhanoğlu, Ünder
+    'Russia':         73, // Golovin, Dzyuba
+    'Poland':         75, // Lewandowski — group exit
+    'Slovakia':       71, // Hamšík (captain), Škriniar, Duda — beat Poland, R16 loss to Spain
+    'North Macedonia': 66, // debut
+    'Wales':          75, // Bale, Ramsey aging — R16 loss to Denmark
+  },
+  2024: {
+    'Spain':          91, // WON IT — Yamal (17yo, youngest Euro scorer ever), Williams, Morata, Carvajal, Cucurella, Rodri
+    'England':        85, // FINAL loss 1-2 — Bellingham, Kane, Saka, Rice, Pickford, Trent; Cole Palmer goal
+    'France':         87, // Mbappé, Griezmann, Camavinga, Upamecano, Maignan — SF loss to Spain
+    'Germany':        86, // host — Musiala, Wirtz, Havertz, Kimmich, Rüdiger, Neuer — QF loss to Spain
+    'Portugal':       86, // Ronaldo, Bruno, Bernardo, Vitinha, Cancelo, Rúben Dias — QF loss to France
+    'Netherlands':    84, // Gakpo, Reijnders, De Jong, van Dijk, Verbruggen — SF loss to England (Watkins 90+1)
+    'Turkey':         78, // Çalhanoğlu, Güler, Aktürkoğlu — QF loss to Netherlands
+    'Austria':        78, // Arnautović, Sabitzer, Alaba — R16 loss to Turkey
+    'Switzerland':    81, // Xhaka, Embolo, Akanji, Sommer, Ndoye — QF loss to England on pens
+    'Belgium':        80, // De Bruyne, Doku, Lukaku, Tielemans — group exit shock
+    'Italy':          82, // Donnarumma, Di Lorenzo, Bastoni, Barella, Frattesi — R16 loss to Switzerland
+    'Denmark':        76, // Eriksen, Hojbjerg, Maehle — group exit (drew all 3)
+    'Slovakia':       73, // Škriniar, Duda — beat Belgium, R16 loss to England (Bellingham bicycle kick)
+    'Croatia':        77, // Modrić still going, Perišić, Brozović — group exit
+    'Georgia':        70, // debut! — Kvaratskhelia, Mamardashvili — beat Portugal in groups!
+    'Serbia':         72, // Mitrović, Vlahović, Tadić — group exit
+    'Czech Republic': 75, // Schick, Souček
+    'Romania':        70, // Stanciu, Man, Coman — beat Ukraine in groups
+    'Poland':         72, // Lewandowski declining — group exit
+    'Scotland':       72, // Robertson, McTominay — lost all 3 games
+    'Hungary':        71, // Szoboszlai, Varga — group exit
+    'Albania':        69, // Bajrami, Broja
+    'Slovenia':       70, // Šeško, Oblak — R16 pens loss to Portugal
+    'Ukraine':        73, // Zinchenko, Yaremchuk, Mudryk — group exit
+  },
 }
 
 // ─── Generic fallback ratings for teams not in the lookup ────────────────────

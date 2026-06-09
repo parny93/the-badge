@@ -175,7 +175,9 @@ export function runTournament(
   })
 
   // Did England qualify?
-  const qualifyThreshold = worldCup.format === '48-team' ? 3 : 2
+  // euro-24-team and 48-team WC both take top 3 from each group
+  const qualifyThreshold =
+    worldCup.format === '48-team' || worldCup.format === 'euro-24-team' ? 3 : 2
   if (englandGroupPosition > qualifyThreshold) {
     return {
       rounds,
@@ -244,10 +246,14 @@ export function runTournament(
 
 function getExpectedKOSize(format: WorldCupData['format']): number {
   switch (format) {
-    case '16-team': return 8
-    case '24-team': return 16
-    case '32-team': return 16
-    case '48-team': return 32
+    case '16-team':      return 8
+    case '24-team':      return 16
+    case '32-team':      return 16
+    case '48-team':      return 32
+    case 'euro-4-team':  return 2   // top 2 from 1 group → Final
+    case 'euro-8-team':  return 4   // top 2 from each of 2 groups → SF → Final
+    case 'euro-16-team': return 8   // top 2 from each of 4 groups → QF → SF → Final
+    case 'euro-24-team': return 16  // top 3 from each of 6 groups → R16 → QF → SF → Final
     default: return 16
   }
 }
