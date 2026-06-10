@@ -1219,4 +1219,53 @@ export const CAREER_RATINGS: Record<string, Record<number, number>> = {
     1978: 77,
     1980: 70,
   },
+
+  // ─── Historical wide players ────────────────────────────────────────────────
+  john_connelly: {
+    1960: 73,
+    1962: 76,   // WC 62 squad
+    1965: 79,   // Peak — Burnley title-winner, then Man Utd
+    1966: 78,   // Played the opening game of WC 66
+    1969: 72,
+  },
+  terry_paine: {
+    1962: 73,
+    1964: 76,
+    1966: 78,   // WC 66 squad — Southampton's crossing king
+    1968: 74,
+    1969: 71,
+  },
+  george_eastham: {
+    1960: 72,
+    1963: 76,
+    1965: 78,   // Peak — Arsenal schemer
+    1966: 76,   // WC 66 squad (non-playing)
+    1968: 71,
+  },
+  dave_thomas: {
+    1974: 72,
+    1975: 75,
+    1976: 76,   // Peak — QPR's runners-up season; pacy, direct
+    1977: 74,
+    1978: 70,
+  },
+  tony_morley: {
+    1981: 74,
+    1982: 77,   // Peak — Aston Villa European Cup winner
+    1983: 74,
+    1984: 70,
+  },
+  trevor_steven: {
+    1985: 76,
+    1986: 79,   // WC 86 — Everton's elegant right-sided man
+    1988: 80,   // Peak — Euro 88, then Rangers
+    1990: 78,   // WC 90 squad
+    1992: 73,
+  },
+  steve_hodge: {
+    1986: 76,   // WC 86 — the Maradona shirt-swap game
+    1988: 78,   // Peak — Forest & Spurs years
+    1990: 75,   // WC 90 squad
+    1991: 70,
+  },
 }

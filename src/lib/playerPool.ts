@@ -85,6 +85,14 @@ const INTL_OVERRIDES: Record<string, { from?: number; to?: number }> = {
   peter_thompson:   { from: 1963, to: 1970 },  // 16 England caps 1964–1970
   ian_callaghan:    { from: 1963, to: 1977 },  // 4 caps; 1966 WC squad + 1977 recall
   peter_barnes:     { from: 1977, to: 1982 },  // 22 caps 1977–1982; PFA Young Player of Year 1976
+  // Added historical wide players — flank depth for the 1960s–80s
+  john_connelly:    { from: 1960, to: 1969 },  // 20 caps; 1962 & 1966 WC squads (two-footed flyer)
+  terry_paine:      { from: 1961, to: 1969 },  // 19 caps; 1966 WC squad; Southampton crossing king
+  george_eastham:   { from: 1960, to: 1969 },  // 19 caps; 1966 WC squad; Arsenal schemer
+  dave_thomas:      { from: 1974, to: 1979 },  // 8 caps mid-70s; QPR's flying left-sider
+  tony_morley:      { from: 1980, to: 1984 },  // 6 caps; Aston Villa European Cup winner
+  trevor_steven:    { from: 1985, to: 1992 },  // 36 caps; 1986 & 1990 WC; Euro 88
+  steve_hodge:      { from: 1986, to: 1991 },  // 24 caps; 1986 & 1990 WC
 }
 
 export function eligibleYears(player: Player): { from: number; to: number } {

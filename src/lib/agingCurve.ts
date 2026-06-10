@@ -21,14 +21,17 @@ function interpolateCareerRating(
   const first = years[0]
   const last  = years[years.length - 1]
 
-  // Before first waypoint — gently lower
+  // Before first waypoint — taper down gently (2/yr) toward an international
+  // floor. Old waypoints already start at the rising edge of the career, so a
+  // shallow slope keeps a young-but-capped legend looking the part.
   if (year <= first) {
-    return Math.max(40, Math.round(curve[first] - (first - year) * 3))
+    return Math.max(HARD_FLOOR, Math.round(curve[first] - (first - year) * 2))
   }
 
-  // After last waypoint — gently decay
+  // After last waypoint — decay gently (2/yr). A retiring great fades, but
+  // doesn't crater into journeyman territory the moment the data runs out.
   if (year >= last) {
-    return Math.max(40, Math.round(curve[last] - (year - last) * 3))
+    return Math.max(HARD_FLOOR, Math.round(curve[last] - (year - last) * 2))
   }
 
   // Linear interpolation between surrounding waypoints
@@ -37,6 +40,9 @@ function interpolateCareerRating(
   const t  = (year - lo) / (hi - lo)
   return Math.round(curve[lo] + t * (curve[hi] - curve[lo]))
 }
+
+// Nobody who made it to an England career should ever read like a pub player.
+const HARD_FLOOR = 50
 
 // ─── Legacy age-based curve (fallback for players without career data) ────────
 //
@@ -71,12 +77,20 @@ function legacyAgingCurveRating(player: Player, year: number): number {
 export function getRatingAtYear(player: Player, year: number): number {
   // 1. Career-ratings curve (interpolated between waypoints) — preferred source
   const curve = CAREER_RATINGS[player.id]
-  if (curve && Object.keys(curve).length > 0) {
-    return interpolateCareerRating(curve, year)
+  let rating = (curve && Object.keys(curve).length > 0)
+    ? interpolateCareerRating(curve, year)
+    // 2. Legacy age-based curve — fallback for any player without curve data
+    : legacyAgingCurveRating(player, year)
+
+  // 3. Prime-plateau guarantee — within a player's core years a documented
+  //    great should never read like a journeyman, regardless of how sparse the
+  //    curve data is. Clamps the dip to within 10 of their peak rating across
+  //    a tight window around their documented peak year.
+  if (rating > 0 && Math.abs(year - player.peakYear) <= 4) {
+    rating = Math.max(rating, player.peakRating - 10)
   }
 
-  // 2. Legacy age-based curve — fallback for fringe / historical players
-  return legacyAgingCurveRating(player, year)
+  return rating
 }
 
 // ─── Trend label helpers ──────────────────────────────────────────────────────
