@@ -42,7 +42,7 @@ export default function Page() {
   const back = () => dispatch({ type: 'BACK' })
 
   return (
-    <main className="max-w-md mx-auto min-h-screen bg-slate-900 text-white relative">
+    <main className="max-w-md mx-auto min-h-screen bg-[#0c1420] text-white relative">
       {screen === 'home' && <HomeScreen dispatch={dispatch} />}
 
       {screen === 'mode-select' && (

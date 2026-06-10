@@ -28,15 +28,15 @@ export default function HomeScreen({ dispatch }: Props) {
   return (
     <div className="min-h-screen flex flex-col items-center px-5 pt-10 pb-8 gap-0">
 
-      {/* Logo */}
-      <div className="mb-4">
+      {/* Logo — sits on a page background sampled to match the badge exactly */}
+      <div className="-mb-1 -mt-2">
         <Image
           src="/logo.png"
           alt="The Badge"
-          width={160}
-          height={160}
+          width={224}
+          height={224}
           priority
-          className="drop-shadow-[0_8px_32px_rgba(201,168,76,0.45)]"
+          className="w-52 h-52 sm:w-60 sm:h-60 drop-shadow-[0_10px_40px_rgba(201,168,76,0.45)]"
         />
       </div>
 

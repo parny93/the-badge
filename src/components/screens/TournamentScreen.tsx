@@ -180,7 +180,7 @@ export default function TournamentScreen({ worldCup, squad, formation, dispatch 
     const compName = worldCup.competition === 'Euro' ? 'European Championship' : 'World Cup'
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center gap-6 px-6 py-10 text-center bg-slate-900"
+        className="min-h-screen flex flex-col items-center justify-center gap-6 px-6 py-10 text-center bg-[#0c1420]"
         onClick={() => { clearTimer(); setPhase('prematch') }}
       >
         <div className="text-amber-400/80 text-xs font-bold uppercase tracking-[0.3em]">
@@ -258,7 +258,7 @@ export default function TournamentScreen({ worldCup, squad, formation, dispatch 
 
   return (
     <div
-      className="min-h-screen flex flex-col bg-slate-900 overflow-hidden"
+      className="min-h-screen flex flex-col bg-[#0c1420] overflow-hidden"
       onClick={phase !== 'scoreboard' ? skipPhase : undefined}
     >
       {/* ── Top bar ─────────────────────────────────────────────── */}

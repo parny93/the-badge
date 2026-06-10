@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #09111e;
+  /* Exact background colour sampled from the app logo (public/logo.png) so the
+     badge sits seamlessly on the page. */
+  --background: #0c1420;
   --foreground: #f8fafc;
 }
 
