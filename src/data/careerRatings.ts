@@ -426,19 +426,19 @@ export const CAREER_RATINGS: Record<string, Record<number, number>> = {
   },
 
   alan_ball: {
-    1964: 77,
-    1966: 84,   // WC winner — MOTM contender in final; tireless box-to-box
-    1968: 83,
-    1970: 84,   // WC 70 — arguably career best
-    1972: 81,
-    1975: 72,
+    1964: 78,
+    1966: 87,   // WC winner — MOTM in the final; the most tireless, relentless player on the pitch
+    1968: 85,
+    1970: 86,   // WC 70 — arguably his best tournament; played through heat and injury
+    1972: 82,
+    1975: 73,
   },
 
   martin_peters: {
-    1964: 76,
-    1966: 82,   // WC winner — scored in final; "10 years ahead of his time"
-    1968: 83,
-    1970: 83,   // WC 70 — peak in tandem with Ball
+    1964: 77,
+    1966: 85,   // WC winner — scored in the final; Ramsey: "10 years ahead of his time"
+    1968: 86,
+    1970: 86,   // WC 70 — peak in tandem with Ball
     1972: 80,
     1974: 71,
   },
@@ -495,7 +495,7 @@ export const CAREER_RATINGS: Record<string, Record<number, number>> = {
     2000: 73,
   },
 
-  glen_hoddle: {
+  glenn_hoddle: {
     1978: 77,
     1980: 80,
     1982: 82,   // WC 82
@@ -646,6 +646,13 @@ export const CAREER_RATINGS: Record<string, Record<number, number>> = {
     1977: 75,   // Brief recall at 35 — still class at Liverpool
   },
 
+  peter_barnes: {
+    1977: 78,   // Debut season — electric at Man City; PFA Young Player of Year
+    1978: 80,   // Peak — one of Europe's most dangerous left wingers
+    1980: 79,
+    1982: 74,   // WC 82 — injury disrupted; still a handful on his day
+  },
+
   john_barnes: {
     1984: 78,
     1986: 85,   // WC 86 — that Brazil solo goal; single greatest England moment?
@@ -714,27 +721,27 @@ export const CAREER_RATINGS: Record<string, Record<number, number>> = {
   // ═══════════════════════════════════════════════════════════════════════════
 
   jimmy_greaves: {
-    1960: 82,
-    1962: 85,   // WC 62 — already feared by every defence in the world
-    1964: 87,
-    1966: 85,   // Cruelly dropped from final despite being fit; tragic
-    1967: 80,
+    1960: 83,
+    1962: 87,   // WC 62 — already feared by every defence; arguably the best finisher in the world
+    1964: 90,   // Absolute peak — 44 goals in 57 caps; no finer England goalscorer
+    1966: 88,   // Cruelly dropped from the final despite being fit; one of football's great injustices
+    1967: 82,
   },
 
   roger_hunt: {
-    1962: 76,
-    1964: 79,
-    1966: 83,   // World Cup winner — Ramsey's trusted workman
-    1968: 78,
-    1970: 71,
+    1962: 77,
+    1964: 81,
+    1966: 85,   // World Cup winner — Liverpool's relentless scoring machine; 18 goals in 34 caps
+    1968: 80,
+    1970: 72,
   },
 
   geoff_hurst: {
-    1964: 77,
-    1966: 88,   // World Cup winner — the only hat-trick in a WC final
-    1968: 84,
-    1970: 82,
-    1972: 72,
+    1964: 78,
+    1966: 90,   // World Cup winner — the only hat-trick in a World Cup final, ever
+    1968: 85,
+    1970: 83,
+    1972: 73,
   },
 
   kevin_keegan: {

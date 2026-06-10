@@ -81,9 +81,10 @@ const INTL_OVERRIDES: Record<string, { from?: number; to?: number }> = {
   mick_channon:     { from: 1972, to: 1978 },  // 46 caps 1972–1977; extended to 1978
   // Fix Kyle Walker's window — played at 2026 WC
   kyle_walker:      { to: 2026 },
-  // 1960s left-flank wingers
+  // 1960s–70s wingers
   peter_thompson:   { from: 1963, to: 1970 },  // 16 England caps 1964–1970
   ian_callaghan:    { from: 1963, to: 1977 },  // 4 caps; 1966 WC squad + 1977 recall
+  peter_barnes:     { from: 1977, to: 1982 },  // 22 caps 1977–1982; PFA Young Player of Year 1976
 }
 
 export function eligibleYears(player: Player): { from: number; to: number } {
