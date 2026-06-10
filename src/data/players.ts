@@ -1409,7 +1409,40 @@ export const ENGLAND_PLAYERS: Player[] = [
     ],
   },
 
-  // Winger
+  // Wingers — including 1960s-era left flank cover
+  {
+    id: 'peter_thompson',
+    name: 'Peter Thompson',
+    positions: ['LW', 'LM'],
+    bornYear: 1942,
+    peakYear: 1966,
+    peakRating: 80,
+    peakAttributes: { pace: 86, shooting: 64, passing: 74, dribbling: 84, defending: 46, physical: 68 },
+    caps: 16,
+    goals: 0,
+    moments: [
+      'Thompson burned down the left — defenders had no answer',
+      'Peter Thompson — Liverpool\'s flying winger, tormenting the full-back',
+      'Thompson cut inside and England had a chance',
+      'A jinxing run from Thompson opened it up beautifully',
+    ],
+  },
+  {
+    id: 'ian_callaghan',
+    name: 'Ian Callaghan',
+    positions: ['RM', 'LM'],
+    bornYear: 1942,
+    peakYear: 1966,
+    peakRating: 78,
+    peakAttributes: { pace: 82, shooting: 60, passing: 78, dribbling: 78, defending: 58, physical: 72 },
+    caps: 4,
+    goals: 0,
+    moments: [
+      'Callaghan covered every blade of grass — both flanks, all game',
+      'A tireless display from Ian Callaghan — England\'s forgotten engine',
+      'Callaghan delivered from the right — Liverpool through and through',
+    ],
+  },
   {
     id: 'steve_coppell', name: 'Steve Coppell', positions: ['RM', 'RW'],
     bornYear: 1955, peakYear: 1980, peakRating: 80,

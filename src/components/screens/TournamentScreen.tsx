@@ -38,13 +38,16 @@ const MOMENT_ICON: Record<string, string> = {
 }
 
 const TENSION_LINES = [
-  'The nation watches with bated breath.',
-  'Sixty years of hurt. Can this be the day?',
-  'Your squad. Your legacy. Make it count.',
-  'A nation dares to dream.',
-  'Everything comes down to this.',
-  'Three lions on the shirt. Time to roar.',
-  'The whole country has stopped.',
+  'Sixty years of hurt. Today it ends — or it doesn\'t.',
+  'A nation dares to dream. Carefully.',
+  'Three Lions on the shirt. The whole country has stopped.',
+  'From Wembley \'66 to Italia \'90 — every heartbreak led to this.',
+  'Gazza\'s tears, Beckham\'s red card, Rooney\'s injury. This squad carries it all.',
+  'England v the World. Again. Let\'s go.',
+  'Your squad. Their legacy. Sixty years of longing.',
+  'The whole country is watching. Holding its breath. Again.',
+  '"Some people are on the pitch... they think it\'s all over." Make it all over.',
+  'Not just a game. Never just a game for England.',
 ]
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -205,7 +208,7 @@ export default function TournamentScreen({ worldCup, squad, formation, dispatch 
       {/* ── Top bar ─────────────────────────────────────────────── */}
       <div className="px-4 pt-5 pb-3 flex flex-col items-center gap-1 border-b border-white/8">
         <div className="text-slate-500 text-xs font-bold uppercase tracking-widest">
-          {worldCup.year} {worldCup.competition === 'Euro' ? 'European Championship' : 'World Cup'} · {roundLabel}
+          {worldCup.year} {worldCup.competition === 'Euro' ? 'European Championship' : 'World Cup'} · {worldCup.host.split(' / ')[0]} · {roundLabel}
         </div>
 
         {/* Teams + score */}
@@ -304,23 +307,26 @@ export default function TournamentScreen({ worldCup, squad, formation, dispatch 
                              'text-red-300'
             }`}>
               {isChampion && worldCup.competition === 'Euro' ? 'EURO CHAMPIONS!' :
-               isChampion        ? 'WORLD CHAMPIONS!' :
+               isChampion        ? 'IT\'S COMING HOME!' :
+               isEliminated && match.wentToPenalties ? 'Out on penalties. Again.' :
                isEliminated      ? 'England are out.' :
-               engWon && isFinal ? 'INTO THE FINAL!' :
+               engWon && isFinal ? 'INTO THE FINAL — dare to dream.' :
                engWon            ? 'England through!' :
                isDraw            ? 'Honours even.' :
                                    'England lose.'}
             </div>
             {isEliminated && (
               <p className="text-slate-500 text-xs mt-1 leading-snug">
-                {match.wentToPenalties ? 'Knocked out on penalties. The cruelest way to go.' : 'Better luck next time.'}
+                {match.wentToPenalties
+                  ? 'Out on penalties. Sixty years of hurt in a single kick.'
+                  : 'Another tournament, another exit. But the dream never dies.'}
               </p>
             )}
             {isChampion && (
               <p className="text-amber-400/70 text-xs mt-1">
                 {worldCup.competition === 'Euro'
                   ? "They've only gone and done it. England are European Champions!"
-                  : 'Sixty years of hurt. Finally.'}
+                  : "Sixty years of hurt. Finally. It was always coming home."}
               </p>
             )}
           </div>

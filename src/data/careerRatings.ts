@@ -398,6 +398,17 @@ export const CAREER_RATINGS: Record<string, Record<number, number>> = {
   // DEFENSIVE / CENTRAL MIDFIELD
   // ═══════════════════════════════════════════════════════════════════════════
 
+  bobby_charlton: {
+    1958: 79,   // Munich survivor; already first-team quality at 20
+    1960: 83,
+    1962: 86,   // WC 62 — England's creative hub; voted into tournament XI
+    1964: 88,
+    1966: 91,   // WC winner — European Footballer of the Year; England's greatest
+    1968: 90,   // European Cup winner with Man Utd; second Ballon d'Or nomination
+    1970: 88,   // WC 70 — substituted in quarter-final vs West Germany; still elite
+    1972: 78,   // Twilight of a remarkable career
+  },
+
   nobby_stiles: {
     1964: 77,
     1966: 83,   // WC winner — masterclass in breaking up play; also scored OG vs France
@@ -618,6 +629,22 @@ export const CAREER_RATINGS: Record<string, Record<number, number>> = {
   // ═══════════════════════════════════════════════════════════════════════════
   // WINGERS
   // ═══════════════════════════════════════════════════════════════════════════
+
+  peter_thompson: {
+    1963: 74,
+    1964: 76,
+    1966: 79,   // WC 66 — 16 caps; direct, pacy left winger in a great Liverpool side
+    1968: 77,
+    1970: 74,
+  },
+
+  ian_callaghan: {
+    1963: 72,
+    1966: 76,   // WC 66 — 4 caps total; hard-working right/left midfield cover
+    1968: 74,
+    1972: 73,
+    1977: 75,   // Brief recall at 35 — still class at Liverpool
+  },
 
   john_barnes: {
     1984: 78,
@@ -891,19 +918,6 @@ export const CAREER_RATINGS: Record<string, Record<number, number>> = {
   },
 
   // MIDFIELDERS
-
-  bobby_charlton: {
-    // One of England's greatest ever — WC winner, European Footballer of Year
-    // Pre-FIFA era: estimated from contemporary press, statistical records, retrospective analysis
-    1958: 73,   // Munich survivor; already electric in short spells
-    1960: 79,
-    1962: 83,   // WC 62 — quarter final
-    1964: 88,
-    1966: 91,   // WC winner; European Footballer of Year; Man Utd's heartbeat
-    1968: 90,   // European Cup winner — his crowning Man Utd moment
-    1970: 87,   // WC 70 — substituted against West Germany
-    1972: 78,   // Twilight of a remarkable career
-  },
 
   darren_anderton: {
     1994: 74,

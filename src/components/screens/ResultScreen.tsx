@@ -14,16 +14,48 @@ interface Props {
 type Tab = 'result' | 'matches' | 'squad'
 
 const EXIT_COPY: Record<string, { emoji: string; headline: string; sub: string }> = {
-  Winner:   { emoji: '🏆', headline: 'THEY BROUGHT IT HOME!', sub: 'England are World Champions. It only took 60 years.' },
-  Final:    { emoji: '🥈', headline: 'So close. Heartbreak in the Final.', sub: 'A runner-up medal. But England deserve more.' },
-  SF:       { emoji: '😤', headline: 'Semi-final exit. Again.', sub: 'The nation holds its breath... and then sighs.' },
-  QF:       { emoji: '😞', headline: 'Quarter-final exit.', sub: 'The press won\'t be kind this week.' },
-  R16:      { emoji: '😬', headline: 'Round of 16. Knocked out.', sub: 'Just not quite good enough on the day.' },
-  R32:      { emoji: '😔', headline: 'Round of 32. An early exit.', sub: 'Didn\'t even get going.' },
-  Group:    { emoji: '💀', headline: 'Couldn\'t get out of the group.', sub: 'Classic England. Somehow, they found a way out. Oh wait — they didn\'t.' },
+  Winner: {
+    emoji: '🏆',
+    headline: 'IT\'S COMING HOME. IT\'S ACTUALLY COMING HOME.',
+    sub: 'England are World Champions. The sixty-year wait is finally over. Alf Ramsey is smiling somewhere.',
+  },
+  Final: {
+    emoji: '🥈',
+    headline: 'So close. The Final. Heartbreak again.',
+    sub: 'A runner-up medal. The nation almost dared to believe. Almost.',
+  },
+  SF: {
+    emoji: '😤',
+    headline: 'Semi-final exit. England\'s favourite tournament to lose.',
+    sub: 'Gascoigne cried here. Southgate missed here. The hurt just gets passed down the generations.',
+  },
+  QF: {
+    emoji: '😞',
+    headline: 'Quarter-final exit.',
+    sub: 'The press will be brutal on Monday. Somewhere, a penalty shootout is being blamed.',
+  },
+  R16: {
+    emoji: '😬',
+    headline: 'Round of 16. An early flight home.',
+    sub: 'Not quite good enough. The Golden Generation title is safe for now.',
+  },
+  R32: {
+    emoji: '😔',
+    headline: 'Round of 32. Didn\'t even warm up.',
+    sub: 'Out before England fans had finished complaining about the group draw.',
+  },
+  Group: {
+    emoji: '💀',
+    headline: 'England crashed out in the group stage.',
+    sub: 'A new low. Even 1950 against the USA was closer than this. The pub is going to be quiet tomorrow.',
+  },
 }
 
-const EURO_WINNER_COPY = { emoji: '🏆', headline: 'EURO CHAMPIONS!', sub: "They've done it. England are European Champions. The whole nation erupts." }
+const EURO_WINNER_COPY = {
+  emoji: '🏆',
+  headline: 'EURO CHAMPIONS! FINALLY!',
+  sub: "They've only gone and done it. England are European Champions. The whole nation erupts.",
+}
 
 export default function ResultScreen({ worldCup, squad, formation, result, dispatch }: Props) {
   const [tab, setTab] = useState<Tab>('result')

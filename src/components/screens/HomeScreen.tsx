@@ -29,14 +29,14 @@ export default function HomeScreen({ dispatch }: Props) {
     <div className="min-h-screen flex flex-col items-center px-5 pt-10 pb-8 gap-0">
 
       {/* Logo */}
-      <div className="mb-5">
+      <div className="mb-4">
         <Image
           src="/logo.png"
           alt="The Badge"
-          width={110}
-          height={110}
+          width={160}
+          height={160}
           priority
-          className="drop-shadow-[0_4px_24px_rgba(201,168,76,0.35)]"
+          className="drop-shadow-[0_8px_32px_rgba(201,168,76,0.45)]"
         />
       </div>
 

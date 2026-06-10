@@ -29,89 +29,101 @@ function spread(n: number, max = 93): number[] {
 // ─── Moment banks ─────────────────────────────────────────────────────────────
 
 const MISS = [
-  'blazed it over from six yards — he won\'t believe it',
-  'put it wide when it seemed easier to score',
-  'the finish just wasn\'t there — keeper could have walked it',
-  'scuffed it straight at the keeper — agony',
-  'dragged it wide at the far post',
-  'smashed it over from the penalty spot — the crowd gasps',
+  'blazed it over from six yards — Gazza did that and it hurt more',
+  'dragged it wide when the nation had already started celebrating',
+  'scuffed it straight at the keeper — the agony is almost comedic',
+  'the finish just wasn\'t there — keepers could retire against England',
+  'somehow found the only way not to score from that position',
+  'hit the side-netting — the Three Lions look to the heavens',
+  'fired straight at the goalkeeper. Again. England being England.',
 ]
 
 const POST = [
-  'thundered it off the crossbar — the woodwork saves them',
-  'rattled the post and it stays out — inches away',
-  'struck the upright — agonisingly close',
-  'the bar came to their rescue — that was going in',
-  'cannoned off the post and out — sheer bad luck',
+  'thundered it off the crossbar — this is what England do to us',
+  'rattled the post — inches away from something beautiful',
+  'struck the upright — Alf Ramsey would have looked away',
+  'the woodwork was the only thing stopping England — for once',
+  'cannoned off the post — this could be one of those nights',
+  'the crossbar trembled — it is NOT going in for England today',
 ]
 
 const SAVE = [
-  'the goalkeeper made an absolutely stunning save',
-  'tipped it onto the bar with one hand — world class',
-  'the keeper read it perfectly and smothered it',
-  'full stretch — fingertips keep it out',
-  'the keeper flew across goal — nothing was getting past him tonight',
-  'a point-blank stop — somehow he got a hand to it',
+  'an absolutely stunning save — the goalkeeper has denied England again',
+  'tipped it onto the bar with one outstretched hand — world class',
+  'the keeper read it and smothered it — England cannot believe it',
+  'full stretch — fingertips keep it out. Sixty years of hurt continue.',
+  'a point-blank stop that Banks himself would have applauded',
+  'the keeper flew across goal. Nothing was getting past him today.',
+  'unbelievable reflexes — England deserve more from this',
 ]
 
 const CHANCE = [
-  'the ball fell kindly but the first touch let them down',
-  'a glancing header went just wide',
-  'burst in behind but couldn\'t keep his feet',
-  'whipped the cross in but no one could reach it',
-  'the through ball was perfect but the offside flag cuts it off',
+  'the first touch let them down — the ghost of Waddle\'s missed penalty haunted him',
+  'a glancing header went agonisingly wide',
+  'burst in behind but lost his footing at the critical moment',
+  'the through ball was perfect but the offside flag cuts it off — England groan',
+  'whipped the cross in but no one could reach the far post',
+  'a thunderous shot deflected just over — this could have been the one',
+  'England poured forward but couldn\'t find the final ball',
 ]
 
 const CARD_ENG = [
-  'reckless challenge — the referee has no choice. Red card. TEN MEN.',
-  'yellow card for dissent — he\'ll need to calm down',
-  'a yellow for a cynical foul — booked',
-  'he\'s been shown red — England must dig deep',
+  'a reckless challenge — the referee has no choice. RED CARD. TEN MEN.',
+  'yellow card for dissent — Bobby Moore would never have done that',
+  'a cynical professional foul — booked. The manager buries his face.',
+  'he\'s been shown red — England must dig deep now, just like Italia \'90',
+  'yellow card — he\'ll know better than that. Won\'t he.',
 ]
 
 const CARD_OPP = [
-  'the opposition reduced to ten men — advantage England',
-  'red card for the opponent — England have a man advantage now',
-  'a reckless lunge — the referee reaches for red',
-  'yellow card for simulation — the crowd boo',
+  'the opposition are reduced to ten men — England have a chance now',
+  'red card for the opponent — a reckless lunge right in front of the referee',
+  'a cynical foul — the referee reaches for red. England surge forward.',
+  'yellow card for simulation — the crowd let him know exactly what they think',
+  'ten men now — just like 1998, England must make their advantage count',
 ]
 
 const VAR = [
-  'VAR is checking... the stadium falls silent',
-  'the referee is being called to the monitor by VAR',
-  'a long delay while VAR reviews the incident',
+  'VAR is checking... Wembley holds its breath',
+  'the referee is being called to the monitor — the whole country stops',
+  'a long VAR review — Gareth Southgate once said decisions go against England. Not today?',
+  'VAR checks for handball... the nation stares at their phones',
 ]
 
 const PENS_BUILD = [
-  'the referee blows — it\'s going to penalties',
-  'extra time couldn\'t separate them — the shootout beckons',
-  'one hundred and twenty minutes and still level — penalties decide it',
+  'the whistle blows for full time — we\'re going to penalties. The nation braces itself.',
+  'extra time couldn\'t separate them. It comes down to spot-kicks. It always does for England.',
+  'one hundred and twenty minutes of football and still level — penalties. Again.',
+  'thirty years of penalty heartbreak — Pearce, Waddle, Batty — could this be different?',
 ]
 
 const PEN_ENG_SCORE = [
-  'steps up and drives it into the bottom corner — SCORED',
-  'sends the keeper the wrong way — SCORED',
-  'pauses, picks his spot — top corner. SCORED.',
-  'cool as you like, straight down the middle — SCORED',
+  'steps up — drives it into the bottom corner. SCORED. England breathe again.',
+  'sends the keeper the wrong way — SCORED. Pure composure.',
+  'pauses, picks his spot — top corner. Goalkeeper rooted. SCORED.',
+  'cool as you like, right down the middle. SCORED. The nation roars.',
+  'smashes it — keeper dives but it\'s in off the post. SCORED!',
 ]
 
 const PEN_ENG_MISS = [
-  'hits the post — the nation groans',
-  'the keeper gets down low and saves it — disaster',
-  'blazes it over the bar — sheer horror',
-  'the keeper dives the right way — saved',
+  'hits the post — the nation groans. Not again. Please, not again.',
+  'the keeper gets down and SAVES IT — England\'s tournament in the balance',
+  'blazes it over the bar — echoes of Waddle in Turin, 1990',
+  'the keeper dives the right way — saved. Gareth Southgate watches from the dugout.',
+  'stutters in the run-up — the keeper guesses right. England\'s heartbreak continues.',
 ]
 
 const PEN_OPP_SCORE = [
-  'the opponent converts — level in the shootout',
-  'they equalise from the spot',
-  'no mistake — scores their penalty',
+  'the opponent converts — we are level in the shootout',
+  'no hesitation, no nerves — they score. England need the next one.',
+  'keeper went the right way but not far enough — they score',
 ]
 
 const PEN_OPP_SAVE = [
-  'the keeper dives to his left and SAVES IT — pandemonium',
-  'pushed onto the post by the keeper — England advance',
-  'the keeper guesses right — SAVED — England have the advantage',
+  'the keeper dives to his left and SAVES IT — absolute pandemonium',
+  'pushed onto the post by the keeper — England have a foothold now',
+  'the keeper guesses right — SAVED — England have the advantage!',
+  'brilliant save from the keeper — now England must make it count',
 ]
 
 // ─── Player moment text ───────────────────────────────────────────────────────
@@ -187,10 +199,17 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
   }
 
   // Add opponent goal moments
+  const OPP_GOAL_LINES = [
+    `${opponent} find the net — England must respond now`,
+    `${opponent} score — this is a setback, but England have been here before`,
+    `${opponent} go ahead — the Three Lions need to dig deep`,
+    `${opponent} punish England — a reminder this won't be easy`,
+    `${opponent} with a clinical finish — England chasing the game`,
+  ]
   for (const min of oppGoalSlots) {
     moments.push({
       minute: min,
-      text: `${opponent} find the net — England need a response`,
+      text: OPP_GOAL_LINES[Math.floor(Math.random() * OPP_GOAL_LINES.length)],
       type: 'goal',
       team: 'opponent',
     })
