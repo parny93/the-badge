@@ -5,6 +5,7 @@ import { runTournament } from '@/lib/tournament'
 import { calculateTeamStrength } from '@/lib/teamStrength'
 import { FORMATIONS } from '@/lib/teamStrength'
 import { getTeamRating } from '@/data/teamRatings'
+import { getLore } from '@/data/tournamentLore'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -16,7 +17,7 @@ interface MatchDisplay {
   isFinal: boolean       // the actual WC Final
 }
 
-type Phase = 'loading' | 'prematch' | 'live' | 'scoreboard'
+type Phase = 'loading' | 'intro' | 'prematch' | 'live' | 'scoreboard'
 
 const ROUND_LABELS: Record<string, string> = {
   Group: 'Group Stage',
@@ -98,7 +99,10 @@ export default function TournamentScreen({ worldCup, squad, formation, dispatch 
 
     setFinalResult(res)
     setMatches(flat)
-    timer.current = setTimeout(() => setPhase('prematch'), 800)
+    // Open with a nostalgic tournament intro (when we have lore for the year),
+    // otherwise go straight to the first prematch.
+    const opener: Phase = getLore(worldCup.year) ? 'intro' : 'prematch'
+    timer.current = setTimeout(() => setPhase(opener), 800)
     return clearTimer
   }, [])
 
@@ -166,6 +170,58 @@ export default function TournamentScreen({ worldCup, squad, formation, dispatch 
       <div className="min-h-screen flex flex-col items-center justify-center gap-5 px-4">
         <div className="text-5xl animate-spin" style={{ animationDuration: '1.5s' }}>⚽</div>
         <p className="text-slate-400 text-sm">Drawing the brackets...</p>
+      </div>
+    )
+  }
+
+  // ── Tournament intro — sets the nostalgic scene before the first match ──────
+  if (phase === 'intro') {
+    const lore = getLore(worldCup.year)!
+    const compName = worldCup.competition === 'Euro' ? 'European Championship' : 'World Cup'
+    return (
+      <div
+        className="min-h-screen flex flex-col items-center justify-center gap-6 px-6 py-10 text-center bg-slate-900"
+        onClick={() => { clearTimer(); setPhase('prematch') }}
+      >
+        <div className="text-amber-400/80 text-xs font-bold uppercase tracking-[0.3em]">
+          {compName}
+        </div>
+
+        {/* Nickname — the way fans actually say it */}
+        <h1 className="text-4xl font-black text-white leading-none">{lore.nickname}</h1>
+
+        <div className="inline-flex items-center gap-2 text-slate-400 text-sm">
+          <span>📍 {lore.host}</span>
+          <span className="text-slate-700">·</span>
+          <span>{worldCup.year}</span>
+        </div>
+
+        {/* Tagline */}
+        <p className="text-amber-200/90 text-base italic leading-relaxed max-w-sm">
+          {lore.tagline}
+        </p>
+
+        {/* England's story — the iconic headlines */}
+        <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4 max-w-sm">
+          <div className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-2">
+            England&rsquo;s story
+          </div>
+          <p className="text-slate-200 text-sm leading-relaxed">{lore.englandTale}</p>
+        </div>
+
+        {worldCup.englandQualified === false && (
+          <div className="text-amber-400/70 text-xs">
+            England didn&rsquo;t qualify this year — you&rsquo;re here on a wildcard. Make it count.
+          </div>
+        )}
+
+        <button
+          onClick={(e) => { e.stopPropagation(); clearTimer(); setPhase('prematch') }}
+          className="mt-2 bg-amber-400 text-slate-900 font-black text-lg px-8 py-3.5 rounded-2xl active:scale-95 transition-all shadow-[0_0_32px_rgba(251,191,36,0.35)]"
+        >
+          Begin the Campaign →
+        </button>
+        <p className="text-slate-700 text-xs">or tap anywhere</p>
       </div>
     )
   }

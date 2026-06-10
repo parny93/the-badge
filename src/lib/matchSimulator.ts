@@ -2,6 +2,11 @@ import { MatchMoment, MatchResult, RatedPlayer } from '@/types'
 import { Formation } from '@/types'
 import { calculateTeamStrength } from './teamStrength'
 import { getTeamRating } from '@/data/teamRatings'
+import { atmosphereDeck } from '@/data/tournamentLore'
+
+// VAR was only introduced at a World Cup in 2018. Before that, no monitors,
+// no offside lines — just the referee, the linesman, and an argument.
+const VAR_FROM_YEAR = 2018
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -170,6 +175,13 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
   let engGoals = poissonSample(engLambda)
   let oppGoals = poissonSample(oppLambda)
 
+  // ── Tournament atmosphere — era/host flavour woven into the feed ────────────
+  // A shuffled deck so a single match never repeats the same line twice.
+  const atmoDeck = atmosphereDeck(wcYear)
+  let atmoCursor = 0
+  const nextAtmo = (): string | null =>
+    atmoCursor < atmoDeck.length ? atmoDeck[atmoCursor++] : null
+
   // ── Build moment timeline ──────────────────────────────────────────────────
   const moments: MatchMoment[] = []
 
@@ -254,8 +266,22 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
         moments.push({ minute: min, text: 'a yellow card shown — passions running high', type: 'card' })
       }
     } else if (roll < 0.72) {
-      // VAR check
-      moments.push({ minute: min, text: pick(VAR), type: 'info' })
+      // Era-appropriate atmosphere — VAR only in the modern game; before that,
+      // a nostalgic scene-setter pulled from the tournament's lore.
+      const atmo = nextAtmo()
+      if (wcYear >= VAR_FROM_YEAR && Math.random() < 0.5) {
+        moments.push({ minute: min, text: pick(VAR), type: 'info' })
+      } else if (atmo) {
+        moments.push({ minute: min, text: atmo, type: 'info' })
+      } else if (wcYear >= VAR_FROM_YEAR) {
+        moments.push({ minute: min, text: pick(VAR), type: 'info' })
+      } else {
+        // Fall through to a chance if we've exhausted the atmosphere deck.
+        const fwd0 = (englandSquad.filter(Boolean) as RatedPlayer[])
+          .find(p => ['ST', 'LW', 'RW', 'CAM'].includes(p.positions[0]))
+        const s0 = fwd0?.name.split(' ').at(-1)
+        moments.push({ minute: min, text: s0 ? `${s0} — ${pick(CHANCE)}` : pick(CHANCE), type: 'chance' })
+      }
     } else {
       // Chance / atmosphere
       const fwd3 = (englandSquad.filter(Boolean) as RatedPlayer[])
@@ -264,6 +290,12 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
       const text = surname3 ? `${surname3} — ${pick(CHANCE)}` : pick(CHANCE)
       moments.push({ minute: min, text, type: 'chance' })
     }
+  }
+
+  // Guarantee at least one nostalgic atmosphere beat per match (when the feed
+  // didn't already surface one), so every tournament feels like *that* tournament.
+  if (atmoCursor === 0 && atmoDeck.length > 0) {
+    moments.push({ minute: 1 + Math.floor(Math.random() * 88), text: atmoDeck[0], type: 'info' })
   }
 
   // Sort by minute

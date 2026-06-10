@@ -2,6 +2,7 @@
 import { GameAction, RatedPlayer, Formation, WorldCupData } from '@/types'
 import { WORLD_CUPS } from '@/data/worldCups'
 import { EUROS } from '@/data/euros'
+import { getLore } from '@/data/tournamentLore'
 import { calculateTeamStrength } from '@/lib/teamStrength'
 
 interface Props {
@@ -22,13 +23,19 @@ function eraGradient(year: number) {
 
 function TournamentCard({ t, dispatch }: { t: WorldCupData; dispatch: React.Dispatch<GameAction> }) {
   const isEuro = t.competition === 'Euro'
+  const lore = getLore(t.year)
+  const hostLabel = lore?.host ?? t.host.split(' / ')[0]
   return (
     <button
       onClick={() => dispatch({ type: 'SELECT_TOURNAMENT', worldCup: t })}
       className={`relative rounded-2xl p-4 text-left bg-gradient-to-br ${eraGradient(t.year)} to-white/5 border border-white/10 hover:border-white/30 active:scale-95 transition-all`}
     >
       <div className="text-3xl font-black text-white leading-none">{t.year}</div>
-      <div className="text-xs text-slate-400 mt-1 leading-snug">{t.host.split(' / ')[0]}</div>
+      {lore?.nickname && (
+        <div className="text-[11px] text-amber-300/80 italic mt-1 leading-snug">{lore.nickname}</div>
+      )}
+      {/* Host location — shown for every tournament */}
+      <div className="text-xs text-slate-400 mt-1 leading-snug">📍 {hostLabel}</div>
       <div className="text-xs text-slate-500 mt-1">
         {isEuro ? '🏅' : '🏆'} {t.historicalWinner === 'TBD' ? 'Up for grabs' : t.historicalWinner}
       </div>

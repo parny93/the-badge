@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { Formation, GameAction, RatedPlayer, TournamentResult, WorldCupData } from '@/types'
+import { getLore } from '@/data/tournamentLore'
 import FormationDisplay from '@/components/ui/FormationDisplay'
 
 interface Props {
@@ -64,6 +65,9 @@ export default function ResultScreen({ worldCup, squad, formation, result, dispa
   const rawCopy = EXIT_COPY[result.exitRound] ?? EXIT_COPY['Group']
   const copy = result.exitRound === 'Winner' && isEuro ? EURO_WINNER_COPY : rawCopy
 
+  const lore = getLore(worldCup.year)
+  const hostLabel = lore?.host ?? worldCup.host.split(' / ')[0]
+
   const allEnglandMatches = result.rounds.flatMap(r =>
     r.matches.filter(m => m.home === 'England' || m.away === 'England')
   )
@@ -98,7 +102,9 @@ export default function ResultScreen({ worldCup, squad, formation, result, dispa
         <h1 className="text-2xl font-black text-white leading-tight">{copy.headline}</h1>
         <p className="text-slate-400 mt-2 text-sm leading-snug">{copy.sub}</p>
         <div className="mt-3 inline-block bg-white/10 rounded-full px-3 py-1">
-          <span className="text-slate-300 text-xs">{worldCup.year} {compLabel} · {formation}</span>
+          <span className="text-slate-300 text-xs">
+            {lore?.nickname ?? `${worldCup.year} ${compLabel}`} · 📍 {hostLabel} · {formation}
+          </span>
         </div>
       </div>
 

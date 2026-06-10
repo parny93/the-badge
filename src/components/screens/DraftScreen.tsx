@@ -1,9 +1,9 @@
 'use client'
 import { useState, useRef, useMemo, useEffect } from 'react'
-import { Formation, GameAction, RatedPlayer } from '@/types'
+import { Formation, GameAction, Position, RatedPlayer } from '@/types'
 import { FORMATIONS } from '@/lib/teamStrength'
 import { familiarity } from '@/lib/chemistry'
-import { getDraftPool } from '@/lib/playerPool'
+import { getDraftPool, canPlaySlot } from '@/lib/playerPool'
 import FormationDisplay from '@/components/ui/FormationDisplay'
 
 interface Props {
@@ -13,10 +13,12 @@ interface Props {
 }
 
 type Phase = 'idle' | 'spinning' | 'choosing' | 'placing'
+type Difficulty = 'easy' | 'hard'
 
 export default function DraftScreen({ formation, squad, dispatch }: Props) {
   const slots = FORMATIONS[formation]
   const [phase, setPhase] = useState<Phase>('idle')
+  const [difficulty, setDifficulty] = useState<Difficulty>('easy')
   const [drawn, setDrawn] = useState<RatedPlayer[]>([])
   const [chosen, setChosen] = useState<RatedPlayer | null>(null)
   const [reelRows, setReelRows] = useState<string[]>(['???', '???', '???', '???', '???'])
@@ -24,9 +26,20 @@ export default function DraftScreen({ formation, squad, dispatch }: Props) {
   const [revealedCount, setRevealedCount] = useState(-1)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const hard = difficulty === 'hard'
+  const drawCount = hard ? 4 : 3
+
   const pickedIds = useMemo(() => squad.filter(Boolean).map(p => p!.id), [squad])
   const filledCount = pickedIds.length
   const isComplete = filledCount === slots.length
+
+  // Positions still needed in the XI. In hard mode the wheel narrows to only
+  // players who can fill one of these — positions drop out as they're filled.
+  const openPositions = useMemo(() => {
+    const set = new Set<Position>()
+    slots.forEach((slot, i) => { if (!squad[i]) set.add(slot.position) })
+    return [...set]
+  }, [slots, squad])
 
   const clearTimer = () => { if (timerRef.current) clearTimeout(timerRef.current) }
 
@@ -34,8 +47,13 @@ export default function DraftScreen({ formation, squad, dispatch }: Props) {
 
   const spin = () => {
     if (phase === 'spinning') return
-    const pool = getDraftPool(pickedIds)
-    if (pool.length < 3) return
+    let pool = getDraftPool(pickedIds)
+    // Hard mode: only draw players who fit a position you still need.
+    if (hard) {
+      const narrowed = pool.filter(p => openPositions.some(pos => canPlaySlot(p, pos)))
+      if (narrowed.length > 0) pool = narrowed
+    }
+    if (pool.length === 0) return
 
     setPhase('spinning')
     setChosen(null)
@@ -66,7 +84,7 @@ export default function DraftScreen({ formation, squad, dispatch }: Props) {
       } else {
         // Done spinning — freeze on final name then reveal cards
         const shuffled = [...pool].sort(() => Math.random() - 0.5)
-        const picked = shuffled.slice(0, 3)
+        const picked = shuffled.slice(0, Math.min(drawCount, pool.length))
         setDrawn(picked)
 
         timerRef.current = setTimeout(() => {
@@ -74,8 +92,10 @@ export default function DraftScreen({ formation, squad, dispatch }: Props) {
           timerRef.current = setTimeout(() => {
             setPhase('choosing')
             setRevealedCount(0)
-            timerRef.current = setTimeout(() => setRevealedCount(1), 280)
-            timerRef.current = setTimeout(() => setRevealedCount(2), 520)
+            // Stagger the reveal of each drawn card.
+            for (let r = 1; r < picked.length; r++) {
+              setTimeout(() => setRevealedCount(r), 280 + (r - 1) * 240)
+            }
           }, 250)
         }, 180)
       }
@@ -165,8 +185,34 @@ export default function DraftScreen({ formation, squad, dispatch }: Props) {
           {/* ── IDLE ── */}
           {phase === 'idle' && (
             <div className="p-5 flex flex-col items-center gap-4">
+              {/* Difficulty toggle */}
+              <div className="w-full max-w-xs">
+                <div className="flex items-center rounded-xl bg-slate-800/80 border border-white/10 p-1">
+                  {(['easy', 'hard'] as Difficulty[]).map(d => (
+                    <button
+                      key={d}
+                      onClick={() => setDifficulty(d)}
+                      className={`flex-1 py-2 rounded-lg text-sm font-bold capitalize transition-all ${
+                        difficulty === d
+                          ? d === 'hard'
+                            ? 'bg-red-500 text-white shadow-[0_0_16px_rgba(239,68,68,0.4)]'
+                            : 'bg-emerald-500 text-white shadow-[0_0_16px_rgba(16,185,129,0.4)]'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {d === 'hard' ? '🔥 Hard' : '😌 Easy'}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-slate-500 text-xs text-center mt-2 leading-snug">
+                  {hard
+                    ? 'Ratings hidden — only the player\'s era is shown. 4 picks, and positions drop out as your XI fills.'
+                    : 'Ratings shown. 3 picks each spin. Build your dream XI in comfort.'}
+                </p>
+              </div>
+
               <p className="text-slate-400 text-sm text-center">
-                Spin to draw three legends. Pick one. Make it work.
+                Spin to draw {hard ? 'four' : 'three'} legends. Pick one. Make it work.
               </p>
               <button
                 onClick={spin}
@@ -240,17 +286,26 @@ export default function DraftScreen({ formation, squad, dispatch }: Props) {
                       <div className="text-xs text-slate-400 mt-0.5">{p.positions.join(' / ')}</div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className={`text-2xl font-black ${ratingColor(p.ratingAtYear)}`}>
-                        {p.ratingAtYear}
-                      </div>
+                      {hard ? (
+                        <div className="text-right">
+                          <div className="text-[9px] text-slate-500 uppercase tracking-widest leading-none">Era</div>
+                          <div className="text-xl font-black text-amber-400 leading-tight">
+                            &rsquo;{String(p.peakYear).slice(2)}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className={`text-2xl font-black ${ratingColor(p.ratingAtYear)}`}>
+                          {p.ratingAtYear}
+                        </div>
+                      )}
                       <div className="text-slate-600 text-sm">→</div>
                     </div>
                   </button>
                 ))}
               </div>
-              {revealedCount >= 2 && (
+              {revealedCount >= drawn.length - 1 && (
                 <p className="text-center text-slate-600 text-xs mt-3 animate-card-reveal">
-                  Choose wisely — you can't go back
+                  {hard ? 'No ratings. No second chances. Trust your gut.' : 'Choose wisely — you can\'t go back'}
                 </p>
               )}
             </div>
