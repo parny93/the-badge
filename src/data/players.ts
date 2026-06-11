@@ -2465,6 +2465,90 @@ export const ENGLAND_PLAYERS: Player[] = [
       'A sharp near-post run and finish from Hitchens',
     ],
   },
+
+  // ─── CULT HEROES ────────────────────────────────────────────────────────────
+  // Fringe internationals with fierce club followings — the "should have won
+  // 50 caps" brigade. Ratings reflect their club peak, not their cap count.
+  {
+    id: 'matt_le_tissier',
+    name: 'Matt Le Tissier',
+    positions: ['CAM'],
+    bornYear: 1968,
+    peakYear: 1995,
+    peakRating: 85,
+    peakAttributes: { pace: 58, shooting: 89, passing: 86, dribbling: 90, defending: 30, physical: 62 },
+    caps: 8,
+    goals: 0,
+    moments: [
+      'Le Tissier flicks it over one head, volleys it past another — Le God does the impossible',
+      'A 35-yarder from Le Tissier arrows into the top corner',
+      'Le Tissier strolls through three tackles like they were traffic cones',
+      'Eight caps. EIGHT. The whole of Southampton rests its case.',
+    ],
+  },
+  {
+    id: 'paul_merson',
+    name: 'Paul Merson',
+    positions: ['CAM', 'RW'],
+    bornYear: 1968,
+    peakYear: 1992,
+    peakRating: 82,
+    peakAttributes: { pace: 74, shooting: 78, passing: 84, dribbling: 85, defending: 32, physical: 60 },
+    caps: 21,
+    goals: 3,
+    moments: [
+      'Merson curls one with the outside of the boot — magic from the Arsenal man',
+      'Merson slips it through a gap nobody else had spotted',
+      'A trademark Merson dink over the back line',
+    ],
+  },
+  {
+    id: 'stan_collymore',
+    name: 'Stan Collymore',
+    positions: ['ST'],
+    bornYear: 1971,
+    peakYear: 1995,
+    peakRating: 83,
+    peakAttributes: { pace: 86, shooting: 85, passing: 68, dribbling: 80, defending: 30, physical: 80 },
+    caps: 3,
+    goals: 0,
+    moments: [
+      'Collymore closing in... and he buries it! Shades of that 4-3 at Anfield',
+      'Collymore surges off the shoulder — too quick, too strong',
+      'Stan the man — thunderous strike from distance',
+    ],
+  },
+  {
+    id: 'james_beattie',
+    name: 'James Beattie',
+    positions: ['ST'],
+    bornYear: 1978,
+    peakYear: 2003,
+    peakRating: 78,
+    peakAttributes: { pace: 76, shooting: 81, passing: 58, dribbling: 64, defending: 30, physical: 84 },
+    caps: 5,
+    goals: 0,
+    moments: [
+      'Beattie bullies the centre-half and lashes it home — his 2003 self was unplayable',
+      'A towering Beattie header from the corner',
+    ],
+  },
+  {
+    id: 'steve_bruce',
+    name: 'Steve Bruce',
+    positions: ['CB'],
+    bornYear: 1960,
+    peakYear: 1991,
+    peakRating: 83,
+    peakAttributes: { pace: 60, shooting: 60, passing: 68, dribbling: 55, defending: 87, physical: 87 },
+    caps: 0,
+    goals: 0,
+    moments: [
+      'Bruce throws his head where boots fear to go — zero caps, zero fear',
+      'Bruce up for the penalty... and scores! 19 goals from centre-half in 1990-91, remember',
+      'The best England career that never happened — Bruce wins everything in the air',
+    ],
+  },
 ]
 
 // ─── Nightmare mode historical squads (actual 23-man squads for each WC year) ─

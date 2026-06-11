@@ -115,6 +115,12 @@ const INTL_OVERRIDES: Record<string, { from?: number; to?: number }> = {
   ron_springett:    { from: 1959, to: 1966 },
   bobby_smith:      { from: 1960, to: 1963 },
   gerry_hitchens:   { from: 1961, to: 1962 },
+  // ── Cult heroes ──
+  matt_le_tissier:  { from: 1990, to: 1998 },  // 8 caps 1994–97; club peak window
+  paul_merson:      { from: 1991, to: 1998 },  // 21 caps; 1998 WC squad
+  stan_collymore:   { from: 1995, to: 1997 },  // 3 caps
+  james_beattie:    { from: 2002, to: 2005 },  // 5 caps, all 2003
+  steve_bruce:      { from: 1987, to: 1995 },  // famously never capped — until now
 }
 
 export function eligibleYears(player: Player): { from: number; to: number } {

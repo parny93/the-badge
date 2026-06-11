@@ -30,6 +30,9 @@ export const KNOWN_PK_TAKERS = new Set<string>([
   'gary_lineker', 'stuart_pearce', 'alan_shearer', 'david_beckham',
   'frank_lampard', 'steven_gerrard', 'wayne_rooney', 'harry_kane',
   'cole_palmer', 'jimmy_greaves', 'michael_owen', 'teddy_sheringham',
+  // Club-football penalty royalty
+  'matt_le_tissier',  // 47 of 48 for Southampton
+  'steve_bruce',      // 11 pens from centre-half in 1990-91 alone
 ])
 
 // Penalty rating proxy: goal threat per cap + a curated-taker bonus.
