@@ -12,6 +12,8 @@ interface Props {
   formation: Formation
   result: TournamentResult
   mode: GameMode
+  hardMode: boolean
+  daily: string | null
   dispatch: React.Dispatch<GameAction>
 }
 
@@ -61,7 +63,7 @@ const EURO_WINNER_COPY = {
   sub: "They've only gone and done it. England are European Champions. The whole nation erupts.",
 }
 
-export default function ResultScreen({ worldCup, squad, formation, result, mode, dispatch }: Props) {
+export default function ResultScreen({ worldCup, squad, formation, result, mode, hardMode, daily, dispatch }: Props) {
   const [tab, setTab] = useState<Tab>('result')
   const [imageBusy, setImageBusy] = useState(false)
   const isEuro = worldCup.competition === 'Euro'
@@ -89,12 +91,13 @@ export default function ResultScreen({ worldCup, squad, formation, result, mode,
     exit: result.exitRound,
     chem: strength.chemistry.score,
     ovr: strength.overall,
-    hard: false,
+    hard: hardMode,
     wonPens: pens.won,
     lostPens: pens.lost,
     xi: squad.map(p => p?.id ?? '').filter(Boolean),
     groupPos: result.groupPosition,
-  }), [mode, formation, worldCup.year, isEuro, result, strength, pens, squad])
+    daily: daily ?? undefined,
+  }), [mode, formation, worldCup.year, isEuro, result, strength, pens, squad, hardMode, daily])
 
   const runId = useMemo(() => encodeRun(runPayload), [runPayload])
   const runUrl = `https://thebadge.app/run/${runId}`

@@ -74,6 +74,11 @@ export default async function RunPage({ params }: Props) {
               🔥 Hard Mode
             </span>
           )}
+          {run.daily && (
+            <span className="text-xs font-bold bg-sky-400/15 border border-sky-400/40 text-sky-300 rounded-full px-3 py-1">
+              📅 Daily {run.daily}
+            </span>
+          )}
           <span className="text-xs font-bold bg-white/10 rounded-full px-3 py-1 text-slate-300">
             CHEM {run.chem}
           </span>

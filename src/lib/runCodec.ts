@@ -23,6 +23,7 @@ export interface RunPayload {
   manager?: string        // manager id
   bench?: string[]        // bench player ids
   groupPos?: number
+  daily?: string          // UTC date key when this was a Daily Challenge run
 }
 
 function toB64url(s: string): string {

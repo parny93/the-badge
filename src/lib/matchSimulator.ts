@@ -1,6 +1,7 @@
 import { MatchMoment, MatchResult, RatedPlayer } from '@/types'
 import { Formation } from '@/types'
 import { calculateTeamStrength } from './teamStrength'
+import { rand } from './rng'
 import { getTeamRating } from '@/data/teamRatings'
 import { atmosphereDeck } from '@/data/tournamentLore'
 
@@ -13,19 +14,19 @@ const VAR_FROM_YEAR = 2018
 function poissonSample(lambda: number): number {
   const L = Math.exp(-Math.max(0.1, lambda))
   let k = 0, p = 1
-  do { k++; p *= Math.random() } while (p > L)
+  do { k++; p *= rand() } while (p > L)
   return k - 1
 }
 
 function pick<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]
+  return arr[Math.floor(rand() * arr.length)]
 }
 
 function spread(n: number, max = 93): number[] {
   const mins: number[] = []
-  let cursor = 3 + Math.floor(Math.random() * 12)
+  let cursor = 3 + Math.floor(rand() * 12)
   for (let i = 0; i < n; i++) {
-    cursor = Math.min(max, cursor + 6 + Math.floor(Math.random() * 18))
+    cursor = Math.min(max, cursor + 6 + Math.floor(rand() * 18))
     mins.push(cursor)
   }
   return mins
@@ -165,8 +166,8 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
   const oppRating   = getTeamRating(opponent, wcYear)
 
   const oppStrength = {
-    attack:  Math.round(oppRating * (0.85 + Math.random() * 0.30)),
-    defense: Math.round(oppRating * (0.85 + Math.random() * 0.30)),
+    attack:  Math.round(oppRating * (0.85 + rand() * 0.30)),
+    defense: Math.round(oppRating * (0.85 + rand() * 0.30)),
   }
 
   const engLambda = Math.max(0.2, 0.9 + (engStrength.attack - oppStrength.defense) * 0.025)
@@ -186,7 +187,7 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
   const moments: MatchMoment[] = []
 
   // Allocate minute slots for the total event count (5-9 moments)
-  const totalMoments = 5 + Math.floor(Math.random() * 5)
+  const totalMoments = 5 + Math.floor(rand() * 5)
   const minutes = spread(totalMoments)
 
   // Reserve slots for actual goals
@@ -194,10 +195,10 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
   const oppGoalSlots: number[] = []
 
   for (let i = 0; i < engGoals; i++) {
-    engGoalSlots.push(8 + Math.floor(Math.random() * 80))
+    engGoalSlots.push(8 + Math.floor(rand() * 80))
   }
   for (let i = 0; i < oppGoals; i++) {
-    oppGoalSlots.push(8 + Math.floor(Math.random() * 80))
+    oppGoalSlots.push(8 + Math.floor(rand() * 80))
   }
 
   // Add England goal moments
@@ -221,7 +222,7 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
   for (const min of oppGoalSlots) {
     moments.push({
       minute: min,
-      text: OPP_GOAL_LINES[Math.floor(Math.random() * OPP_GOAL_LINES.length)],
+      text: OPP_GOAL_LINES[Math.floor(rand() * OPP_GOAL_LINES.length)],
       type: 'goal',
       team: 'opponent',
     })
@@ -235,7 +236,7 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
     if (usedMins.has(min)) continue
     usedMins.add(min)
 
-    const roll = Math.random()
+    const roll = rand()
 
     if (roll < 0.20) {
       // Big save
@@ -254,7 +255,7 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
       moments.push({ minute: min, text: `${surname2} ${pick(POST)}`, type: 'post' })
     } else if (roll < 0.62) {
       // Red or yellow card
-      const cardRoll = Math.random()
+      const cardRoll = rand()
       if (cardRoll < 0.15) {
         // Red card for England (uncommon, dramatic)
         moments.push({ minute: min, text: pick(CARD_ENG), type: 'card', team: 'england' })
@@ -269,7 +270,7 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
       // Era-appropriate atmosphere — VAR only in the modern game; before that,
       // a nostalgic scene-setter pulled from the tournament's lore.
       const atmo = nextAtmo()
-      if (wcYear >= VAR_FROM_YEAR && Math.random() < 0.5) {
+      if (wcYear >= VAR_FROM_YEAR && rand() < 0.5) {
         moments.push({ minute: min, text: pick(VAR), type: 'info' })
       } else if (atmo) {
         moments.push({ minute: min, text: atmo, type: 'info' })
@@ -295,7 +296,7 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
   // Guarantee at least one nostalgic atmosphere beat per match (when the feed
   // didn't already surface one), so every tournament feels like *that* tournament.
   if (atmoCursor === 0 && atmoDeck.length > 0) {
-    moments.push({ minute: 1 + Math.floor(Math.random() * 88), text: atmoDeck[0], type: 'info' })
+    moments.push({ minute: 1 + Math.floor(rand() * 88), text: atmoDeck[0], type: 'info' })
   }
 
   // Sort by minute
@@ -319,7 +320,7 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
     const capFactor  = captain ? captain.ratingAtYear / 100 : 0.80
     const penWinProb = 0.38 + gkFactor * 0.12 + capFactor * 0.10
 
-    const engWinsPens = Math.random() < penWinProb
+    const engWinsPens = rand() < penWinProb
 
     // Simulate 5 kicks each, sudden death if tied
     const engScored: boolean[] = []
@@ -332,8 +333,8 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
 
     // Force the final outcome but make the kicks dramatic
     for (let k = 0; k < 5; k++) {
-      const eScored = k < 4 ? Math.random() < engConvert : engWinsPens ? true : Math.random() < engConvert
-      const oScored = k < 4 ? Math.random() < oppConvert : !engWinsPens ? true : Math.random() < oppConvert
+      const eScored = k < 4 ? rand() < engConvert : engWinsPens ? true : rand() < engConvert
+      const oScored = k < 4 ? rand() < oppConvert : !engWinsPens ? true : rand() < oppConvert
       engScored.push(eScored)
       oppScored.push(oScored)
     }
@@ -361,11 +362,11 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
     const diff = engWinsPens ? Math.max(1, engPenGoals - oppPenGoals) : Math.max(1, oppPenGoals - engPenGoals)
 
     if (engWinsPens) {
-      engPen = Math.min(5, 3 + Math.floor(Math.random() * 2))
+      engPen = Math.min(5, 3 + Math.floor(rand() * 2))
       oppPen = engPen - diff
       engGoals += 1
     } else {
-      oppPen = Math.min(5, 3 + Math.floor(Math.random() * 2))
+      oppPen = Math.min(5, 3 + Math.floor(rand() * 2))
       engPen  = oppPen - diff
       oppGoals += 1
     }

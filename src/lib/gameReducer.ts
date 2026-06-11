@@ -11,6 +11,8 @@ export const INITIAL_STATE: GameState = {
   squad: Array(11).fill(null),
   pickIndex: 0,
   tournament: null,
+  hardMode: false,
+  daily: null,
 }
 
 const STORAGE_KEY = 'thebadge.state.v1'
@@ -90,7 +92,27 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, screen: 'squad-review' }
 
     case 'CONFIRM_SQUAD':
-      return { ...state, screen: 'tournament-select' }
+      // Daily Challenge: the tournament is fixed by the day's seed — skip selection.
+      return state.daily && state.worldCup
+        ? { ...state, screen: 'tournament' }
+        : { ...state, screen: 'tournament-select' }
+
+    case 'SET_HARD_MODE':
+      return { ...state, hardMode: action.hard }
+
+    case 'START_DAILY': {
+      const slots = FORMATIONS[action.formation]
+      return {
+        ...INITIAL_STATE,
+        mode: 'draft',
+        difficulty: 'prime',
+        screen: 'draft',
+        daily: action.date,
+        worldCup: action.worldCup,
+        formation: action.formation,
+        squad: Array(slots.length).fill(null),
+      }
+    }
 
     case 'SELECT_TOURNAMENT':
       return { ...state, worldCup: action.worldCup, screen: 'tournament' }
@@ -104,6 +126,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         case 'manager-year': return { ...state, screen: 'mode-select' }
         case 'formation': return { ...state, screen: state.mode === 'manager' ? 'manager-year' : 'mode-select' }
         case 'draft':
+          // Daily runs have a fixed formation — backing out exits to home.
+          if (state.daily) return { ...INITIAL_STATE }
+          return { ...state, screen: 'formation' }
         case 'free-pick': return { ...state, screen: 'formation' }
         case 'squad-review': return { ...state, screen: state.mode === 'draft' ? 'draft' : 'free-pick' }
         case 'tournament-select': return { ...state, screen: 'squad-review' }

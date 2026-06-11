@@ -1,6 +1,7 @@
 import { WorldCupData, TournamentResult, TournamentRound, KnockoutRound, RatedPlayer } from '@/types'
 import { Formation } from '@/types'
 import { simulateMatch } from './matchSimulator'
+import { rand } from './rng'
 import { getTeamRating } from '@/data/teamRatings'
 import { KNOCKOUT_ROUNDS } from '@/data/worldCups'
 
@@ -32,7 +33,7 @@ function simGroupMatch(teamA: string, teamB: string, wcYear: number): [number, n
 function poissonSample(lambda: number): number {
   const L = Math.exp(-Math.max(0.1, lambda))
   let k = 0, p = 1
-  do { k++; p *= Math.random() } while (p > L)
+  do { k++; p *= rand() } while (p > L)
   return k - 1
 }
 
@@ -120,7 +121,7 @@ function simKnockoutOpponent(teamA: string, teamB: string, wcYear: number): stri
 
   if (goalsA !== goalsB) return goalsA > goalsB ? teamA : teamB
   // Penalties
-  return Math.random() < winProbA ? teamA : teamB
+  return rand() < winProbA ? teamA : teamB
 }
 
 // ─── Full tournament ──────────────────────────────────────────────────────────

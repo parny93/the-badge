@@ -150,6 +150,11 @@ export async function GET(
                 🔥 HARD MODE
               </div>
             )}
+            {run.daily && (
+              <div style={{ display: 'flex', padding: '8px 16px', borderRadius: 10, background: 'rgba(56,189,248,0.15)', border: '2px solid rgba(56,189,248,0.5)', fontSize: 22, fontWeight: 800, color: '#7dd3fc' }}>
+                {`📅 DAILY ${run.daily}`}
+              </div>
+            )}
           </div>
 
           {/* stat grid */}

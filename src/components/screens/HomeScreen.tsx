@@ -1,5 +1,6 @@
 'use client'
 import Image from 'next/image'
+import Link from 'next/link'
 import { GameAction } from '@/types'
 import { PLAYER_COUNT, WC_COUNT, EURO_COUNT, WC_FIRST_YEAR, WC_LAST_YEAR } from '@/lib/stats'
 
@@ -91,6 +92,13 @@ export default function HomeScreen({ dispatch }: Props) {
       >
         Start Playing →
       </button>
+
+      <Link
+        href="/daily"
+        className="w-full max-w-xs bg-sky-400/10 border border-sky-400/30 text-sky-300 font-bold text-sm py-3 rounded-2xl text-center active:scale-95 transition-all -mt-4 mb-8"
+      >
+        📅 Daily Challenge — same wheel for everyone
+      </Link>
 
       {/* ── Stat triplet ─────────────────────────────────────────────────── */}
       <div className="w-full max-w-sm grid grid-cols-3 gap-3 mb-10">

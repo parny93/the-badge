@@ -201,6 +201,8 @@ export interface GameState {
   squad: (RatedPlayer | null)[]  // slots in formation order
   pickIndex: number              // active slot for building
   tournament: TournamentResult | null
+  hardMode: boolean              // draft wheel hides ratings; badge on share card
+  daily: string | null           // UTC date key when playing the Daily Challenge
 }
 
 export type GameAction =
@@ -215,6 +217,8 @@ export type GameAction =
   | { type: 'CONFIRM_SQUAD' }
   | { type: 'SELECT_TOURNAMENT'; worldCup: WorldCupData }
   | { type: 'SET_TOURNAMENT'; result: TournamentResult }
+  | { type: 'SET_HARD_MODE'; hard: boolean }
+  | { type: 'START_DAILY'; date: string; worldCup: WorldCupData; formation: Formation }
   | { type: 'HYDRATE'; state: GameState }
   | { type: 'BACK' }
   | { type: 'RESTART' }

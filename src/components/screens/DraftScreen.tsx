@@ -4,21 +4,23 @@ import { Formation, GameAction, Position, RatedPlayer } from '@/types'
 import { FORMATIONS } from '@/lib/teamStrength'
 import { familiarity } from '@/lib/chemistry'
 import { getDraftPool, canPlaySlot } from '@/lib/playerPool'
+import { rand } from '@/lib/rng'
 import FormationDisplay from '@/components/ui/FormationDisplay'
 
 interface Props {
   formation: Formation
   squad: (RatedPlayer | null)[]
+  hardMode: boolean
+  daily: string | null
   dispatch: React.Dispatch<GameAction>
 }
 
 type Phase = 'idle' | 'spinning' | 'choosing' | 'placing'
 type Difficulty = 'easy' | 'hard'
 
-export default function DraftScreen({ formation, squad, dispatch }: Props) {
+export default function DraftScreen({ formation, squad, hardMode, daily, dispatch }: Props) {
   const slots = FORMATIONS[formation]
   const [phase, setPhase] = useState<Phase>('idle')
-  const [difficulty, setDifficulty] = useState<Difficulty>('easy')
   const [drawn, setDrawn] = useState<RatedPlayer[]>([])
   const [chosen, setChosen] = useState<RatedPlayer | null>(null)
   const [reelRows, setReelRows] = useState<string[]>(['???', '???', '???', '???', '???'])
@@ -26,7 +28,7 @@ export default function DraftScreen({ formation, squad, dispatch }: Props) {
   const [revealedCount, setRevealedCount] = useState(-1)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const hard = difficulty === 'hard'
+  const hard = hardMode
   const drawCount = hard ? 4 : 3
 
   const pickedIds = useMemo(() => squad.filter(Boolean).map(p => p!.id), [squad])
@@ -82,8 +84,9 @@ export default function DraftScreen({ formation, squad, dispatch }: Props) {
       if (ticks < TOTAL) {
         timerRef.current = setTimeout(doTick, delay)
       } else {
-        // Done spinning — freeze on final name then reveal cards
-        const shuffled = [...pool].sort(() => Math.random() - 0.5)
+        // Done spinning — freeze on final name then reveal cards.
+        // rand() so Daily Challenge draws are identical for everyone.
+        const shuffled = [...pool].sort(() => rand() - 0.5)
         const picked = shuffled.slice(0, Math.min(drawCount, pool.length))
         setDrawn(picked)
 
@@ -185,31 +188,43 @@ export default function DraftScreen({ formation, squad, dispatch }: Props) {
           {/* ── IDLE ── */}
           {phase === 'idle' && (
             <div className="p-5 flex flex-col items-center gap-4">
-              {/* Difficulty toggle */}
-              <div className="w-full max-w-xs">
-                <div className="flex items-center rounded-xl bg-slate-800/80 border border-white/10 p-1">
-                  {(['easy', 'hard'] as Difficulty[]).map(d => (
-                    <button
-                      key={d}
-                      onClick={() => setDifficulty(d)}
-                      className={`flex-1 py-2 rounded-lg text-sm font-bold capitalize transition-all ${
-                        difficulty === d
-                          ? d === 'hard'
-                            ? 'bg-red-500 text-white shadow-[0_0_16px_rgba(239,68,68,0.4)]'
-                            : 'bg-emerald-500 text-white shadow-[0_0_16px_rgba(16,185,129,0.4)]'
-                          : 'text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      {d === 'hard' ? '🔥 Hard' : '😌 Easy'}
-                    </button>
-                  ))}
+              {/* Hard Mode toggle — locked in the Daily Challenge so everyone
+                  plays the same wheel */}
+              {daily ? (
+                <div className="w-full max-w-xs text-center">
+                  <span className="inline-block text-xs font-bold text-amber-300 bg-amber-400/10 border border-amber-400/30 rounded-full px-3 py-1.5">
+                    📅 Daily Challenge · {daily}
+                  </span>
+                  <p className="text-slate-500 text-xs mt-2 leading-snug">
+                    Same wheel, same tournament for everyone today. One attempt counts.
+                  </p>
                 </div>
-                <p className="text-slate-500 text-xs text-center mt-2 leading-snug">
-                  {hard
-                    ? 'Ratings hidden — only the player\'s era is shown. 4 picks, and positions drop out as your XI fills.'
-                    : 'Ratings shown. 3 picks each spin. Build your dream XI in comfort.'}
-                </p>
-              </div>
+              ) : (
+                <div className="w-full max-w-xs">
+                  <div className="flex items-center rounded-xl bg-slate-800/80 border border-white/10 p-1">
+                    {(['easy', 'hard'] as Difficulty[]).map(d => (
+                      <button
+                        key={d}
+                        onClick={() => dispatch({ type: 'SET_HARD_MODE', hard: d === 'hard' })}
+                        className={`flex-1 py-2 rounded-lg text-sm font-bold capitalize transition-all ${
+                          (d === 'hard') === hard
+                            ? d === 'hard'
+                              ? 'bg-red-500 text-white shadow-[0_0_16px_rgba(239,68,68,0.4)]'
+                              : 'bg-emerald-500 text-white shadow-[0_0_16px_rgba(16,185,129,0.4)]'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        {d === 'hard' ? '🔥 Hard' : '😌 Easy'}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-slate-500 text-xs text-center mt-2 leading-snug">
+                    {hard
+                      ? 'Ratings hidden — only the player\'s era is shown. 4 picks, positions drop out as your XI fills, and your result card carries the Hard Mode badge.'
+                      : 'Ratings shown. 3 picks each spin. Build your dream XI in comfort.'}
+                  </p>
+                </div>
+              )}
 
               <p className="text-slate-400 text-sm text-center">
                 Spin to draw {hard ? 'four' : 'three'} legends. Pick one. Make it work.
