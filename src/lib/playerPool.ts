@@ -133,6 +133,32 @@ const INTL_OVERRIDES: Record<string, { from?: number; to?: number }> = {
   steve_bull:       { from: 1988, to: 1992 },  // 13 caps; Italia 90 squad from the third tier
   kevin_phillips:   { from: 1999, to: 2002 },  // 8 caps; Golden Shoe 2000
   david_nugent:     { from: 2006, to: 2008 },  // 1 cap 1 goal — perfect record
+  // ── 1990s–2010s squad men ──
+  nicky_butt:       { from: 1997, to: 2004 },  // 39 caps; WC 2002 standout
+  jamie_carragher:  { from: 1999, to: 2010 },  // retired 2007, recalled for WC 2010
+  phil_neville:     { from: 1996, to: 2007 },  // 59 caps
+  david_batty:      { from: 1991, to: 1999 },  // 42 caps
+  dennis_wise:      { from: 1991, to: 2000 },  // 21 caps; Euro 2000 squad
+  rob_lee:          { from: 1994, to: 1999 },  // 21 caps
+  nick_barmby:      { from: 1995, to: 2001 },  // 23 caps
+  trevor_sinclair:  { from: 2001, to: 2003 },  // 12 caps; WC 2002 squad
+  danny_mills:      { from: 2001, to: 2004 },  // 19 caps; started every WC 2002 game
+  ray_parlour:      { from: 1999, to: 2001 },  // 10 caps
+  steve_stone:      { from: 1995, to: 1996 },  // 9 caps; Euro 96 squad
+  kieron_dyer:      { from: 1999, to: 2007 },  // 33 caps
+  shaun_wright_phillips: { from: 2004, to: 2010 }, // 36 caps
+  stewart_downing:  { from: 2005, to: 2014 },  // 35 caps
+  darius_vassell:   { from: 2002, to: 2004 },  // 22 caps; WC 2002 + Euro 2004
+  scott_parker:     { from: 2003, to: 2012 },  // 18 caps; Euro 2012 starter
+  gareth_barry:     { from: 2000, to: 2012 },  // 53 caps
+  joleon_lescott:   { from: 2007, to: 2013 },  // 26 caps; Euro 2012 starter
+  matthew_upson:    { from: 2003, to: 2010 },  // 21 caps; WC 2010
+  danny_welbeck:    { from: 2011, to: 2018 },  // 42 caps
+  gareth_southgate: { from: 1995, to: 2004 },  // 57 caps; Euro 96... we don't talk about it
+  jamie_redknapp:   { from: 1995, to: 1999 },  // 17 caps; injuries stole the rest
+  gary_pallister:   { from: 1991, to: 1996 },  // 22 caps
+  carlton_palmer:   { from: 1992, to: 1993 },  // 18 caps in 18 months
+  jermaine_jenas:   { from: 2003, to: 2009 },  // 21 caps
 }
 
 export function eligibleYears(player: Player): { from: number; to: number } {
