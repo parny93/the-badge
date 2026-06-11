@@ -4,6 +4,7 @@ import { DifficultyLevel, Formation, GameAction, Position, RatedPlayer } from '@
 import { FORMATIONS } from '@/lib/teamStrength'
 import { familiarity } from '@/lib/chemistry'
 import { getDraftPool, canPlaySlot } from '@/lib/playerPool'
+import { weightedDraw, TIER_SHARES, GOLDEN_SHARES, GOLDEN_RUN_CHANCE } from '@/lib/draftWeights'
 import { rand } from '@/lib/rng'
 import FormationDisplay from '@/components/ui/FormationDisplay'
 
@@ -55,6 +56,8 @@ export default function DraftScreen({ formation, squad, difficultyLevel, respins
   const [reelPopped, setReelPopped] = useState(false)
   const [revealedCount, setRevealedCount] = useState(-1)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Decided once, on the first spin of the run; never announced.
+  const goldenRun = useRef<boolean | null>(null)
 
   const hard = difficultyLevel === 'hard'
   const drawCount = 3
@@ -92,13 +95,15 @@ export default function DraftScreen({ formation, squad, difficultyLevel, respins
     if (pool.length === 0) return
 
     // rand() (not Math.random) so Daily Challenge spins are identical for all.
+    if (goldenRun.current === null) goldenRun.current = rand() < GOLDEN_RUN_CHANCE
+    const shares = goldenRun.current ? GOLDEN_SHARES : TIER_SHARES[difficultyLevel]
+
     let era: Era | null = null
     let picked: RatedPlayer[]
 
     if (peakWheel) {
       // ── Peak-ratings wheel: draw from the whole range at peak strength ───
-      const shuffled = [...pool].sort(() => rand() - 0.5)
-      picked = shuffled.slice(0, Math.min(drawCount, shuffled.length))
+      picked = weightedDraw(pool, Math.min(drawCount, pool.length), shares)
     } else {
       // ── Era wheel: land on an era, then draw the picks FROM that era ─────
       const byEra = new Map<number, RatedPlayer[]>()
@@ -126,8 +131,7 @@ export default function DraftScreen({ formation, squad, difficultyLevel, respins
           .sort((a, b) => Math.abs(eraOf(a.peakYear) - decade) - Math.abs(eraOf(b.peakYear) - decade))
         eraPool = [...eraPool, ...fillers].slice(0, Math.max(drawCount, eraPool.length))
       }
-      const shuffled = [...eraPool].sort(() => rand() - 0.5)
-      picked = shuffled.slice(0, Math.min(drawCount, shuffled.length))
+      picked = weightedDraw(eraPool, Math.min(drawCount, eraPool.length), shares)
     }
 
     setPhase('spinning')
