@@ -2,6 +2,7 @@ import { Formation, FormationSlot, RatedPlayer, TeamStrength } from '@/types'
 import { analyzeChemistry, familiarity } from './chemistry'
 import { Manager } from '@/data/managers'
 import { isGoldenGeneration } from '@/data/playerTags'
+import { displaySurname } from './names'
 
 // Optional squad context: the gaffer, the armband and the bench all nudge
 // the numbers the match sim consumes.
@@ -164,7 +165,7 @@ export function calculateTeamStrength(
     chemScore += 2
     chemistry.notes.push({
       type: 'good',
-      text: `${captain.name.split(' ').pop()} wears the armband — the dressing room follows him`,
+      text: `${displaySurname(captain.name)} wears the armband — the dressing room follows him`,
     })
   }
 

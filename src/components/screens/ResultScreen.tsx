@@ -259,6 +259,7 @@ export default function ResultScreen({ worldCup, squad, formation, result, mode,
                         <div key={moi} className="flex items-start gap-2 text-xs">
                           <span className="text-slate-500 shrink-0 w-6">{moment.minute}'</span>
                           <span className={`leading-snug ${
+                            moment.type === 'goal' && moment.team === 'opponent' ? 'text-red-300' :
                             moment.type === 'goal' ? 'text-emerald-300' :
                             moment.type === 'miss' ? 'text-orange-300' :
                             moment.type === 'save' ? 'text-sky-300' :

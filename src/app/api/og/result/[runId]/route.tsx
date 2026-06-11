@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og'
 import { decodeRun, playersFromIds, resultLine, tweetLine, eraSpread } from '@/lib/runCodec'
 import { FORMATIONS } from '@/lib/teamStrength'
+import { displaySurname } from '@/lib/names'
 import { getManager } from '@/data/managers'
 
 export const dynamic = 'force-dynamic'
@@ -100,7 +101,7 @@ export async function GET(
                     fontWeight: 700,
                   }}
                 >
-                  {p ? `${isCaptain ? '© ' : ''}${p.name.split(' ').at(-1)}` : '—'}
+                  {p ? `${isCaptain ? '© ' : ''}${displaySurname(p.name)}` : '—'}
                 </div>
               </div>
             )

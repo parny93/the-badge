@@ -1,6 +1,7 @@
 'use client'
 import { RatedPlayer, Formation } from '@/types'
 import { FORMATIONS } from '@/lib/teamStrength'
+import { displaySurname } from '@/lib/names'
 
 interface Props {
   squad: (RatedPlayer | null)[]
@@ -156,7 +157,7 @@ export default function FormationDisplay({ squad, formation, activeIndex, onSele
               )}
               {isFilled ? (
                 <span className="text-center leading-none px-0.5" style={{ fontSize: compact ? 7 : 8 }}>
-                  {player.name.split(' ').pop()}
+                  {displaySurname(player.name)}
                 </span>
               ) : (
                 <span style={{ fontSize: compact ? 9 : 11 }}>{slot.label}</span>

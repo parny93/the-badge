@@ -1,6 +1,7 @@
 'use client'
 import { ChemistryReport, PlayerChemEntry } from '@/types'
 import { CHEM_LABEL, STYLE_LABEL, STYLE_COLOUR } from '@/lib/chemistry'
+import { displaySurname } from '@/lib/names'
 
 // ── Pip dots (like FUT chemistry dots) ────────────────────────────────────────
 function PipDots({ pips }: { pips: number }) {
@@ -23,7 +24,7 @@ function PipDots({ pips }: { pips: number }) {
 
 // ── Per-player row ─────────────────────────────────────────────────────────────
 function PlayerChemRow({ entry }: { entry: PlayerChemEntry }) {
-  const surname = entry.name.split(' ').at(-1)!
+  const surname = displaySurname(entry.name)
   return (
     <div className="flex items-center gap-2">
       <div className="w-20 text-slate-300 text-xs font-semibold truncate">{surname}</div>

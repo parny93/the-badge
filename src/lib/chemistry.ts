@@ -2,6 +2,7 @@ import {
   Player, Position, FormationSlot, ChemistryReport, ChemistryNote,
   ChemistryStyle, PlayerChemEntry, RatedPlayer,
 } from '@/types'
+import { displaySurname } from './names'
 
 // ─── Position coordinates (kept for familiarity() used by teamStrength.ts) ──
 
@@ -198,7 +199,7 @@ export function analyzeChemistry(
   // ── 2. Out-of-position notes (no hard penalty — pips already reflect it) ──
   const oop = filled.filter(sp => sp.pips <= 1)
   for (const sp of oop) {
-    const surname = sp.player.name.split(' ').pop()!
+    const surname = displaySurname(sp.player.name)
     notes.push({
       type: 'bad',
       text: sp.pips === 0
@@ -291,7 +292,7 @@ export function analyzeChemistry(
   // ── 5. World-class goalkeeper ─────────────────────────────────────────────
   const gk = filled.find(sp => sp.slot.position === 'GK')
   if (gk && (gk.player.peakAttributes.gk ?? 0) >= 90) {
-    const surname = gk.player.name.split(' ').pop()!
+    const surname = displaySurname(gk.player.name)
     notes.push({ type: 'good', text: `${surname} between the sticks — opponents will need to be perfect` })
     bonus += 2
   }

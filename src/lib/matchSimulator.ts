@@ -3,6 +3,8 @@ import { Formation } from '@/types'
 import { calculateTeamStrength } from './teamStrength'
 import { Manager } from '@/data/managers'
 import { penaltyRating } from '@/data/playerTags'
+import { ENGLAND_PLAYERS } from '@/data/players'
+import { displaySurname } from './names'
 import { rand } from './rng'
 import { getTeamRating } from '@/data/teamRatings'
 import { atmosphereDeck } from '@/data/tournamentLore'
@@ -141,14 +143,41 @@ function englandGoalMoment(squad: (RatedPlayer | null)[]): string {
     .filter(p => !['GK', 'CB', 'RB', 'LB', 'CDM'].includes(p.positions[0]))
   const player = attackers.length > 0 ? pick(attackers) : (squad.filter(Boolean) as RatedPlayer[])[0]
   if (!player) return 'England score!'
-  const moment = player.moments?.length ? pick(player.moments) : `${player.name.split(' ').at(-1)} gets the goal`
+  const moment = player.moments?.length ? pick(player.moments) : `${displaySurname(player.name)} gets the goal`
   return moment
 }
 
 function englandSaveMoment(squad: (RatedPlayer | null)[]): string {
   const gk = (squad.filter(Boolean) as RatedPlayer[]).find(p => p.positions[0] === 'GK')
   const base = pick(SAVE)
-  return gk ? `${gk.name.split(' ').at(-1)} — ${base}` : base
+  return gk ? `${displaySurname(gk.name)} — ${base}` : base
+}
+
+// A RANDOM attacker each time — .find() used to hand every miss, woodwork
+// rattle and chance to the same first-in-formation forward all game long.
+function randomAttacker(
+  squad: (RatedPlayer | null)[],
+  positions: string[]
+): RatedPlayer | undefined {
+  const candidates = (squad.filter(Boolean) as RatedPlayer[])
+    .filter(p => positions.includes(p.positions[0]))
+  return candidates.length > 0 ? pick(candidates) : undefined
+}
+
+// Lore lines that name a player read wrong when he isn't on the pitch
+// ("Bellingham carries England's hopes" while Bellingham wasn't drafted).
+// Case-sensitive word match against the full player pool's surnames.
+const KNOWN_SURNAMES = [...new Set(ENGLAND_PLAYERS.map(p => displaySurname(p.name)))]
+
+function atmosphereFitsSquad(line: string, squad: (RatedPlayer | null)[]): boolean {
+  const squadSurnames = new Set(
+    (squad.filter(Boolean) as RatedPlayer[]).map(p => displaySurname(p.name))
+  )
+  for (const surname of KNOWN_SURNAMES) {
+    if (squadSurnames.has(surname)) continue
+    if (new RegExp(`\\b${surname}\\b`).test(line)) return false
+  }
+  return true
 }
 
 // ─── Core match simulation ────────────────────────────────────────────────────
@@ -188,8 +217,9 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
   let oppGoals = poissonSample(oppLambda)
 
   // ── Tournament atmosphere — era/host flavour woven into the feed ────────────
-  // A shuffled deck so a single match never repeats the same line twice.
-  const atmoDeck = atmosphereDeck(wcYear)
+  // A shuffled deck so a single match never repeats the same line twice, with
+  // lines naming players who aren't in this squad filtered out.
+  const atmoDeck = atmosphereDeck(wcYear).filter(line => atmosphereFitsSquad(line, englandSquad))
   let atmoCursor = 0
   const nextAtmo = (): string | null =>
     atmoCursor < atmoDeck.length ? atmoDeck[atmoCursor++] : null
@@ -254,15 +284,13 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
       moments.push({ minute: min, text: englandSaveMoment(englandSquad), type: 'save' })
     } else if (roll < 0.38) {
       // Miss
-      const fwd = (englandSquad.filter(Boolean) as RatedPlayer[])
-        .find(p => ['ST', 'LW', 'RW', 'CAM'].includes(p.positions[0]))
-      const surname = fwd?.name.split(' ').at(-1) ?? 'England'
+      const fwd = randomAttacker(englandSquad, ['ST', 'LW', 'RW', 'CAM', 'RM', 'LM'])
+      const surname = fwd ? displaySurname(fwd.name) : 'England'
       moments.push({ minute: min, text: `${surname} ${pick(MISS)}`, type: 'miss' })
     } else if (roll < 0.52) {
       // Hit the post / bar
-      const fwd2 = (englandSquad.filter(Boolean) as RatedPlayer[])
-        .find(p => ['ST', 'LW', 'RW'].includes(p.positions[0]))
-      const surname2 = fwd2?.name.split(' ').at(-1) ?? 'England'
+      const fwd2 = randomAttacker(englandSquad, ['ST', 'LW', 'RW', 'CAM', 'RM', 'LM'])
+      const surname2 = fwd2 ? displaySurname(fwd2.name) : 'England'
       moments.push({ minute: min, text: `${surname2} ${pick(POST)}`, type: 'post' })
     } else if (roll < 0.62) {
       // Red or yellow card
@@ -289,24 +317,22 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
         moments.push({ minute: min, text: pick(VAR), type: 'info' })
       } else {
         // Fall through to a chance if we've exhausted the atmosphere deck.
-        const fwd0 = (englandSquad.filter(Boolean) as RatedPlayer[])
-          .find(p => ['ST', 'LW', 'RW', 'CAM'].includes(p.positions[0]))
-        const s0 = fwd0?.name.split(' ').at(-1)
+        const fwd0 = randomAttacker(englandSquad, ['ST', 'LW', 'RW', 'CAM', 'RM', 'LM'])
+        const s0 = fwd0 ? displaySurname(fwd0.name) : null
         moments.push({ minute: min, text: s0 ? `${s0} — ${pick(CHANCE)}` : pick(CHANCE), type: 'chance' })
       }
     } else {
       // Chance / atmosphere
-      const fwd3 = (englandSquad.filter(Boolean) as RatedPlayer[])
-        .find(p => ['ST', 'LW', 'RW', 'CAM'].includes(p.positions[0]))
-      const surname3 = fwd3?.name.split(' ').at(-1)
+      const fwd3 = randomAttacker(englandSquad, ['ST', 'LW', 'RW', 'CAM', 'RM', 'LM'])
+      const surname3 = fwd3 ? displaySurname(fwd3.name) : null
       const text = surname3 ? `${surname3} — ${pick(CHANCE)}` : pick(CHANCE)
       moments.push({ minute: min, text, type: 'chance' })
     }
   }
 
-  // Guarantee at least one nostalgic atmosphere beat per match (when the feed
-  // didn't already surface one), so every tournament feels like *that* tournament.
-  if (atmoCursor === 0 && atmoDeck.length > 0) {
+  // Sometimes open with a nostalgic scene-setter when the feed didn't surface
+  // one — but not every match; a line a game wore thin fast.
+  if (atmoCursor === 0 && atmoDeck.length > 0 && rand() < 0.4) {
     moments.push({ minute: 1 + Math.floor(rand() * 88), text: atmoDeck[0], type: 'info' })
   }
 
@@ -344,57 +370,79 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
       ? top5.reduce((s, p) => s + penaltyRating(p), 0) / top5.length
       : 70
 
-    const penWinProb = 0.34 + gkFactor * 0.12 + capFactor * 0.08 +
-      (avgPen - 70) * 0.004 + (manager?.penaltyBoost ?? 0)
-
-    const engWinsPens = rand() < penWinProb
-
-    // Simulate 5 kicks each, sudden death if tied
-    const engScored: boolean[] = []
-    const oppScored: boolean[] = []
-
-    // Conversion driven by the takers' penalty ratings; steadied by the captain
-    const engConvert = 0.60 + (avgPen / 100) * 0.18 + capFactor * 0.04
-    // Opponent conversion rate similar but boosted/penalised by GK
+    // Conversion driven by the takers' penalty ratings, the captain's calm
+    // and the gaffer's preparation; the keeper makes opponents miss.
+    const engConvert = Math.min(0.92,
+      0.60 + (avgPen / 100) * 0.18 + capFactor * 0.04 + (manager?.penaltyBoost ?? 0))
     const oppConvert = 0.72 - gkFactor * 0.06
 
-    // Force the final outcome but make the kicks dramatic
-    for (let k = 0; k < 5; k++) {
-      const eScored = k < 4 ? rand() < engConvert : engWinsPens ? true : rand() < engConvert
-      const oScored = k < 4 ? rand() < oppConvert : !engWinsPens ? true : rand() < oppConvert
-      engScored.push(eScored)
-      oppScored.push(oScored)
+    // ── Honest shootout: kick by kick, best of five, then sudden death. ─────
+    // The score, the commentary and the winner all come from the SAME kicks —
+    // no more "England won 2-1 but it went to pens".
+    let engPenGoals = 0
+    let oppPenGoals = 0
+    let minute = 121
+    let round = 0
+
+    const engKick = (taker: RatedPlayer | undefined): void => {
+      const scored = rand() < engConvert
+      if (scored) engPenGoals++
+      const surname = taker ? displaySurname(taker.name) : 'England'
+      moments.push({
+        minute: minute++,
+        text: `${surname} ${scored ? pick(PEN_ENG_SCORE) : pick(PEN_ENG_MISS)}`,
+        type: 'penalty',
+        team: 'england',
+      })
+    }
+    const oppKick = (): void => {
+      const scored = rand() < oppConvert
+      if (scored) oppPenGoals++
+      moments.push({
+        minute: minute++,
+        text: scored ? pick(PEN_OPP_SCORE) : `${opponent} — ${pick(PEN_OPP_SAVE)}`,
+        type: 'penalty',
+        team: 'opponent',
+      })
     }
 
-    // Generate kick moments
-    const takers = top5
-
-    for (let k = 0; k < 5; k++) {
-      const taker = takers[k]
-      const surname = taker?.name.split(' ').at(-1) ?? 'England'
-      const eText = engScored[k]
-        ? `${surname} ${pick(PEN_ENG_SCORE)}`
-        : `${surname} ${pick(PEN_ENG_MISS)}`
-      moments.push({ minute: 121 + k * 2, text: eText, type: 'penalty', team: 'england' })
-
-      const oText = oppScored[k] ? pick(PEN_OPP_SCORE) : `${opponent} — ${pick(PEN_OPP_SAVE)}`
-      moments.push({ minute: 122 + k * 2, text: oText, type: 'penalty', team: 'opponent' })
+    // Best of five — stop early once one side can no longer be caught.
+    while (round < 5) {
+      const engRemaining = 5 - round - 1
+      const oppRemaining = 5 - round
+      engKick(top5[round % top5.length])
+      if (engPenGoals > oppPenGoals + oppRemaining || oppPenGoals > engPenGoals + engRemaining) break
+      oppKick()
+      round++
+      if (engPenGoals > oppPenGoals + (5 - round) || oppPenGoals > engPenGoals + (5 - round)) break
     }
 
-    // Final scores
-    const engPenGoals = engScored.filter(Boolean).length
-    const oppPenGoals = oppScored.filter(Boolean).length
-    const diff = engWinsPens ? Math.max(1, engPenGoals - oppPenGoals) : Math.max(1, oppPenGoals - engPenGoals)
-
-    if (engWinsPens) {
-      engPen = Math.min(5, 3 + Math.floor(rand() * 2))
-      oppPen = engPen - diff
-      engGoals += 1
-    } else {
-      oppPen = Math.min(5, 3 + Math.floor(rand() * 2))
-      engPen  = oppPen - diff
-      oppGoals += 1
+    // Sudden death — pairs of kicks until someone blinks. A marathon (6+
+    // extra rounds, vanishingly rare) is settled decisively by one forced
+    // round so the shootout always ends.
+    let sudden = 0
+    while (engPenGoals === oppPenGoals) {
+      const taker = rankedTakers[(5 + sudden) % Math.max(1, rankedTakers.length)]
+      if (sudden >= 6) {
+        const surname = taker ? displaySurname(taker.name) : 'England'
+        if (rand() < 0.5 + (manager?.penaltyBoost ?? 0)) {
+          engPenGoals++
+          moments.push({ minute: minute++, text: `${surname} ${pick(PEN_ENG_SCORE)}`, type: 'penalty', team: 'england' })
+          moments.push({ minute: minute++, text: `${opponent} — ${pick(PEN_OPP_SAVE)}`, type: 'penalty', team: 'opponent' })
+        } else {
+          oppPenGoals++
+          moments.push({ minute: minute++, text: `${surname} ${pick(PEN_ENG_MISS)}`, type: 'penalty', team: 'england' })
+          moments.push({ minute: minute++, text: pick(PEN_OPP_SCORE), type: 'penalty', team: 'opponent' })
+        }
+        break
+      }
+      engKick(taker)
+      oppKick()
+      sudden++
     }
+
+    engPen = engPenGoals
+    oppPen = oppPenGoals
   }
 
   return {
@@ -406,6 +454,7 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
     awayPenalties: oppPen,
     wentToPenalties,
     moments,
-    englandWon: engGoals > oppGoals,
+    // After a shootout the 120-minute score stays level — the pens decide it.
+    englandWon: wentToPenalties ? (engPen ?? 0) > (oppPen ?? 0) : engGoals > oppGoals,
   }
 }

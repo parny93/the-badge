@@ -2,6 +2,7 @@
 import { useMemo } from 'react'
 import { GameAction, GameMode, RatedPlayer } from '@/types'
 import { getBenchPool } from '@/lib/playerPool'
+import { displaySurname } from '@/lib/names'
 import PlayerCard from '@/components/ui/PlayerCard'
 
 interface Props {
@@ -66,7 +67,7 @@ export default function BenchScreen({ mode, squadYear, squad, bench, benchIndex,
           >
             <div className="text-[9px] text-slate-500 font-bold tracking-wider">{SLOT_LABELS[i]}</div>
             <div className="text-white text-[11px] font-bold leading-tight mt-1 truncate">
-              {p ? p.name.split(' ').pop() : '—'}
+              {p ? displaySurname(p.name) : '—'}
             </div>
             {p && <div className="text-amber-400 text-[10px] font-black">{p.ratingAtYear}</div>}
           </button>
