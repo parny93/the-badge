@@ -121,6 +121,18 @@ const INTL_OVERRIDES: Record<string, { from?: number; to?: number }> = {
   stan_collymore:   { from: 1995, to: 1997 },  // 3 caps
   james_beattie:    { from: 2002, to: 2005 },  // 5 caps, all 2003
   steve_bruce:      { from: 1987, to: 1995 },  // famously never capped — until now
+  jack_grealish:    { from: 2020 },            // debut Sep 2020
+  // The '70s mavericks — flair England never quite trusted
+  frank_worthington:{ from: 1972, to: 1977 },  // 8 caps, all 1974
+  stan_bowles:      { from: 1974, to: 1977 },  // 5 caps
+  tony_currie:      { from: 1972, to: 1979 },  // 17 caps
+  rodney_marsh:     { from: 1970, to: 1975 },  // 9 caps 1971–73
+  peter_osgood:     { from: 1970, to: 1973 },  // 4 caps; 1970 WC squad
+  charlie_george:   { from: 1970, to: 1976 },  // 1 cap, 1976
+  alan_hudson:      { from: 1972, to: 1977 },  // 2 caps, 1975
+  steve_bull:       { from: 1988, to: 1992 },  // 13 caps; Italia 90 squad from the third tier
+  kevin_phillips:   { from: 1999, to: 2002 },  // 8 caps; Golden Shoe 2000
+  david_nugent:     { from: 2006, to: 2008 },  // 1 cap 1 goal — perfect record
 }
 
 export function eligibleYears(player: Player): { from: number; to: number } {

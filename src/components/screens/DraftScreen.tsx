@@ -40,12 +40,18 @@ function eraOf(peakYear: number): number {
   return Math.min(2020, Math.max(1950, Math.floor(peakYear / 10) * 10))
 }
 
+// Bounds for the era-range sliders.
+const YEAR_MIN = 1950
+const YEAR_MAX = 2026
+
 export default function DraftScreen({ formation, squad, hardMode, daily, dispatch }: Props) {
   const slots = FORMATIONS[formation]
   const [phase, setPhase] = useState<Phase>('idle')
   const [drawn, setDrawn] = useState<RatedPlayer[]>([])
   const [drawnEra, setDrawnEra] = useState<Era | null>(null)
   const [chosen, setChosen] = useState<RatedPlayer | null>(null)
+  const [yearFrom, setYearFrom] = useState(YEAR_MIN)
+  const [yearTo, setYearTo] = useState(YEAR_MAX)
   const [reelRows, setReelRows] = useState<string[]>(['???', '???', '???', '???', '???'])
   const [reelPopped, setReelPopped] = useState(false)
   const [revealedCount, setRevealedCount] = useState(-1)
@@ -72,12 +78,17 @@ export default function DraftScreen({ formation, squad, hardMode, daily, dispatc
 
   const spin = () => {
     if (phase === 'spinning') return
-    let pool = getDraftPool(pickedIds)
-    // Hard mode: only draw players who fit a position you still need.
-    if (hard) {
-      const narrowed = pool.filter(p => openPositions.some(pos => canPlaySlot(p, pos)))
-      if (narrowed.length > 0) pool = narrowed
-    }
+    // Every drawn player must fit a position you still NEED — in any mode.
+    // (This used to be Hard Mode only, which is how you ended up offered a
+    // goalkeeper when the open slots were ST, LW and LB.)
+    const all = getDraftPool(pickedIds)
+    const fitting = all.filter(p => openPositions.some(pos => canPlaySlot(p, pos)))
+    // Era-range filter from the sliders; pre-1950 peaks count as 1950.
+    const inRange = fitting.filter(p => {
+      const y = Math.max(YEAR_MIN, p.peakYear)
+      return y >= yearFrom && y <= yearTo
+    })
+    const pool = inRange.length > 0 ? inRange : fitting.length > 0 ? fitting : all
     if (pool.length === 0) return
 
     // ── Land on an era first, then draw the picks FROM that era ────────────
@@ -279,6 +290,41 @@ export default function DraftScreen({ formation, squad, hardMode, daily, dispatc
                     <span className="text-[10px] font-bold text-amber-400/70 bg-amber-400/10 rounded px-1.5 py-0.5">
                       PRO · free while in beta
                     </span>
+                  </p>
+                </div>
+              )}
+
+              {/* Era range — restrict the wheel to the football you grew up with */}
+              {!daily && (
+                <div className="w-full max-w-xs rounded-xl bg-slate-800/60 border border-white/10 px-3.5 py-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Era range</span>
+                    <span className="text-white text-sm font-black tabular-nums">{yearFrom} – {yearTo}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-slate-500 text-[10px] w-8 shrink-0">From</span>
+                    <input
+                      type="range"
+                      min={YEAR_MIN}
+                      max={YEAR_MAX}
+                      value={yearFrom}
+                      onChange={e => setYearFrom(Math.min(Number(e.target.value), yearTo))}
+                      className="w-full accent-amber-400"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-500 text-[10px] w-8 shrink-0">To</span>
+                    <input
+                      type="range"
+                      min={YEAR_MIN}
+                      max={YEAR_MAX}
+                      value={yearTo}
+                      onChange={e => setYearTo(Math.max(Number(e.target.value), yearFrom))}
+                      className="w-full accent-amber-400"
+                    />
+                  </div>
+                  <p className="text-slate-500 text-[11px] mt-2 leading-snug">
+                    The wheel only draws players whose peak falls in this window.
                   </p>
                 </div>
               )}
