@@ -1,4 +1,4 @@
-import { BENCH_SIZE, GameState, GameAction, RatedPlayer } from '@/types'
+import { BENCH_SIZE, GameState, GameAction, RatedPlayer, RESPINS } from '@/types'
 import { FORMATIONS } from './teamStrength'
 
 // Bounds for the era-range setting.
@@ -16,6 +16,8 @@ export const INITIAL_STATE: GameState = {
   pickIndex: 0,
   tournament: null,
   hardMode: false,
+  difficultyLevel: 'normal',
+  respinsLeft: RESPINS.normal,
   yearFrom: ERA_MIN,
   yearTo: ERA_MAX,
   daily: null,
@@ -25,7 +27,10 @@ export const INITIAL_STATE: GameState = {
   managerId: null,
 }
 
-const STORAGE_KEY = 'thebadge.state.v1'
+// v2: the settings-first flow added fields (yearFrom/yearTo/difficultyLevel/
+// respinsLeft). Bumping the key drops stale v1 saves that would otherwise
+// hydrate over the new flow and skip the settings screen entirely.
+const STORAGE_KEY = 'thebadge.state.v2'
 
 // Restore in-progress games across reloads so a refresh (or a mobile tab being
 // evicted from memory) never dumps the player back to the home screen.
@@ -35,7 +40,9 @@ export function loadState(): GameState {
     const raw = window.sessionStorage.getItem(STORAGE_KEY)
     if (!raw) return INITIAL_STATE
     const parsed = JSON.parse(raw) as GameState
-    if (parsed && typeof parsed.screen === 'string') return parsed
+    // Merge over INITIAL_STATE so a save from an older build can never
+    // resurrect with missing fields.
+    if (parsed && typeof parsed.screen === 'string') return { ...INITIAL_STATE, ...parsed }
   } catch {}
   return INITIAL_STATE
 }
@@ -63,9 +70,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         yearFrom: action.yearFrom,
         yearTo: action.yearTo,
-        hardMode: action.hard,
+        difficultyLevel: action.level,
+        hardMode: action.level === 'hard',
+        respinsLeft: RESPINS[action.level],
         screen: 'mode-select',
       }
+
+    case 'USE_RESPIN':
+      return { ...state, respinsLeft: Math.max(0, state.respinsLeft - 1) }
 
     case 'SELECT_MODE': {
       // draft & alltime use prime ratings; manager uses historical (year-rated)
@@ -156,6 +168,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...INITIAL_STATE,
         mode: 'draft',
         difficulty: 'prime',
+        difficultyLevel: 'normal',
+        respinsLeft: RESPINS.normal,
         screen: 'draft',
         daily: action.date,
         worldCup: action.worldCup,

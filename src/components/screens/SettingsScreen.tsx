@@ -1,14 +1,42 @@
 'use client'
 import { useState } from 'react'
-import { GameAction } from '@/types'
+import { DifficultyLevel, GameAction } from '@/types'
 import { ERA_MIN, ERA_MAX } from '@/lib/gameReducer'
 
 interface Props {
   yearFrom: number
   yearTo: number
-  hardMode: boolean
+  difficultyLevel: DifficultyLevel
   dispatch: React.Dispatch<GameAction>
 }
+
+const DIFFICULTIES: {
+  level: DifficultyLevel
+  title: string
+  desc: string
+  accent: string
+  pro?: boolean
+}[] = [
+  {
+    level: 'easy',
+    title: 'Easy',
+    desc: '3 re-spins. Spin the wheel on peak ratings or by era — your choice each spin.',
+    accent: 'border-emerald-400 bg-emerald-400/10',
+  },
+  {
+    level: 'normal',
+    title: 'Normal',
+    desc: '1 re-spin. Peak ratings or era wheel — choose before each spin.',
+    accent: 'border-sky-400 bg-sky-400/10',
+  },
+  {
+    level: 'hard',
+    title: 'Hard',
+    desc: 'No re-spins. Era wheel only — ratings hidden everywhere until squad review, and a Hard Mode badge on your card.',
+    accent: 'border-red-400 bg-red-400/10',
+    pro: true,
+  },
+]
 
 // Quick presets for the eras people actually argue about.
 const PRESETS: { label: string; from: number; to: number }[] = [
@@ -18,17 +46,43 @@ const PRESETS: { label: string; from: number; to: number }[] = [
   { label: 'Modern', from: 2010, to: ERA_MAX },
 ]
 
-export default function SettingsScreen({ yearFrom, yearTo, hardMode, dispatch }: Props) {
+export default function SettingsScreen({ yearFrom, yearTo, difficultyLevel, dispatch }: Props) {
   const [from, setFrom] = useState(yearFrom)
   const [to, setTo] = useState(yearTo)
-  const [hard, setHard] = useState(hardMode)
+  const [level, setLevel] = useState<DifficultyLevel>(difficultyLevel)
 
   return (
     <div className="min-h-screen px-4 py-6 pb-28">
       <h2 className="text-2xl font-black text-white mb-1">Set Up Your Game</h2>
       <p className="text-slate-400 text-sm mb-6">
-        Two choices, then pick how you want to build.
+        Pick a difficulty and an era, then choose how you want to build.
       </p>
+
+      {/* ── Difficulty ─────────────────────────────────────────────────────── */}
+      <div className="rounded-2xl bg-white/5 border border-white/10 p-4 mb-4">
+        <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-3">Difficulty</div>
+        <div className="flex flex-col gap-2">
+          {DIFFICULTIES.map(d => (
+            <button
+              key={d.level}
+              onClick={() => setLevel(d.level)}
+              className={`rounded-xl border-2 p-3.5 text-left transition-all ${
+                level === d.level ? d.accent : 'border-white/10 bg-white/5 hover:border-white/25'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-white font-bold text-sm">{d.title}</span>
+                {d.pro && (
+                  <span className="text-[9px] font-bold text-amber-400/70 bg-amber-400/10 rounded px-1.5 py-0.5">
+                    PRO · free while in beta
+                  </span>
+                )}
+              </div>
+              <div className="text-slate-400 text-xs leading-snug mt-0.5">{d.desc}</div>
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* ── Era range ──────────────────────────────────────────────────────── */}
       <div className="rounded-2xl bg-white/5 border border-white/10 p-4 mb-4">
@@ -83,44 +137,9 @@ export default function SettingsScreen({ yearFrom, yearTo, hardMode, dispatch }:
         </div>
       </div>
 
-      {/* ── Difficulty ─────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl bg-white/5 border border-white/10 p-4 mb-4">
-        <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-3">Difficulty</div>
-        <div className="flex flex-col gap-2">
-          <button
-            onClick={() => setHard(false)}
-            className={`rounded-xl border-2 p-3.5 text-left transition-all ${
-              !hard ? 'border-emerald-400 bg-emerald-400/10' : 'border-white/10 bg-white/5 hover:border-white/25'
-            }`}
-          >
-            <div className="text-white font-bold text-sm">Classic</div>
-            <div className="text-slate-400 text-xs leading-snug mt-0.5">
-              Ratings and attributes visible while you build. Three picks per spin in Draft.
-            </div>
-          </button>
-          <button
-            onClick={() => setHard(true)}
-            className={`rounded-xl border-2 p-3.5 text-left transition-all ${
-              hard ? 'border-red-400 bg-red-400/10' : 'border-white/10 bg-white/5 hover:border-white/25'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-white font-bold text-sm">Hard</span>
-              <span className="text-[9px] font-bold text-amber-400/70 bg-amber-400/10 rounded px-1.5 py-0.5">
-                PRO · free while in beta
-              </span>
-            </div>
-            <div className="text-slate-400 text-xs leading-snug mt-0.5">
-              Ratings hidden in every mode — pick on era and instinct. Four picks per spin in
-              Draft, the truth revealed at squad review, and a Hard Mode badge on your card.
-            </div>
-          </button>
-        </div>
-      </div>
-
       <div className="fixed bottom-4 left-4 right-4 z-30 max-w-md mx-auto">
         <button
-          onClick={() => dispatch({ type: 'SET_SETTINGS', yearFrom: from, yearTo: to, hard })}
+          onClick={() => dispatch({ type: 'SET_SETTINGS', yearFrom: from, yearTo: to, level })}
           className="w-full bg-white text-slate-900 font-black text-lg py-4 rounded-2xl active:scale-95 transition-all shadow-2xl"
         >
           Choose How You Build →

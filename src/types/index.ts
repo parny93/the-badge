@@ -136,6 +136,18 @@ export type TeamRatings = Record<number, Record<string, number>>
 
 export type Difficulty = 'prime' | 'historical' | 'nightmare'
 
+// Player-facing difficulty, chosen upfront:
+//   easy   — 3 re-spins; wheel can run on peak ratings or land on an era
+//   normal — 1 re-spin; same wheel choice
+//   hard   — no re-spins; era wheel only, ratings hidden until review
+export type DifficultyLevel = 'easy' | 'normal' | 'hard'
+
+export const RESPINS: Record<DifficultyLevel, number> = {
+  easy: 3,
+  normal: 1,
+  hard: 0,
+}
+
 // ─── Match & Tournament ───────────────────────────────────────────────────────
 
 export interface MatchMoment {
@@ -206,7 +218,9 @@ export interface GameState {
   squad: (RatedPlayer | null)[]  // slots in formation order
   pickIndex: number              // active slot for building
   tournament: TournamentResult | null
-  hardMode: boolean              // Hard difficulty: ratings hidden while building; badge on card
+  hardMode: boolean              // derived: difficultyLevel === 'hard' (ratings hidden; badge on card)
+  difficultyLevel: DifficultyLevel
+  respinsLeft: number            // draft wheel re-spins remaining this run
   yearFrom: number               // era range — pool restricted to peaks in [yearFrom, yearTo]
   yearTo: number
   daily: string | null           // UTC date key when playing the Daily Challenge
@@ -218,7 +232,8 @@ export interface GameState {
 
 export type GameAction =
   | { type: 'START' }
-  | { type: 'SET_SETTINGS'; yearFrom: number; yearTo: number; hard: boolean }
+  | { type: 'SET_SETTINGS'; yearFrom: number; yearTo: number; level: DifficultyLevel }
+  | { type: 'USE_RESPIN' }
   | { type: 'SELECT_MODE'; mode: GameMode }
   | { type: 'SELECT_YEAR'; year: number }
   | { type: 'SELECT_FORMATION'; formation: Formation }

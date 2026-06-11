@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useMemo, useEffect } from 'react'
-import { Formation, GameAction, Position, RatedPlayer } from '@/types'
+import { DifficultyLevel, Formation, GameAction, Position, RatedPlayer } from '@/types'
 import { FORMATIONS } from '@/lib/teamStrength'
 import { familiarity } from '@/lib/chemistry'
 import { getDraftPool, canPlaySlot } from '@/lib/playerPool'
@@ -10,7 +10,8 @@ import FormationDisplay from '@/components/ui/FormationDisplay'
 interface Props {
   formation: Formation
   squad: (RatedPlayer | null)[]
-  hardMode: boolean
+  difficultyLevel: DifficultyLevel
+  respinsLeft: number
   yearFrom: number
   yearTo: number
   daily: string | null
@@ -18,6 +19,7 @@ interface Props {
 }
 
 type Phase = 'idle' | 'spinning' | 'choosing' | 'placing'
+type WheelType = 'era' | 'peak'
 
 // ─── Era wheel ────────────────────────────────────────────────────────────────
 // The spin lands on an era, and your picks come from that era — so what the
@@ -41,19 +43,22 @@ function eraOf(peakYear: number): number {
   return Math.min(2020, Math.max(1950, Math.floor(peakYear / 10) * 10))
 }
 
-export default function DraftScreen({ formation, squad, hardMode, yearFrom, yearTo, daily, dispatch }: Props) {
+export default function DraftScreen({ formation, squad, difficultyLevel, respinsLeft, yearFrom, yearTo, daily, dispatch }: Props) {
   const slots = FORMATIONS[formation]
   const [phase, setPhase] = useState<Phase>('idle')
   const [drawn, setDrawn] = useState<RatedPlayer[]>([])
   const [drawnEra, setDrawnEra] = useState<Era | null>(null)
   const [chosen, setChosen] = useState<RatedPlayer | null>(null)
+  // Easy/Normal choose the wheel each spin; Hard is locked to the era wheel.
+  const [wheelType, setWheelType] = useState<WheelType>('era')
   const [reelRows, setReelRows] = useState<string[]>(['???', '???', '???', '???', '???'])
   const [reelPopped, setReelPopped] = useState(false)
   const [revealedCount, setRevealedCount] = useState(-1)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const hard = hardMode
-  const drawCount = hard ? 4 : 3
+  const hard = difficultyLevel === 'hard'
+  const drawCount = 3
+  const peakWheel = !hard && wheelType === 'peak'
 
   const pickedIds = useMemo(() => squad.filter(Boolean).map(p => p!.id), [squad])
   const filledCount = pickedIds.length
@@ -86,34 +91,44 @@ export default function DraftScreen({ formation, squad, hardMode, yearFrom, year
     const pool = inRange.length > 0 ? inRange : fitting.length > 0 ? fitting : all
     if (pool.length === 0) return
 
-    // ── Land on an era first, then draw the picks FROM that era ────────────
     // rand() (not Math.random) so Daily Challenge spins are identical for all.
-    const byEra = new Map<number, RatedPlayer[]>()
-    for (const p of pool) {
-      const d = eraOf(p.peakYear)
-      byEra.set(d, [...(byEra.get(d) ?? []), p])
-    }
-    // Weighted by how many eligible players each era still has, so the wheel
-    // never lands on an empty decade.
-    const weighted: Era[] = ERAS.filter(e => (byEra.get(e.decade)?.length ?? 0) > 0)
-    const totalWeight = weighted.reduce((s, e) => s + byEra.get(e.decade)!.length, 0)
-    let roll = rand() * totalWeight
-    let era = weighted[0]
-    for (const e of weighted) {
-      roll -= byEra.get(e.decade)!.length
-      if (roll <= 0) { era = e; break }
-    }
+    let era: Era | null = null
+    let picked: RatedPlayer[]
 
-    // The era's players, topped up from neighbouring decades when it's thin.
-    let eraPool = [...(byEra.get(era.decade) ?? [])]
-    if (eraPool.length < drawCount) {
-      const fillers = pool
-        .filter(p => !eraPool.includes(p))
-        .sort((a, b) => Math.abs(eraOf(a.peakYear) - era.decade) - Math.abs(eraOf(b.peakYear) - era.decade))
-      eraPool = [...eraPool, ...fillers].slice(0, Math.max(drawCount, eraPool.length))
+    if (peakWheel) {
+      // ── Peak-ratings wheel: draw from the whole range at peak strength ───
+      const shuffled = [...pool].sort(() => rand() - 0.5)
+      picked = shuffled.slice(0, Math.min(drawCount, shuffled.length))
+    } else {
+      // ── Era wheel: land on an era, then draw the picks FROM that era ─────
+      const byEra = new Map<number, RatedPlayer[]>()
+      for (const p of pool) {
+        const d = eraOf(p.peakYear)
+        byEra.set(d, [...(byEra.get(d) ?? []), p])
+      }
+      // Weighted by how many eligible players each era still has, so the
+      // wheel never lands on an empty decade.
+      const weighted: Era[] = ERAS.filter(e => (byEra.get(e.decade)?.length ?? 0) > 0)
+      const totalWeight = weighted.reduce((s, e) => s + byEra.get(e.decade)!.length, 0)
+      let roll = rand() * totalWeight
+      era = weighted[0]
+      for (const e of weighted) {
+        roll -= byEra.get(e.decade)!.length
+        if (roll <= 0) { era = e; break }
+      }
+
+      // The era's players, topped up from neighbouring decades when thin.
+      const decade = era.decade
+      let eraPool = [...(byEra.get(decade) ?? [])]
+      if (eraPool.length < drawCount) {
+        const fillers = pool
+          .filter(p => !eraPool.includes(p))
+          .sort((a, b) => Math.abs(eraOf(a.peakYear) - decade) - Math.abs(eraOf(b.peakYear) - decade))
+        eraPool = [...eraPool, ...fillers].slice(0, Math.max(drawCount, eraPool.length))
+      }
+      const shuffled = [...eraPool].sort(() => rand() - 0.5)
+      picked = shuffled.slice(0, Math.min(drawCount, shuffled.length))
     }
-    const shuffled = [...eraPool].sort(() => rand() - 0.5)
-    const picked = shuffled.slice(0, Math.min(drawCount, shuffled.length))
 
     setPhase('spinning')
     setChosen(null)
@@ -126,12 +141,12 @@ export default function DraftScreen({ formation, squad, hardMode, yearFrom, year
     const doTick = () => {
       ticks++
 
-      // The reel cycles era labels (cosmetic — Math.random is fine here)
-      // and freezes with the chosen era in the centre on the final tick.
-      const rows = Array.from({ length: 5 }, () =>
-        ERAS[Math.floor(Math.random() * ERAS.length)].label
-      )
-      if (ticks >= TOTAL) rows[2] = era.label
+      // The reel cycles era labels (or names on the peak wheel) — cosmetic,
+      // Math.random is fine — and freezes on the real result's centre row.
+      const rows = peakWheel
+        ? Array.from({ length: 5 }, () => pool[Math.floor(Math.random() * pool.length)].name)
+        : Array.from({ length: 5 }, () => ERAS[Math.floor(Math.random() * ERAS.length)].label)
+      if (ticks >= TOTAL) rows[2] = peakWheel ? picked[0].name : era!.label
       setReelRows(rows)
 
       // Speed curve: fast → slow → stop
@@ -167,6 +182,15 @@ export default function DraftScreen({ formation, squad, hardMode, yearFrom, year
   const choosePlayer = (p: RatedPlayer) => {
     setChosen(p)
     setPhase('placing')
+  }
+
+  // Bin the current offering and spin again — costs one of your re-spins.
+  const respin = () => {
+    if (respinsLeft <= 0 || phase === 'spinning') return
+    dispatch({ type: 'USE_RESPIN' })
+    setDrawn([])
+    setDrawnEra(null)
+    spin()
   }
 
   const placeInSlot = (slotIndex: number) => {
@@ -261,14 +285,41 @@ export default function DraftScreen({ formation, squad, hardMode, yearFrom, year
                 <div className="w-full max-w-xs text-center">
                   {/* Settings chosen upfront — just a reminder of what's in play */}
                   <span className="inline-block text-xs font-bold text-slate-300 bg-white/10 rounded-full px-3 py-1.5 tabular-nums">
-                    {yearFrom} – {yearTo} · {hard ? 'Hard' : 'Classic'}
+                    {yearFrom} – {yearTo} · {difficultyLevel.charAt(0).toUpperCase() + difficultyLevel.slice(1)}
+                    {respinsLeft > 0 && ` · ${respinsLeft} re-spin${respinsLeft === 1 ? '' : 's'}`}
                   </span>
                 </div>
               )}
 
+              {/* Wheel type — Easy/Normal choose; Hard is era-only */}
+              {!hard && (
+                <div className="w-full max-w-xs">
+                  <div className="flex items-center rounded-xl bg-slate-800/80 border border-white/10 p-1">
+                    {(['era', 'peak'] as WheelType[]).map(w => (
+                      <button
+                        key={w}
+                        onClick={() => setWheelType(w)}
+                        className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
+                          wheelType === w
+                            ? 'bg-fuchsia-500 text-white shadow-[0_0_16px_rgba(217,70,239,0.35)]'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        {w === 'era' ? 'Era wheel' : 'Peak ratings'}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-slate-500 text-xs text-center mt-2 leading-snug">
+                    {wheelType === 'era'
+                      ? 'The wheel lands on a decade and your three picks come from it.'
+                      : 'Drawn from your whole era range, every player at peak rating.'}
+                  </p>
+                </div>
+              )}
+
               <p className="text-slate-400 text-sm text-center">
-                Spin to draw {hard ? 'four' : 'three'} legends. Pick one. Make it work.
-                {hard && ' Ratings stay hidden until your XI is locked.'}
+                Spin to draw three legends. Pick one. Make it work.
+                {hard && ' Era wheel only — ratings stay hidden until your XI is locked.'}
               </p>
               <button
                 onClick={spin}
@@ -329,6 +380,11 @@ export default function DraftScreen({ formation, squad, hardMode, yearFrom, year
                     {drawnEra.label} <span className="text-slate-400 font-semibold text-xs">· {drawnEra.nickname}</span>
                   </div>
                 )}
+                {!drawnEra && (
+                  <div className="text-fuchsia-300 font-black text-base leading-tight">
+                    Peak ratings draw
+                  </div>
+                )}
                 <div className="text-slate-400 text-xs uppercase tracking-widest mt-1 font-bold">
                   Pick one to draft
                 </div>
@@ -367,9 +423,20 @@ export default function DraftScreen({ formation, squad, hardMode, yearFrom, year
                 ))}
               </div>
               {revealedCount >= drawn.length - 1 && (
-                <p className="text-center text-slate-600 text-xs mt-3 animate-card-reveal">
-                  {hard ? 'No ratings. No second chances. Trust your gut.' : 'Choose wisely — you can\'t go back'}
-                </p>
+                <>
+                  {respinsLeft > 0 ? (
+                    <button
+                      onClick={respin}
+                      className="w-full mt-3 py-2.5 rounded-xl border border-fuchsia-400/40 text-fuchsia-300 text-sm font-bold hover:bg-fuchsia-500/10 active:scale-95 transition-all animate-card-reveal"
+                    >
+                      Don&rsquo;t fancy these? Re-spin · {respinsLeft} left
+                    </button>
+                  ) : (
+                    <p className="text-center text-slate-600 text-xs mt-3 animate-card-reveal">
+                      {hard ? 'No ratings. No re-spins. Trust your gut.' : 'No re-spins left — choose wisely'}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           )}

@@ -122,7 +122,7 @@ export default function GameShell({ daily }: Props) {
         <SettingsScreen
           yearFrom={state.yearFrom}
           yearTo={state.yearTo}
-          hardMode={state.hardMode}
+          difficultyLevel={state.difficultyLevel}
           dispatch={dispatch}
         /></>
       )}
@@ -144,7 +144,8 @@ export default function GameShell({ daily }: Props) {
         <DraftScreen
           formation={formation}
           squad={squad}
-          hardMode={state.hardMode}
+          difficultyLevel={state.difficultyLevel}
+          respinsLeft={state.respinsLeft}
           yearFrom={state.yearFrom}
           yearTo={state.yearTo}
           daily={state.daily}
