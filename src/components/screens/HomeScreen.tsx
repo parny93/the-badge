@@ -69,13 +69,16 @@ export default function HomeScreen({ dispatch }: Props) {
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <div className="-mb-1 -mt-2">
+        {/* Transparent badge + stacked drop-shadows: the glow follows the
+            shield silhouette, so the badge itself appears lit from behind —
+            not a glowing rectangle with a badge on it. */}
         <Image
-          src="/logo.png"
+          src="/logo-transparent.png"
           alt="The Badge"
           width={224}
           height={224}
           priority
-          className="w-52 h-52 sm:w-60 sm:h-60 drop-shadow-[0_10px_40px_rgba(201,168,76,0.45)]"
+          className="w-52 h-52 sm:w-60 sm:h-60 [filter:drop-shadow(0_0_18px_rgba(201,168,76,0.55))_drop-shadow(0_0_56px_rgba(201,168,76,0.3))]"
         />
       </div>
 
