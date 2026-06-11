@@ -167,3 +167,25 @@ export function getDraftPool(exclude: string[], prime = true, year = 9999): Rate
     .filter(p => !exclude.includes(p.id))
     .map(p => ratePlayerForYear(p, year, prime))
 }
+
+// Bench pool — non-positional apart from the GK/outfield split.
+export function getBenchPool(opts: {
+  gk: boolean
+  year: number
+  prime: boolean
+  managerEligibility: boolean
+  exclude: string[]
+}): RatedPlayer[] {
+  return ENGLAND_PLAYERS
+    .filter(p => {
+      if (opts.exclude.includes(p.id)) return false
+      if ((p.positions[0] === 'GK') !== opts.gk) return false
+      if (opts.managerEligibility) {
+        const { from, to } = eligibleYears(p)
+        if (opts.year < from || opts.year > to) return false
+      }
+      return true
+    })
+    .map(p => ratePlayerForYear(p, opts.year, opts.prime))
+    .sort((a, b) => b.ratingAtYear - a.ratingAtYear)
+}

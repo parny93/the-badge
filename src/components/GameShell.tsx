@@ -6,6 +6,7 @@ import { DailyConfig, saveDailyResult } from '@/lib/daily'
 import { recordRunStats } from '@/lib/lifetimeStats'
 import { calculateTeamStrength } from '@/lib/teamStrength'
 import { encodeRun, shootoutRecord, eraSpread } from '@/lib/runCodec'
+import { getManager } from '@/data/managers'
 
 import HomeScreen from '@/components/screens/HomeScreen'
 import ModeSelectScreen from '@/components/screens/ModeSelectScreen'
@@ -14,6 +15,8 @@ import FormationScreen from '@/components/screens/FormationScreen'
 import DraftScreen from '@/components/screens/DraftScreen'
 import FreePickScreen from '@/components/screens/FreePickScreen'
 import SquadReviewScreen from '@/components/screens/SquadReviewScreen'
+import BenchScreen from '@/components/screens/BenchScreen'
+import ManagerScreen from '@/components/screens/ManagerScreen'
 import TournamentSelectScreen from '@/components/screens/TournamentSelectScreen'
 import TournamentScreen from '@/components/screens/TournamentScreen'
 import ResultScreen from '@/components/screens/ResultScreen'
@@ -88,6 +91,9 @@ export default function GameShell({ daily }: Props) {
       wonPens: pens.won,
       lostPens: pens.lost,
       xi: state.squad.map(p => p?.id ?? '').filter(Boolean),
+      captain: state.captainId ?? undefined,
+      manager: state.managerId ?? undefined,
+      bench: state.bench.filter(Boolean).map(p => p!.id),
       daily: state.daily,
     }
     saveDailyResult({
@@ -149,8 +155,24 @@ export default function GameShell({ daily }: Props) {
           squadYear={squadYear}
           formation={formation}
           squad={squad}
+          captainId={state.captainId}
           dispatch={dispatch}
         />
+      )}
+
+      {screen === 'bench-pick' && (
+        <BenchScreen
+          mode={mode}
+          squadYear={squadYear}
+          squad={squad}
+          bench={state.bench}
+          benchIndex={state.benchIndex}
+          dispatch={dispatch}
+        />
+      )}
+
+      {screen === 'manager-pick' && (
+        <ManagerScreen dispatch={dispatch} />
       )}
 
       {screen === 'tournament-select' && (
@@ -162,6 +184,9 @@ export default function GameShell({ daily }: Props) {
           worldCup={worldCup}
           squad={squad}
           formation={formation}
+          manager={state.managerId ? getManager(state.managerId) : undefined}
+          captainId={state.captainId}
+          bench={state.bench}
           dispatch={dispatch}
         />
       )}
@@ -175,6 +200,9 @@ export default function GameShell({ daily }: Props) {
           mode={mode}
           hardMode={state.hardMode}
           daily={state.daily}
+          captainId={state.captainId}
+          managerId={state.managerId}
+          bench={state.bench}
           dispatch={dispatch}
         />
       )}

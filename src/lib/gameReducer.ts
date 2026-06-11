@@ -1,4 +1,4 @@
-import { GameState, GameAction } from '@/types'
+import { BENCH_SIZE, GameState, GameAction, RatedPlayer } from '@/types'
 import { FORMATIONS } from './teamStrength'
 
 export const INITIAL_STATE: GameState = {
@@ -13,6 +13,10 @@ export const INITIAL_STATE: GameState = {
   tournament: null,
   hardMode: false,
   daily: null,
+  bench: Array(BENCH_SIZE).fill(null),
+  benchIndex: 0,
+  captainId: null,
+  managerId: null,
 }
 
 const STORAGE_KEY = 'thebadge.state.v1'
@@ -65,6 +69,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         formation: action.formation,
         squad: Array(slots.length).fill(null),
         pickIndex: 0,
+        bench: Array(BENCH_SIZE).fill(null),
+        benchIndex: 0,
+        captainId: null,
         screen: state.mode === 'draft' ? 'draft' : 'free-pick',
       }
     }
@@ -91,11 +98,42 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'REVIEW_SQUAD':
       return { ...state, screen: 'squad-review' }
 
-    case 'CONFIRM_SQUAD':
+    case 'CONFIRM_SQUAD': {
+      // No armband handed out? The best-rated player wears it by default.
+      const captainId = state.captainId ??
+        (state.squad.filter(Boolean) as RatedPlayer[])
+          .sort((a, b) => b.ratingAtYear - a.ratingAtYear)[0]?.id ?? null
+      return { ...state, captainId, benchIndex: firstEmpty(state.bench), screen: 'bench-pick' }
+    }
+
+    case 'SET_CAPTAIN':
+      return { ...state, captainId: action.playerId }
+
+    case 'PICK_BENCH': {
+      const newBench = [...state.bench]
+      newBench[action.slotIndex] = action.player
+      return { ...state, bench: newBench, benchIndex: firstEmpty(newBench, action.slotIndex + 1) }
+    }
+
+    case 'REMOVE_BENCH': {
+      const newBench = [...state.bench]
+      newBench[action.slotIndex] = null
+      return { ...state, bench: newBench, benchIndex: action.slotIndex }
+    }
+
+    case 'SET_BENCH_SLOT':
+      return { ...state, benchIndex: action.slotIndex }
+
+    case 'CONFIRM_BENCH':
+      return { ...state, screen: 'manager-pick' }
+
+    case 'SELECT_MANAGER':
       // Daily Challenge: the tournament is fixed by the day's seed — skip selection.
-      return state.daily && state.worldCup
-        ? { ...state, screen: 'tournament' }
-        : { ...state, screen: 'tournament-select' }
+      return {
+        ...state,
+        managerId: action.managerId,
+        screen: state.daily && state.worldCup ? 'tournament' : 'tournament-select',
+      }
 
     case 'SET_HARD_MODE':
       return { ...state, hardMode: action.hard }
@@ -131,7 +169,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           return { ...state, screen: 'formation' }
         case 'free-pick': return { ...state, screen: 'formation' }
         case 'squad-review': return { ...state, screen: state.mode === 'draft' ? 'draft' : 'free-pick' }
-        case 'tournament-select': return { ...state, screen: 'squad-review' }
+        case 'bench-pick': return { ...state, screen: 'squad-review' }
+        case 'manager-pick': return { ...state, screen: 'bench-pick' }
+        case 'tournament-select': return { ...state, screen: 'manager-pick' }
         default: return { ...state, screen: 'home' }
       }
     }

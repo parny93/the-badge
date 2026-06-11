@@ -1,5 +1,14 @@
 import { Formation, FormationSlot, RatedPlayer, TeamStrength } from '@/types'
 import { analyzeChemistry, familiarity } from './chemistry'
+import { Manager } from '@/data/managers'
+
+// Optional squad context: the gaffer, the armband and the bench all nudge
+// the numbers the match sim consumes.
+export interface StrengthContext {
+  manager?: Manager
+  captainId?: string | null
+  bench?: (RatedPlayer | null)[]
+}
 
 // ─── Formation definitions ────────────────────────────────────────────────────
 // Positions in order: GK, DEF×n, MID×n, ATT×n
@@ -85,7 +94,8 @@ interface Slotted { player: RatedPlayer; slot: FormationSlot }
 
 export function calculateTeamStrength(
   squad: (RatedPlayer | null)[],
-  formation: Formation
+  formation: Formation,
+  ctx: StrengthContext = {}
 ): TeamStrength {
   const slots = FORMATIONS[formation]
   const rated: Slotted[] = squad
@@ -131,9 +141,46 @@ export function calculateTeamStrength(
   // Chemistry & balance analysis
   const chemistry = analyzeChemistry(squad, slots)
 
-  const attack  = Math.round(rawAtt + chemistry.attackMod)
-  const defense = Math.round(rawDef * 0.7 + gkScore * 0.3 + chemistry.defenseMod)
-  const overall = Math.round(attack * 0.4 + midfield * 0.3 + defense * 0.3)
+  let attack  = rawAtt + chemistry.attackMod
+  let defense = rawDef * 0.7 + gkScore * 0.3 + chemistry.defenseMod
+  let chemScore = chemistry.score
 
-  return { overall, attack, midfield, defense, chemistry }
+  // ── Manager bump — flavoured to the gaffer's real tactics ────────────────
+  if (ctx.manager) {
+    attack += ctx.manager.attackMod
+    defense += ctx.manager.defenseMod
+    chemScore += ctx.manager.chemBonus
+    chemistry.notes.push({ type: 'info', text: `${ctx.manager.name}: ${ctx.manager.tactic}` })
+  }
+
+  // ── Captain's armband — a touch of leadership everywhere ─────────────────
+  const captain = ctx.captainId
+    ? rated.find(r => r.player.id === ctx.captainId)?.player
+    : undefined
+  if (captain) {
+    attack += 1
+    defense += 1
+    chemScore += 2
+    chemistry.notes.push({
+      type: 'good',
+      text: `${captain.name.split(' ').pop()} wears the armband — the dressing room follows him`,
+    })
+  }
+
+  // ── Bench depth — a strong squad survives a long tournament ──────────────
+  const benchPlayers = (ctx.bench ?? []).filter((p): p is RatedPlayer => p !== null)
+  if (benchPlayers.length >= 5) {
+    const avg = benchPlayers.reduce((s, p) => s + p.ratingAtYear, 0) / benchPlayers.length
+    if (avg >= 82) {
+      chemScore += 2
+      chemistry.notes.push({ type: 'good', text: 'Serious depth on the bench — fresh legs win knockouts' })
+    }
+  }
+
+  chemistry.score = Math.max(35, Math.min(100, Math.round(chemScore)))
+  const attackR  = Math.round(attack)
+  const defenseR = Math.round(defense)
+  const overall  = Math.round(attackR * 0.4 + midfield * 0.3 + defenseR * 0.3)
+
+  return { overall, attack: attackR, midfield, defense: defenseR, chemistry }
 }

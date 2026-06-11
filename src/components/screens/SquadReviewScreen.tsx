@@ -9,11 +9,12 @@ interface Props {
   squadYear: number
   formation: Formation
   squad: (RatedPlayer | null)[]
+  captainId: string | null
   dispatch: React.Dispatch<GameAction>
 }
 
-export default function SquadReviewScreen({ mode, squadYear, formation, squad, dispatch }: Props) {
-  const strength = calculateTeamStrength(squad, formation)
+export default function SquadReviewScreen({ mode, squadYear, formation, squad, captainId, dispatch }: Props) {
+  const strength = calculateTeamStrength(squad, formation, { captainId })
   const avgRating = strength.overall
 
   const ratingLabel =
@@ -41,7 +42,7 @@ export default function SquadReviewScreen({ mode, squadYear, formation, squad, d
       </div>
 
       {/* Formation visual */}
-      <FormationDisplay squad={squad} formation={formation} />
+      <FormationDisplay squad={squad} formation={formation} captainId={captainId} />
 
       {/* Team rating */}
       <div className="rounded-xl bg-white/5 border border-white/10 p-4 flex items-center justify-between">
@@ -80,28 +81,43 @@ export default function SquadReviewScreen({ mode, squadYear, formation, squad, d
       {/* Chemistry — the tweak-to-fix feedback loop */}
       <ChemistryPanel report={strength.chemistry} />
 
-      {/* Player list */}
-      <div className="rounded-xl bg-white/5 border border-white/10 divide-y divide-white/5">
-        {squad.map((player, i) => {
-          if (!player) return null
-          return (
-            <div key={i} className="flex items-center justify-between px-3 py-2.5">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 w-8 shrink-0">{player.positions[0]}</span>
-                <span className="text-white text-sm font-medium">{player.name}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500">Age {player.ageAtYear}</span>
-                <span className={`font-bold text-sm ${
-                  player.ratingAtYear >= 88 ? 'text-yellow-400' :
-                  player.ratingAtYear >= 82 ? 'text-emerald-400' :
-                  player.ratingAtYear >= 75 ? 'text-sky-400' :
-                  'text-slate-400'
-                }`}>{player.ratingAtYear}</span>
-              </div>
-            </div>
-          )
-        })}
+      {/* Player list — tap a player to hand them the armband */}
+      <div>
+        <p className="text-slate-500 text-xs mb-2">
+          👑 Tap a player to make him captain{captainId ? '' : ' — otherwise your highest-rated player leads'}
+        </p>
+        <div className="rounded-xl bg-white/5 border border-white/10 divide-y divide-white/5">
+          {squad.map((player, i) => {
+            if (!player) return null
+            const isCaptain = player.id === captainId
+            return (
+              <button
+                key={i}
+                onClick={() => dispatch({ type: 'SET_CAPTAIN', playerId: player.id })}
+                className={`w-full flex items-center justify-between px-3 py-2.5 text-left transition-colors ${
+                  isCaptain ? 'bg-amber-400/10' : 'hover:bg-white/5'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 w-8 shrink-0">{player.positions[0]}</span>
+                  <span className="text-white text-sm font-medium">{player.name}</span>
+                  {isCaptain && (
+                    <span className="text-[10px] font-black bg-amber-400 text-slate-900 rounded px-1.5 py-0.5">C</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500">Age {player.ageAtYear}</span>
+                  <span className={`font-bold text-sm ${
+                    player.ratingAtYear >= 88 ? 'text-yellow-400' :
+                    player.ratingAtYear >= 82 ? 'text-emerald-400' :
+                    player.ratingAtYear >= 75 ? 'text-sky-400' :
+                    'text-slate-400'
+                  }`}>{player.ratingAtYear}</span>
+                </div>
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* Go button */}
@@ -110,7 +126,7 @@ export default function SquadReviewScreen({ mode, squadYear, formation, squad, d
           onClick={() => dispatch({ type: 'CONFIRM_SQUAD' })}
           className="w-full bg-white text-slate-900 font-black text-lg py-4 rounded-2xl active:scale-95 transition-all shadow-2xl"
         >
-          Choose a World Cup →
+          Pick Your Bench →
         </button>
       </div>
     </div>

@@ -186,10 +186,14 @@ export type GameScreen =
   | 'formation'
   | 'draft'             // wheel-spin build
   | 'free-pick'         // browse-and-pick build (manager + alltime)
-  | 'squad-review'
+  | 'squad-review'      // review XI + hand out the captain's armband
+  | 'bench-pick'        // tournament squad depth: 1 sub GK + 6 outfield subs
+  | 'manager-pick'      // choose the gaffer
   | 'tournament-select' // choose which World Cup to enter your squad into
   | 'tournament'
   | 'result'
+
+export const BENCH_SIZE = 7   // slot 0 = sub GK, slots 1–6 = outfield
 
 export interface GameState {
   screen: GameScreen
@@ -203,6 +207,10 @@ export interface GameState {
   tournament: TournamentResult | null
   hardMode: boolean              // draft wheel hides ratings; badge on share card
   daily: string | null           // UTC date key when playing the Daily Challenge
+  bench: (RatedPlayer | null)[]  // BENCH_SIZE slots; 0 = sub GK
+  benchIndex: number             // active bench slot
+  captainId: string | null       // armband holder (one of the XI)
+  managerId: string | null       // chosen England manager
 }
 
 export type GameAction =
@@ -215,6 +223,12 @@ export type GameAction =
   | { type: 'SET_ACTIVE_SLOT'; slotIndex: number }
   | { type: 'REVIEW_SQUAD' }
   | { type: 'CONFIRM_SQUAD' }
+  | { type: 'PICK_BENCH'; player: RatedPlayer; slotIndex: number }
+  | { type: 'REMOVE_BENCH'; slotIndex: number }
+  | { type: 'SET_BENCH_SLOT'; slotIndex: number }
+  | { type: 'CONFIRM_BENCH' }
+  | { type: 'SET_CAPTAIN'; playerId: string }
+  | { type: 'SELECT_MANAGER'; managerId: string }
   | { type: 'SELECT_TOURNAMENT'; worldCup: WorldCupData }
   | { type: 'SET_TOURNAMENT'; result: TournamentResult }
   | { type: 'SET_HARD_MODE'; hard: boolean }

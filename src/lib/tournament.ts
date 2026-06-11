@@ -1,6 +1,7 @@
 import { WorldCupData, TournamentResult, TournamentRound, KnockoutRound, RatedPlayer } from '@/types'
 import { Formation } from '@/types'
 import { simulateMatch } from './matchSimulator'
+import { Manager } from '@/data/managers'
 import { rand } from './rng'
 import { getTeamRating } from '@/data/teamRatings'
 import { KNOCKOUT_ROUNDS } from '@/data/worldCups'
@@ -37,11 +38,18 @@ function poissonSample(lambda: number): number {
   return k - 1
 }
 
+export interface TournamentContext {
+  manager?: Manager
+  captainId?: string | null
+  bench?: (RatedPlayer | null)[]
+}
+
 function runGroup(
   group: { name: string; teams: string[] },
   wcYear: number,
   englandSquad: (RatedPlayer | null)[],
-  englandFormation: Formation
+  englandFormation: Formation,
+  ctx: TournamentContext
 ): { standings: GroupTeam[]; englandMatches: import('@/types').MatchResult[] } {
   const teams = group.teams
   const standings: GroupTeam[] = teams.map(name => ({
@@ -68,6 +76,7 @@ function runGroup(
           opponent,
           wcYear,
           isKnockout: false,
+          ...ctx,
         })
         if (teamA === 'England') {
           goalsA = matchResult.homeGoals
@@ -129,7 +138,8 @@ function simKnockoutOpponent(teamA: string, teamB: string, wcYear: number): stri
 export function runTournament(
   worldCup: WorldCupData,
   englandSquad: (RatedPlayer | null)[],
-  englandFormation: Formation
+  englandFormation: Formation,
+  ctx: TournamentContext = {}
 ): TournamentResult {
   const rounds: TournamentRound[] = []
 
@@ -143,7 +153,7 @@ export function runTournament(
 
   for (const group of worldCup.groups) {
     if (group.name === worldCup.englandGroup) {
-      const { standings, englandMatches } = runGroup(group, worldCup.year, englandSquad, englandFormation)
+      const { standings, englandMatches } = runGroup(group, worldCup.year, englandSquad, englandFormation, ctx)
       allEnglandGroupMatches.push(...englandMatches)
       englandGroupPosition = standings.findIndex(s => s.name === 'England') + 1
       allGroupResults.push({ groupName: group.name, standings })
@@ -221,6 +231,7 @@ export function runTournament(
           opponent: opponent === 'Unknown' ? 'Rest of the World' : opponent,
           wcYear: worldCup.year,
           isKnockout: true,
+          ...ctx,
         })
         matchResults.push(result)
         nextRound.push(result.englandWon ? 'England' : opponent)

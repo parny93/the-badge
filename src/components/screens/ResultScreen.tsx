@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react'
 import { Formation, GameAction, GameMode, RatedPlayer, TournamentResult, WorldCupData } from '@/types'
 import { getLore } from '@/data/tournamentLore'
+import { getManager } from '@/data/managers'
 import { calculateTeamStrength } from '@/lib/teamStrength'
 import { encodeRun, shootoutRecord, tweetLine, resultLine } from '@/lib/runCodec'
 import FormationDisplay from '@/components/ui/FormationDisplay'
@@ -14,6 +15,9 @@ interface Props {
   mode: GameMode
   hardMode: boolean
   daily: string | null
+  captainId: string | null
+  managerId: string | null
+  bench: (RatedPlayer | null)[]
   dispatch: React.Dispatch<GameAction>
 }
 
@@ -83,7 +87,7 @@ const OUT_ON_PENS_COPY: Record<string, { emoji: string; headline: string; sub: s
   },
 }
 
-export default function ResultScreen({ worldCup, squad, formation, result, mode, hardMode, daily, dispatch }: Props) {
+export default function ResultScreen({ worldCup, squad, formation, result, mode, hardMode, daily, captainId, managerId, bench, dispatch }: Props) {
   const [tab, setTab] = useState<Tab>('result')
   const [imageBusy, setImageBusy] = useState(false)
   const isEuro = worldCup.competition === 'Euro'
@@ -104,7 +108,11 @@ export default function ResultScreen({ worldCup, squad, formation, result, mode,
   )
 
   // ── Shareable run card — the run is encoded into the URL itself ──────────
-  const strength = useMemo(() => calculateTeamStrength(squad, formation), [squad, formation])
+  const manager = managerId ? getManager(managerId) : undefined
+  const strength = useMemo(
+    () => calculateTeamStrength(squad, formation, { manager, captainId, bench }),
+    [squad, formation, manager, captainId, bench]
+  )
 
   const runPayload = useMemo(() => ({
     v: 1 as const,
@@ -119,9 +127,12 @@ export default function ResultScreen({ worldCup, squad, formation, result, mode,
     wonPens: pens.won,
     lostPens: pens.lost,
     xi: squad.map(p => p?.id ?? '').filter(Boolean),
+    captain: captainId ?? undefined,
+    manager: managerId ?? undefined,
+    bench: bench.filter(Boolean).map(p => p!.id),
     groupPos: result.groupPosition,
     daily: daily ?? undefined,
-  }), [mode, formation, worldCup.year, isEuro, result, strength, pens, squad, hardMode, daily])
+  }), [mode, formation, worldCup.year, isEuro, result, strength, pens, squad, hardMode, daily, captainId, managerId, bench])
 
   const runId = useMemo(() => encodeRun(runPayload), [runPayload])
   const runUrl = `https://thebadge.app/run/${runId}`
@@ -172,6 +183,13 @@ export default function ResultScreen({ worldCup, squad, formation, result, mode,
             {lore?.nickname ?? `${worldCup.year} ${compLabel}`} · 📍 {hostLabel} · {formation}
           </span>
         </div>
+        {(manager || captainId) && (
+          <p className="text-slate-500 text-xs mt-2">
+            {manager ? `Manager: ${manager.name}` : ''}
+            {manager && captainId ? ' · ' : ''}
+            {captainId ? `Captain: ${squad.find(p => p?.id === captainId)?.name ?? ''}` : ''}
+          </p>
+        )}
 
         {/* Shootouts are first-class results — wear them */}
         {(pens.won > 0 || pens.lost > 0) && (
@@ -281,7 +299,7 @@ export default function ResultScreen({ worldCup, squad, formation, result, mode,
       )}
 
       {tab === 'squad' && (
-        <FormationDisplay squad={squad} formation={formation} />
+        <FormationDisplay squad={squad} formation={formation} captainId={captainId} />
       )}
 
       {/* Fixed buttons */}

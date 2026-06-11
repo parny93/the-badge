@@ -1,6 +1,7 @@
 import { MatchMoment, MatchResult, RatedPlayer } from '@/types'
 import { Formation } from '@/types'
 import { calculateTeamStrength } from './teamStrength'
+import { Manager } from '@/data/managers'
 import { rand } from './rng'
 import { getTeamRating } from '@/data/teamRatings'
 import { atmosphereDeck } from '@/data/tournamentLore'
@@ -157,12 +158,21 @@ export interface SimMatchInput {
   opponent: string
   wcYear: number
   isKnockout: boolean
+  manager?: Manager
+  captainId?: string | null
+  bench?: (RatedPlayer | null)[]
 }
 
 export function simulateMatch(input: SimMatchInput): MatchResult {
-  const { englandSquad, englandFormation, opponent, wcYear, isKnockout } = input
+  const { englandSquad, englandFormation, opponent, wcYear, isKnockout, manager, captainId, bench } = input
 
-  const engStrength = calculateTeamStrength(englandSquad, englandFormation)
+  const engStrength = calculateTeamStrength(englandSquad, englandFormation, { manager, captainId, bench })
+  // Tournament-knockout specialists (Southgate, Robson) raise their game
+  // when it's win-or-go-home.
+  if (isKnockout && manager?.knockoutBoost) {
+    engStrength.attack += manager.knockoutBoost
+    engStrength.defense += manager.knockoutBoost
+  }
   const oppRating   = getTeamRating(opponent, wcYear)
 
   const oppStrength = {
@@ -315,10 +325,14 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
     // Penalty shootout simulation — each kick is a moment
     const gk = englandSquad.find(p => p?.positions[0] === 'GK') as RatedPlayer | undefined
     const gkFactor   = gk   ? gk.ratingAtYear   / 90  : 0.80
-    const captain    = (englandSquad.filter(Boolean) as RatedPlayer[])
+    // The actual armband holder steadies the shootout; falls back to the
+    // best-rated player when no captain was named.
+    const captain    = (captainId
+      ? englandSquad.find(p => p?.id === captainId)
+      : undefined) ?? (englandSquad.filter(Boolean) as RatedPlayer[])
       .sort((a, b) => b.ratingAtYear - a.ratingAtYear)[0]
     const capFactor  = captain ? captain.ratingAtYear / 100 : 0.80
-    const penWinProb = 0.38 + gkFactor * 0.12 + capFactor * 0.10
+    const penWinProb = 0.38 + gkFactor * 0.12 + capFactor * 0.10 + (manager?.penaltyBoost ?? 0)
 
     const engWinsPens = rand() < penWinProb
 

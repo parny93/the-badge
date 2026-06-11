@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { Formation, GameAction, MatchMoment, MatchResult, RatedPlayer, TournamentResult, WorldCupData } from '@/types'
 import { runTournament } from '@/lib/tournament'
 import { calculateTeamStrength } from '@/lib/teamStrength'
+import { Manager } from '@/data/managers'
 import { FORMATIONS } from '@/lib/teamStrength'
 import { getTeamRating } from '@/data/teamRatings'
 import { getLore } from '@/data/tournamentLore'
@@ -57,12 +58,15 @@ interface Props {
   worldCup: WorldCupData
   squad: (RatedPlayer | null)[]
   formation: Formation
+  manager?: Manager
+  captainId?: string | null
+  bench?: (RatedPlayer | null)[]
   dispatch: React.Dispatch<GameAction>
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function TournamentScreen({ worldCup, squad, formation, dispatch }: Props) {
+export default function TournamentScreen({ worldCup, squad, formation, manager, captainId, bench, dispatch }: Props) {
   const [phase, setPhase]           = useState<Phase>('loading')
   const [matches, setMatches]       = useState<MatchDisplay[]>([])
   const [matchIdx, setMatchIdx]     = useState(0)
@@ -77,7 +81,7 @@ export default function TournamentScreen({ worldCup, squad, formation, dispatch 
 
   // ── Compute full tournament on mount ──────────────────────────────────────
   useEffect(() => {
-    const res = runTournament(worldCup, squad, formation)
+    const res = runTournament(worldCup, squad, formation, { manager, captainId, bench })
 
     const flat: MatchDisplay[] = []
     const groupRound = res.rounds.find(r => r.type === 'Group')
@@ -231,7 +235,7 @@ export default function TournamentScreen({ worldCup, squad, formation, dispatch 
   const { match, roundLabel, isKnockout, isFinal } = matches[matchIdx]
   const opponent     = match.home === 'England' ? match.away : match.home
   const oppRating    = getTeamRating(opponent, worldCup.year)
-  const engStrength  = calculateTeamStrength(squad, formation)
+  const engStrength  = calculateTeamStrength(squad, formation, { manager, captainId, bench })
   const visibleMoments = match.moments.slice(0, momentIdx)
 
   // Running score — derived from visible goal moments

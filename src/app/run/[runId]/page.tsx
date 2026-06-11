@@ -99,7 +99,7 @@ export default async function RunPage({ params }: Props) {
         )}
       </div>
 
-      <FormationDisplay squad={squad} formation={run.formation} />
+      <FormationDisplay squad={squad} formation={run.formation} captainId={run.captain} />
 
       <div className="mt-8 flex flex-col gap-2">
         <Link

@@ -8,6 +8,7 @@ interface Props {
   activeIndex?: number
   onSelectSlot?: (index: number) => void
   compact?: boolean
+  captainId?: string | null
 }
 
 // ─── Pitch markings SVG ───────────────────────────────────────────────────────
@@ -74,7 +75,7 @@ function PitchMarkings() {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function FormationDisplay({ squad, formation, activeIndex, onSelectSlot, compact }: Props) {
+export default function FormationDisplay({ squad, formation, activeIndex, onSelectSlot, compact, captainId }: Props) {
   const slots = FORMATIONS[formation]
   const pitchH = compact ? 260 : 360
 
@@ -142,9 +143,17 @@ export default function FormationDisplay({ squad, formation, activeIndex, onSele
           >
             {/* Avatar circle */}
             <div
-              className={`rounded-full flex items-center justify-center font-bold transition-all shadow-md ${ringCls} ${bgCls}`}
+              className={`relative rounded-full flex items-center justify-center font-bold transition-all shadow-md ${ringCls} ${bgCls}`}
               style={{ width: size, height: size }}
             >
+              {isFilled && player.id === captainId && (
+                <span
+                  className="absolute -top-1.5 -right-1.5 bg-amber-400 text-slate-900 font-black rounded-full flex items-center justify-center shadow"
+                  style={{ width: 15, height: 15, fontSize: 9 }}
+                >
+                  C
+                </span>
+              )}
               {isFilled ? (
                 <span className="text-center leading-none px-0.5" style={{ fontSize: compact ? 7 : 8 }}>
                   {player.name.split(' ').pop()}
