@@ -33,6 +33,9 @@ export const KNOWN_PK_TAKERS = new Set<string>([
   // Club-football penalty royalty
   'matt_le_tissier',  // 47 of 48 for Southampton
   'steve_bruce',      // 11 pens from centre-half in 1990-91 alone
+  'rickie_lambert',   // 34 in a row for Southampton at one point
+  'james_ward_prowse',// set-piece royalty, pens included
+  'ivan_toney',       // the no-look penalty
 ])
 
 // Penalty rating proxy: goal threat per cap + a curated-taker bonus.
