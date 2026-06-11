@@ -1,6 +1,10 @@
 import { BENCH_SIZE, GameState, GameAction, RatedPlayer } from '@/types'
 import { FORMATIONS } from './teamStrength'
 
+// Bounds for the era-range setting.
+export const ERA_MIN = 1950
+export const ERA_MAX = 2026
+
 export const INITIAL_STATE: GameState = {
   screen: 'home',
   mode: 'alltime',
@@ -12,6 +16,8 @@ export const INITIAL_STATE: GameState = {
   pickIndex: 0,
   tournament: null,
   hardMode: false,
+  yearFrom: ERA_MIN,
+  yearTo: ERA_MAX,
   daily: null,
   bench: Array(BENCH_SIZE).fill(null),
   benchIndex: 0,
@@ -50,7 +56,16 @@ function firstEmpty(squad: GameState['squad'], from = 0): number {
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'START':
-      return { ...INITIAL_STATE, screen: 'mode-select' }
+      return { ...INITIAL_STATE, screen: 'settings' }
+
+    case 'SET_SETTINGS':
+      return {
+        ...state,
+        yearFrom: action.yearFrom,
+        yearTo: action.yearTo,
+        hardMode: action.hard,
+        screen: 'mode-select',
+      }
 
     case 'SELECT_MODE': {
       // draft & alltime use prime ratings; manager uses historical (year-rated)
@@ -135,9 +150,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         screen: state.daily && state.worldCup ? 'tournament' : 'tournament-select',
       }
 
-    case 'SET_HARD_MODE':
-      return { ...state, hardMode: action.hard }
-
     case 'START_DAILY': {
       const slots = FORMATIONS[action.formation]
       return {
@@ -160,7 +172,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'BACK': {
       switch (state.screen) {
-        case 'mode-select': return { ...state, screen: 'home' }
+        case 'settings': return { ...state, screen: 'home' }
+        case 'mode-select': return { ...state, screen: 'settings' }
         case 'manager-year': return { ...state, screen: 'mode-select' }
         case 'formation': return { ...state, screen: state.mode === 'manager' ? 'manager-year' : 'mode-select' }
         case 'draft':

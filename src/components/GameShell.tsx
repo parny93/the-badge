@@ -9,6 +9,7 @@ import { encodeRun, shootoutRecord, eraSpread } from '@/lib/runCodec'
 import { getManager } from '@/data/managers'
 
 import HomeScreen from '@/components/screens/HomeScreen'
+import SettingsScreen from '@/components/screens/SettingsScreen'
 import ModeSelectScreen from '@/components/screens/ModeSelectScreen'
 import ManagerYearScreen from '@/components/screens/ManagerYearScreen'
 import FormationScreen from '@/components/screens/FormationScreen'
@@ -116,12 +117,23 @@ export default function GameShell({ daily }: Props) {
     <main className="max-w-md mx-auto min-h-screen bg-[#0c1420] text-white relative">
       {screen === 'home' && <HomeScreen dispatch={dispatch} />}
 
+      {screen === 'settings' && (
+        <><TopBar onBack={back} />
+        <SettingsScreen
+          yearFrom={state.yearFrom}
+          yearTo={state.yearTo}
+          hardMode={state.hardMode}
+          dispatch={dispatch}
+        /></>
+      )}
+
       {screen === 'mode-select' && (
         <><TopBar onBack={back} /><ModeSelectScreen dispatch={dispatch} /></>
       )}
 
       {screen === 'manager-year' && (
-        <><TopBar onBack={back} /><ManagerYearScreen dispatch={dispatch} /></>
+        <><TopBar onBack={back} />
+        <ManagerYearScreen yearFrom={state.yearFrom} yearTo={state.yearTo} dispatch={dispatch} /></>
       )}
 
       {screen === 'formation' && (
@@ -133,6 +145,8 @@ export default function GameShell({ daily }: Props) {
           formation={formation}
           squad={squad}
           hardMode={state.hardMode}
+          yearFrom={state.yearFrom}
+          yearTo={state.yearTo}
           daily={state.daily}
           dispatch={dispatch}
         />
@@ -145,6 +159,9 @@ export default function GameShell({ daily }: Props) {
           formation={formation}
           squad={squad}
           pickIndex={pickIndex}
+          hardMode={state.hardMode}
+          yearFrom={state.yearFrom}
+          yearTo={state.yearTo}
           dispatch={dispatch}
         />
       )}
@@ -167,6 +184,9 @@ export default function GameShell({ daily }: Props) {
           squad={squad}
           bench={state.bench}
           benchIndex={state.benchIndex}
+          hardMode={state.hardMode}
+          yearFrom={state.yearFrom}
+          yearTo={state.yearTo}
           dispatch={dispatch}
         />
       )}

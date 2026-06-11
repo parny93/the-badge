@@ -181,6 +181,7 @@ export type GameMode =
 
 export type GameScreen =
   | 'home'
+  | 'settings'          // era range + difficulty, before anything else
   | 'mode-select'
   | 'manager-year'      // pick the squad year (manager mode only)
   | 'formation'
@@ -205,7 +206,9 @@ export interface GameState {
   squad: (RatedPlayer | null)[]  // slots in formation order
   pickIndex: number              // active slot for building
   tournament: TournamentResult | null
-  hardMode: boolean              // draft wheel hides ratings; badge on share card
+  hardMode: boolean              // Hard difficulty: ratings hidden while building; badge on card
+  yearFrom: number               // era range — pool restricted to peaks in [yearFrom, yearTo]
+  yearTo: number
   daily: string | null           // UTC date key when playing the Daily Challenge
   bench: (RatedPlayer | null)[]  // BENCH_SIZE slots; 0 = sub GK
   benchIndex: number             // active bench slot
@@ -215,6 +218,7 @@ export interface GameState {
 
 export type GameAction =
   | { type: 'START' }
+  | { type: 'SET_SETTINGS'; yearFrom: number; yearTo: number; hard: boolean }
   | { type: 'SELECT_MODE'; mode: GameMode }
   | { type: 'SELECT_YEAR'; year: number }
   | { type: 'SELECT_FORMATION'; formation: Formation }
@@ -231,7 +235,6 @@ export type GameAction =
   | { type: 'SELECT_MANAGER'; managerId: string }
   | { type: 'SELECT_TOURNAMENT'; worldCup: WorldCupData }
   | { type: 'SET_TOURNAMENT'; result: TournamentResult }
-  | { type: 'SET_HARD_MODE'; hard: boolean }
   | { type: 'START_DAILY'; date: string; worldCup: WorldCupData; formation: Formation }
   | { type: 'HYDRATE'; state: GameState }
   | { type: 'BACK' }

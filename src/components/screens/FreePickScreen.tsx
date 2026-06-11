@@ -13,23 +13,38 @@ interface Props {
   formation: Formation
   squad: (RatedPlayer | null)[]
   pickIndex: number
+  hardMode: boolean
+  yearFrom: number
+  yearTo: number
   dispatch: React.Dispatch<GameAction>
 }
 
-export default function FreePickScreen({ mode, squadYear, formation, squad, pickIndex, dispatch }: Props) {
+export default function FreePickScreen({ mode, squadYear, formation, squad, pickIndex, hardMode, yearFrom, yearTo, dispatch }: Props) {
   const slots = FORMATIONS[formation]
   const activeSlot = slots[pickIndex] ?? slots[0]
   const pickedIds = squad.filter(Boolean).map(p => p!.id)
   const filledCount = pickedIds.length
   const isComplete = filledCount === slots.length
 
-  const pool = useMemo(() => getEligiblePool({
-    slot: activeSlot.position,
-    year: squadYear,
-    prime: mode !== 'manager',
-    managerEligibility: mode === 'manager',
-    exclude: pickedIds,
-  }), [activeSlot.position, squadYear, mode, pickedIds.join(',')])
+  const pool = useMemo(() => {
+    const base = getEligiblePool({
+      slot: activeSlot.position,
+      year: squadYear,
+      prime: mode !== 'manager',
+      managerEligibility: mode === 'manager',
+      exclude: pickedIds,
+    })
+    // All-Time XI honours the upfront era range (Manager Mode is already
+    // pinned to a single year). Relax rather than dead-end an empty slot.
+    if (mode !== 'manager') {
+      const ranged = base.filter(p => {
+        const y = Math.max(1950, p.peakYear)
+        return y >= yearFrom && y <= yearTo
+      })
+      if (ranged.length > 0) return ranged
+    }
+    return base
+  }, [activeSlot.position, squadYear, mode, pickedIds.join(','), yearFrom, yearTo])
 
   const strength = calculateTeamStrength(squad, formation)
 
@@ -54,7 +69,8 @@ export default function FreePickScreen({ mode, squadYear, formation, squad, pick
         <div className="flex gap-2">
           <div className="flex-1 rounded-lg bg-white/5 border border-white/10 px-3 py-2 flex items-center justify-between">
             <span className="text-slate-400 text-xs">OVR</span>
-            <span className="text-white font-black text-lg">{strength.overall}</span>
+            {/* Hard difficulty keeps the team rating under wraps until review */}
+            <span className="text-white font-black text-lg">{hardMode ? '??' : strength.overall}</span>
           </div>
           <div className="flex-1 rounded-lg bg-white/5 border border-white/10 px-3 py-2 flex items-center justify-between">
             <span className="text-slate-400 text-xs">CHEM</span>
@@ -105,6 +121,7 @@ export default function FreePickScreen({ mode, squadYear, formation, squad, pick
               player={player}
               onClick={() => dispatch({ type: 'PICK_PLAYER', player, slotIndex: pickIndex })}
               showAge={mode === 'manager'}
+              hideRating={hardMode}
             />
           ))
         )}

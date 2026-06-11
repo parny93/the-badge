@@ -11,13 +11,16 @@ interface Props {
   squad: (RatedPlayer | null)[]
   bench: (RatedPlayer | null)[]
   benchIndex: number
+  hardMode: boolean
+  yearFrom: number
+  yearTo: number
   dispatch: React.Dispatch<GameAction>
 }
 
 // Slot 0 is the sub keeper; the rest are outfield cover.
 const SLOT_LABELS = ['SUB GK', 'SUB 2', 'SUB 3', 'SUB 4', 'SUB 5', 'SUB 6', 'SUB 7']
 
-export default function BenchScreen({ mode, squadYear, squad, bench, benchIndex, dispatch }: Props) {
+export default function BenchScreen({ mode, squadYear, squad, bench, benchIndex, hardMode, yearFrom, yearTo, dispatch }: Props) {
   const isGKSlot = benchIndex === 0
   const takenIds = [
     ...squad.filter(Boolean).map(p => p!.id),
@@ -25,13 +28,24 @@ export default function BenchScreen({ mode, squadYear, squad, bench, benchIndex,
   ]
   const filledCount = bench.filter(Boolean).length
 
-  const pool = useMemo(() => getBenchPool({
-    gk: isGKSlot,
-    year: squadYear,
-    prime: mode !== 'manager',
-    managerEligibility: mode === 'manager',
-    exclude: takenIds,
-  }), [isGKSlot, squadYear, mode, takenIds.join(',')]) // eslint-disable-line react-hooks/exhaustive-deps
+  const pool = useMemo(() => {
+    const base = getBenchPool({
+      gk: isGKSlot,
+      year: squadYear,
+      prime: mode !== 'manager',
+      managerEligibility: mode === 'manager',
+      exclude: takenIds,
+    })
+    // Bench honours the upfront era range too (outside Manager Mode).
+    if (mode !== 'manager') {
+      const ranged = base.filter(p => {
+        const y = Math.max(1950, p.peakYear)
+        return y >= yearFrom && y <= yearTo
+      })
+      if (ranged.length > 0) return ranged
+    }
+    return base
+  }, [isGKSlot, squadYear, mode, takenIds.join(','), yearFrom, yearTo]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const current = bench[benchIndex]
 
@@ -69,7 +83,7 @@ export default function BenchScreen({ mode, squadYear, squad, bench, benchIndex,
             <div className="text-white text-[11px] font-bold leading-tight mt-1 truncate">
               {p ? displaySurname(p.name) : '—'}
             </div>
-            {p && <div className="text-amber-400 text-[10px] font-black">{p.ratingAtYear}</div>}
+            {p && !hardMode && <div className="text-amber-400 text-[10px] font-black">{p.ratingAtYear}</div>}
           </button>
         ))}
       </div>
@@ -99,6 +113,7 @@ export default function BenchScreen({ mode, squadYear, squad, bench, benchIndex,
             player={player}
             onClick={() => dispatch({ type: 'PICK_BENCH', player, slotIndex: benchIndex })}
             showAge={mode === 'manager'}
+            hideRating={hardMode}
           />
         ))}
       </div>

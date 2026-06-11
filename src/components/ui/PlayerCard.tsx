@@ -7,9 +7,10 @@ interface Props {
   selected?: boolean
   onClick?: () => void
   showAge?: boolean
+  hideRating?: boolean   // Hard difficulty: pick on era and instinct, not numbers
 }
 
-export default function PlayerCard({ player, selected, onClick, showAge = true }: Props) {
+export default function PlayerCard({ player, selected, onClick, showAge = true, hideRating = false }: Props) {
   const arrow = TREND_ARROW[player.trend]
   const colour = TREND_COLOUR[player.trend]
 
@@ -49,34 +50,47 @@ export default function PlayerCard({ player, selected, onClick, showAge = true }
           </div>
         </div>
         <div className="text-right flex-shrink-0">
-          <div className={`text-2xl font-black leading-none ${ratingColour}`}>
-            {player.ratingAtYear}
-          </div>
-          <div className="text-xs text-slate-500 mt-0.5">{player.peakRating} peak</div>
+          {hideRating ? (
+            <>
+              <div className="text-xl font-black leading-none text-amber-400">
+                &rsquo;{String(player.peakYear).slice(2)}
+              </div>
+              <div className="text-xs text-slate-500 mt-0.5">era</div>
+            </>
+          ) : (
+            <>
+              <div className={`text-2xl font-black leading-none ${ratingColour}`}>
+                {player.ratingAtYear}
+              </div>
+              <div className="text-xs text-slate-500 mt-0.5">{player.peakRating} peak</div>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Mini attributes */}
-      <div className="mt-2 grid grid-cols-3 gap-1">
-        {[
-          { label: 'PAC', val: player.peakAttributes.pace },
-          { label: 'SHO', val: player.peakAttributes.shooting },
-          { label: 'PAS', val: player.peakAttributes.passing },
-          { label: 'DRI', val: player.peakAttributes.dribbling },
-          { label: 'DEF', val: player.peakAttributes.defending },
-          { label: 'PHY', val: player.peakAttributes.physical },
-        ].map(attr => (
-          <div key={attr.label} className="flex items-center gap-1">
-            <span className="text-slate-500 text-xs w-7 shrink-0">{attr.label}</span>
-            <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-white/50 rounded-full"
-                style={{ width: `${attr.val}%` }}
-              />
+      {/* Mini attributes — hidden on Hard, where instinct does the scouting */}
+      {!hideRating && (
+        <div className="mt-2 grid grid-cols-3 gap-1">
+          {[
+            { label: 'PAC', val: player.peakAttributes.pace },
+            { label: 'SHO', val: player.peakAttributes.shooting },
+            { label: 'PAS', val: player.peakAttributes.passing },
+            { label: 'DRI', val: player.peakAttributes.dribbling },
+            { label: 'DEF', val: player.peakAttributes.defending },
+            { label: 'PHY', val: player.peakAttributes.physical },
+          ].map(attr => (
+            <div key={attr.label} className="flex items-center gap-1">
+              <span className="text-slate-500 text-xs w-7 shrink-0">{attr.label}</span>
+              <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-white/50 rounded-full"
+                  style={{ width: `${attr.val}%` }}
+                />
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </button>
   )
 }

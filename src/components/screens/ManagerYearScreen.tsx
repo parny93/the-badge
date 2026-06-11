@@ -1,7 +1,11 @@
 'use client'
 import { GameAction } from '@/types'
 
-interface Props { dispatch: React.Dispatch<GameAction> }
+interface Props {
+  yearFrom: number
+  yearTo: number
+  dispatch: React.Dispatch<GameAction>
+}
 
 // Notable England squad years — the eras people actually want to relive.
 // `tournament` names the real competition that summer so the year reads correctly.
@@ -22,16 +26,24 @@ const YEARS: { year: number; tournament: string; blurb: string }[] = [
   { year: 2026, tournament: '2026 World Cup', blurb: 'The current crop — your strongest options' },
 ]
 
-export default function ManagerYearScreen({ dispatch }: Props) {
+export default function ManagerYearScreen({ yearFrom, yearTo, dispatch }: Props) {
+  // Honour the upfront era range; fall back to the full list rather than
+  // presenting an empty screen for a very narrow window.
+  const inRange = YEARS.filter(y => y.year >= yearFrom && y.year <= yearTo)
+  const years = inRange.length > 0 ? inRange : YEARS
+
   return (
     <div className="min-h-screen px-4 py-6 pb-10">
       <h2 className="text-2xl font-black text-white mb-1">Pick Your Year</h2>
       <p className="text-slate-400 text-sm mb-5">
         You can only select players available that year — rated as they actually were.
+        {inRange.length > 0 && inRange.length < YEARS.length && (
+          <span className="text-slate-500"> Showing {yearFrom}–{yearTo} from your era range.</span>
+        )}
       </p>
 
       <div className="flex flex-col gap-2.5">
-        {YEARS.map(y => (
+        {years.map(y => (
           <button
             key={y.year}
             onClick={() => dispatch({ type: 'SELECT_YEAR', year: y.year })}

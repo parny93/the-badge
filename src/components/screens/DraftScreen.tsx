@@ -11,12 +11,13 @@ interface Props {
   formation: Formation
   squad: (RatedPlayer | null)[]
   hardMode: boolean
+  yearFrom: number
+  yearTo: number
   daily: string | null
   dispatch: React.Dispatch<GameAction>
 }
 
 type Phase = 'idle' | 'spinning' | 'choosing' | 'placing'
-type Difficulty = 'easy' | 'hard'
 
 // ─── Era wheel ────────────────────────────────────────────────────────────────
 // The spin lands on an era, and your picks come from that era — so what the
@@ -40,18 +41,12 @@ function eraOf(peakYear: number): number {
   return Math.min(2020, Math.max(1950, Math.floor(peakYear / 10) * 10))
 }
 
-// Bounds for the era-range sliders.
-const YEAR_MIN = 1950
-const YEAR_MAX = 2026
-
-export default function DraftScreen({ formation, squad, hardMode, daily, dispatch }: Props) {
+export default function DraftScreen({ formation, squad, hardMode, yearFrom, yearTo, daily, dispatch }: Props) {
   const slots = FORMATIONS[formation]
   const [phase, setPhase] = useState<Phase>('idle')
   const [drawn, setDrawn] = useState<RatedPlayer[]>([])
   const [drawnEra, setDrawnEra] = useState<Era | null>(null)
   const [chosen, setChosen] = useState<RatedPlayer | null>(null)
-  const [yearFrom, setYearFrom] = useState(YEAR_MIN)
-  const [yearTo, setYearTo] = useState(YEAR_MAX)
   const [reelRows, setReelRows] = useState<string[]>(['???', '???', '???', '???', '???'])
   const [reelPopped, setReelPopped] = useState(false)
   const [revealedCount, setRevealedCount] = useState(-1)
@@ -85,7 +80,7 @@ export default function DraftScreen({ formation, squad, hardMode, daily, dispatc
     const fitting = all.filter(p => openPositions.some(pos => canPlaySlot(p, pos)))
     // Era-range filter from the sliders; pre-1950 peaks count as 1950.
     const inRange = fitting.filter(p => {
-      const y = Math.max(YEAR_MIN, p.peakYear)
+      const y = Math.max(1950, p.peakYear)
       return y >= yearFrom && y <= yearTo
     })
     const pool = inRange.length > 0 ? inRange : fitting.length > 0 ? fitting : all
@@ -263,74 +258,17 @@ export default function DraftScreen({ formation, squad, hardMode, daily, dispatc
                   </p>
                 </div>
               ) : (
-                <div className="w-full max-w-xs">
-                  <div className="flex items-center rounded-xl bg-slate-800/80 border border-white/10 p-1">
-                    {(['easy', 'hard'] as Difficulty[]).map(d => (
-                      <button
-                        key={d}
-                        onClick={() => dispatch({ type: 'SET_HARD_MODE', hard: d === 'hard' })}
-                        className={`flex-1 py-2 rounded-lg text-sm font-bold capitalize transition-all ${
-                          (d === 'hard') === hard
-                            ? d === 'hard'
-                              ? 'bg-red-500 text-white shadow-[0_0_16px_rgba(239,68,68,0.4)]'
-                              : 'bg-emerald-500 text-white shadow-[0_0_16px_rgba(16,185,129,0.4)]'
-                            : 'text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        {d === 'hard' ? 'Hard' : 'Easy'}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-slate-500 text-xs text-center mt-2 leading-snug">
-                    {hard
-                      ? 'Ratings hidden — only the player\'s era is shown. 4 picks, positions drop out as your XI fills, and your result card carries the Hard Mode badge.'
-                      : 'Ratings shown. 3 picks each spin. Build your dream XI in comfort.'}
-                  </p>
-                  <p className="text-center mt-1">
-                    <span className="text-[10px] font-bold text-amber-400/70 bg-amber-400/10 rounded px-1.5 py-0.5">
-                      PRO · free while in beta
-                    </span>
-                  </p>
-                </div>
-              )}
-
-              {/* Era range — restrict the wheel to the football you grew up with */}
-              {!daily && (
-                <div className="w-full max-w-xs rounded-xl bg-slate-800/60 border border-white/10 px-3.5 py-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Era range</span>
-                    <span className="text-white text-sm font-black tabular-nums">{yearFrom} – {yearTo}</span>
-                  </div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-slate-500 text-[10px] w-8 shrink-0">From</span>
-                    <input
-                      type="range"
-                      min={YEAR_MIN}
-                      max={YEAR_MAX}
-                      value={yearFrom}
-                      onChange={e => setYearFrom(Math.min(Number(e.target.value), yearTo))}
-                      className="w-full accent-amber-400"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-500 text-[10px] w-8 shrink-0">To</span>
-                    <input
-                      type="range"
-                      min={YEAR_MIN}
-                      max={YEAR_MAX}
-                      value={yearTo}
-                      onChange={e => setYearTo(Math.max(Number(e.target.value), yearFrom))}
-                      className="w-full accent-amber-400"
-                    />
-                  </div>
-                  <p className="text-slate-500 text-[11px] mt-2 leading-snug">
-                    The wheel only draws players whose peak falls in this window.
-                  </p>
+                <div className="w-full max-w-xs text-center">
+                  {/* Settings chosen upfront — just a reminder of what's in play */}
+                  <span className="inline-block text-xs font-bold text-slate-300 bg-white/10 rounded-full px-3 py-1.5 tabular-nums">
+                    {yearFrom} – {yearTo} · {hard ? 'Hard' : 'Classic'}
+                  </span>
                 </div>
               )}
 
               <p className="text-slate-400 text-sm text-center">
                 Spin to draw {hard ? 'four' : 'three'} legends. Pick one. Make it work.
+                {hard && ' Ratings stay hidden until your XI is locked.'}
               </p>
               <button
                 onClick={spin}
