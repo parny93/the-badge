@@ -101,6 +101,7 @@ export default function Page() {
           squad={squad}
           formation={formation}
           result={tournament}
+          mode={mode}
           dispatch={dispatch}
         />
       )}

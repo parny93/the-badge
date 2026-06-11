@@ -1,7 +1,9 @@
 'use client'
-import { useState } from 'react'
-import { Formation, GameAction, RatedPlayer, TournamentResult, WorldCupData } from '@/types'
+import { useMemo, useState } from 'react'
+import { Formation, GameAction, GameMode, RatedPlayer, TournamentResult, WorldCupData } from '@/types'
 import { getLore } from '@/data/tournamentLore'
+import { calculateTeamStrength } from '@/lib/teamStrength'
+import { encodeRun, shootoutRecord, tweetLine, resultLine } from '@/lib/runCodec'
 import FormationDisplay from '@/components/ui/FormationDisplay'
 
 interface Props {
@@ -9,6 +11,7 @@ interface Props {
   squad: (RatedPlayer | null)[]
   formation: Formation
   result: TournamentResult
+  mode: GameMode
   dispatch: React.Dispatch<GameAction>
 }
 
@@ -58,8 +61,9 @@ const EURO_WINNER_COPY = {
   sub: "They've only gone and done it. England are European Champions. The whole nation erupts.",
 }
 
-export default function ResultScreen({ worldCup, squad, formation, result, dispatch }: Props) {
+export default function ResultScreen({ worldCup, squad, formation, result, mode, dispatch }: Props) {
   const [tab, setTab] = useState<Tab>('result')
+  const [imageBusy, setImageBusy] = useState(false)
   const isEuro = worldCup.competition === 'Euro'
   const compLabel = isEuro ? 'European Championship' : 'World Cup'
   const rawCopy = EXIT_COPY[result.exitRound] ?? EXIT_COPY['Group']
@@ -72,26 +76,61 @@ export default function ResultScreen({ worldCup, squad, formation, result, dispa
     r.matches.filter(m => m.home === 'England' || m.away === 'England')
   )
 
-  const shareText = [
-    `🏴󠁧󠁢󠁥󠁮󠁧󠁿 THE BADGE — ${worldCup.year} ${compLabel}`,
-    `${copy.emoji} ${copy.headline}`,
-    `Formation: ${formation}`,
-    allEnglandMatches.slice(0, 4).map(m =>
-      `${m.home} ${m.homeGoals}–${m.awayGoals} ${m.away}${m.wentToPenalties ? ` (pens ${m.homePenalties}–${m.awayPenalties})` : ''}`
-    ).join('\n'),
-    '',
-    'Can you do better? → thebadge.app',
-  ].join('\n')
+  // ── Shareable run card — the run is encoded into the URL itself ──────────
+  const strength = useMemo(() => calculateTeamStrength(squad, formation), [squad, formation])
+  const pens = useMemo(() => shootoutRecord(result), [result])
 
-  const handleShare = async () => {
-    if (navigator.share) {
+  const runPayload = useMemo(() => ({
+    v: 1 as const,
+    mode,
+    formation,
+    year: worldCup.year,
+    comp: (isEuro ? 'Euro' : 'WorldCup') as 'Euro' | 'WorldCup',
+    exit: result.exitRound,
+    chem: strength.chemistry.score,
+    ovr: strength.overall,
+    hard: false,
+    wonPens: pens.won,
+    lostPens: pens.lost,
+    xi: squad.map(p => p?.id ?? '').filter(Boolean),
+    groupPos: result.groupPosition,
+  }), [mode, formation, worldCup.year, isEuro, result, strength, pens, squad])
+
+  const runId = useMemo(() => encodeRun(runPayload), [runPayload])
+  const runUrl = `https://thebadge.app/run/${runId}`
+
+  const shareToX = () => {
+    const text = `🏴󠁧󠁢󠁥󠁮󠁧󠁿 ${resultLine(runPayload)}\n${tweetLine(runPayload)}`
+    window.open(
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(runUrl)}`,
+      '_blank'
+    )
+  }
+
+  // Copies the share-card PNG to the clipboard; falls back to a download
+  // where the Clipboard API can't take images (Safari/iOS, http dev).
+  const copyImage = async () => {
+    if (imageBusy) return
+    setImageBusy(true)
+    try {
+      const res = await fetch(`/api/og/result/${runId}`)
+      if (!res.ok) throw new Error('og fetch failed')
+      const blob = await res.blob()
       try {
-        await navigator.share({ text: shareText, title: 'The Badge' })
-        return
-      } catch {}
+        await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })])
+        alert('Result card copied — paste it anywhere!')
+      } catch {
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = `the-badge-${worldCup.year}.png`
+        a.click()
+        URL.revokeObjectURL(a.href)
+      }
+    } catch {
+      alert('Could not generate the result card — try again.')
+    } finally {
+      setImageBusy(false)
     }
-    await navigator.clipboard.writeText(shareText)
-    alert('Copied to clipboard!')
   }
 
   return (
@@ -204,12 +243,21 @@ export default function ResultScreen({ worldCup, squad, formation, result, dispa
 
       {/* Fixed buttons */}
       <div className="fixed bottom-4 left-4 right-4 flex flex-col gap-2 z-30">
-        <button
-          onClick={handleShare}
-          className="w-full bg-yellow-400 text-slate-900 font-black text-lg py-4 rounded-2xl active:scale-95 transition-all shadow-2xl"
-        >
-          📤 Share Result
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={shareToX}
+            className="flex-1 bg-yellow-400 text-slate-900 font-black text-base py-4 rounded-2xl active:scale-95 transition-all shadow-2xl"
+          >
+            𝕏 Share to X
+          </button>
+          <button
+            onClick={copyImage}
+            disabled={imageBusy}
+            className="flex-1 bg-white text-slate-900 font-black text-base py-4 rounded-2xl active:scale-95 transition-all shadow-2xl disabled:opacity-60"
+          >
+            {imageBusy ? 'Rendering…' : '🖼️ Copy image'}
+          </button>
+        </div>
         <button
           onClick={() => dispatch({ type: 'RESTART' })}
           className="w-full bg-white/10 text-white font-bold text-base py-3 rounded-2xl active:scale-95 transition-all"
