@@ -182,10 +182,20 @@ export default function HomeScreen({ dispatch }: Props) {
       <footer className="w-full max-w-sm border-t border-white/10 pt-6 text-center">
         <button
           onClick={() => dispatch({ type: 'START' })}
-          className="w-full max-w-xs bg-white/10 text-white font-bold text-base py-3 rounded-2xl active:scale-95 transition-all mb-6"
+          className="w-full max-w-xs bg-white/10 text-white font-bold text-base py-3 rounded-2xl active:scale-95 transition-all mb-4"
         >
           Start Playing →
         </button>
+
+        {/* Ko-fi — plug the real URL in before launch */}
+        <a
+          href="https://ko-fi.com/thebadgeapp"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block text-amber-400/80 hover:text-amber-300 text-sm font-semibold mb-6"
+        >
+          ☕ Enjoying it? Buy us a coffee
+        </a>
         <p className="text-slate-600 text-[11px] leading-relaxed">
           The Badge is an independent, fan-made game. It is not affiliated with, endorsed by, or
           connected to the Football Association, FIFA, UEFA, the Premier League, or any club,

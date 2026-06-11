@@ -5,6 +5,7 @@ import { getLore } from '@/data/tournamentLore'
 import { getManager } from '@/data/managers'
 import { calculateTeamStrength } from '@/lib/teamStrength'
 import { encodeRun, shootoutRecord, tweetLine, resultLine } from '@/lib/runCodec'
+import { startProCheckout } from '@/lib/pro'
 import FormationDisplay from '@/components/ui/FormationDisplay'
 
 interface Props {
@@ -301,6 +302,26 @@ export default function ResultScreen({ worldCup, squad, formation, result, mode,
       {tab === 'squad' && (
         <FormationDisplay squad={squad} formation={formation} captainId={captainId} />
       )}
+
+      {/*
+        Reserved ad slot — post-result is the one natural break in the session.
+        Do NOT ship AdSense yet: when ads land, render the unit inside this
+        container and keep it to a single non-sticky banner.
+      */}
+      <div
+        data-ad-slot="post-result-banner"
+        className="mt-4 rounded-xl border border-dashed border-white/10 py-6 text-center text-slate-700 text-xs"
+      >
+        ad slot reserved
+      </div>
+
+      {/* Pro: branding-free share cards (stub — checkout not wired) */}
+      <button
+        onClick={() => startProCheckout()}
+        className="mt-2 mb-2 w-full text-slate-500 hover:text-slate-300 text-xs py-2"
+      >
+        🔒 Remove card branding — <span className="text-amber-400/80 font-semibold">Pro</span>
+      </button>
 
       {/* Fixed buttons */}
       <div className="fixed bottom-4 left-4 right-4 flex flex-col gap-2 z-30">

@@ -7,6 +7,7 @@ import {
   loadDailyResults, personalBests,
 } from '@/lib/daily'
 import { LifetimeStats, loadLifetimeStats } from '@/lib/lifetimeStats'
+import { isPro, startProCheckout } from '@/lib/pro'
 import { getLore } from '@/data/tournamentLore'
 
 export default function DailyPage() {
@@ -133,12 +134,12 @@ export default function DailyPage() {
         Global leaderboard coming soon — for now, your record lives on this device.
       </p>
 
-      {/* History */}
+      {/* History — free tier keeps the last 7 days; the archive is Pro */}
       {history.length > 0 && (
         <>
           <div className="mb-2 text-xs font-bold text-slate-400 uppercase tracking-widest">History</div>
           <div className="rounded-xl bg-white/5 border border-white/10 divide-y divide-white/5">
-            {history.map(r => (
+            {(isPro() ? history : history.slice(0, 7)).map(r => (
               <Link
                 key={r.date}
                 href={`/run/${r.runId}`}
@@ -154,6 +155,15 @@ export default function DailyPage() {
               </Link>
             ))}
           </div>
+          {!isPro() && history.length > 7 && (
+            <button
+              onClick={() => startProCheckout()}
+              className="mt-2 w-full text-slate-500 hover:text-slate-300 text-xs py-2"
+            >
+              🔒 {history.length - 7} older result{history.length - 7 === 1 ? '' : 's'} in the archive —{' '}
+              <span className="text-amber-400/80 font-semibold">unlock with Pro</span>
+            </button>
+          )}
         </>
       )}
     </main>

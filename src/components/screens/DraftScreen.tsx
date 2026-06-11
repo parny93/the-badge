@@ -223,6 +223,11 @@ export default function DraftScreen({ formation, squad, hardMode, daily, dispatc
                       ? 'Ratings hidden — only the player\'s era is shown. 4 picks, positions drop out as your XI fills, and your result card carries the Hard Mode badge.'
                       : 'Ratings shown. 3 picks each spin. Build your dream XI in comfort.'}
                   </p>
+                  <p className="text-center mt-1">
+                    <span className="text-[10px] font-bold text-amber-400/70 bg-amber-400/10 rounded px-1.5 py-0.5">
+                      PRO · free while in beta
+                    </span>
+                  </p>
                 </div>
               )}
 
