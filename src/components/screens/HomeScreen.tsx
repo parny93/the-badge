@@ -97,7 +97,7 @@ export default function HomeScreen({ dispatch }: Props) {
         href="/daily"
         className="w-full max-w-xs bg-sky-400/10 border border-sky-400/30 text-sky-300 font-bold text-sm py-3 rounded-2xl text-center active:scale-95 transition-all -mt-4 mb-8"
       >
-        📅 Daily Challenge — same wheel for everyone
+        Daily Challenge — same wheel for everyone
       </Link>
 
       {/* ── Stat triplet ─────────────────────────────────────────────────── */}
@@ -154,8 +154,7 @@ export default function HomeScreen({ dispatch }: Props) {
         <p className="text-slate-500 text-xs mb-3">Set your own rules. Screenshot the proof.</p>
         <ul className="flex flex-col gap-2">
           {CHALLENGES.map(c => (
-            <li key={c} className="flex items-start gap-2.5 rounded-lg bg-white/5 border border-white/8 px-3.5 py-2.5">
-              <span className="text-amber-400 text-sm mt-0.5 shrink-0">🏅</span>
+            <li key={c} className="rounded-lg bg-white/5 border border-white/8 border-l-2 border-l-amber-400/60 px-3.5 py-2.5">
               <span className="text-slate-300 text-sm leading-snug">{c}</span>
             </li>
           ))}
@@ -194,7 +193,7 @@ export default function HomeScreen({ dispatch }: Props) {
           rel="noopener noreferrer"
           className="inline-block text-amber-400/80 hover:text-amber-300 text-sm font-semibold mb-6"
         >
-          ☕ Enjoying it? Buy us a coffee
+          Enjoying it? Buy us a coffee
         </a>
         <p className="text-slate-600 text-[11px] leading-relaxed">
           The Badge is an independent, fan-made game. It is not affiliated with, endorsed by, or

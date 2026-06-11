@@ -66,17 +66,17 @@ export default async function RunPage({ params }: Props) {
                 ? 'bg-red-500/20 border-red-500/40 text-red-300'
                 : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
             }`}>
-              🎯 {pensSting}
+              {pensSting}
             </span>
           )}
           {run.hard && (
             <span className="text-xs font-bold bg-amber-400/15 border border-amber-400/40 text-amber-300 rounded-full px-3 py-1">
-              🔥 Hard Mode
+              Hard Mode
             </span>
           )}
           {run.daily && (
             <span className="text-xs font-bold bg-sky-400/15 border border-sky-400/40 text-sky-300 rounded-full px-3 py-1">
-              📅 Daily {run.daily}
+              Daily {run.daily}
             </span>
           )}
           <span className="text-xs font-bold bg-white/10 rounded-full px-3 py-1 text-slate-300">

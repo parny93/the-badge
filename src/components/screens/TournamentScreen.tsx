@@ -28,15 +28,17 @@ const ROUND_LABELS: Record<string, string> = {
   Final: 'The Final',
 }
 
-const MOMENT_ICON: Record<string, string> = {
-  goal:    '⚽',
-  save:    '🧤',
-  miss:    '😬',
-  post:    '🥊',
-  card:    '🟥',
-  penalty: '🎯',
-  chance:  '💨',
-  info:    '📢',
+// Short typographic tags replace the old emoji column — the row's colour
+// already carries the mood; this just names the event type.
+const MOMENT_TAG: Record<string, string> = {
+  goal:    'GOAL',
+  save:    'SAVE',
+  miss:    'MISS',
+  post:    'POST',
+  card:    'CARD',
+  penalty: 'PEN',
+  chance:  'CHANCE',
+  info:    '',
 }
 
 const TENSION_LINES = [
@@ -195,7 +197,7 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
         <h1 className="text-4xl font-black text-white leading-none">{lore.nickname}</h1>
 
         <div className="inline-flex items-center gap-2 text-slate-400 text-sm">
-          <span>📍 {lore.host}</span>
+          <span>{lore.host}</span>
           <span className="text-slate-700">·</span>
           <span>{worldCup.year}</span>
         </div>
@@ -276,7 +278,6 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
         {/* Teams + score */}
         <div className="flex items-center gap-4 w-full max-w-sm mt-1">
           <div className="flex-1 text-center">
-            <div className="text-2xl mb-0.5">🏴󠁧󠁢󠁥󠁮󠁧󠁿</div>
             <div className="text-white font-black text-sm leading-tight">England</div>
             <div className="text-slate-600 text-xs">{engStrength.overall} OVR</div>
           </div>
@@ -298,7 +299,6 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
           </div>
 
           <div className="flex-1 text-center">
-            <div className="text-2xl mb-0.5">🌍</div>
             <div className="text-white font-black text-sm leading-tight">{opponent}</div>
             <div className="text-slate-600 text-xs">{oppRating} OVR</div>
           </div>
@@ -358,9 +358,6 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
             isDraw            ? 'bg-yellow-500/15 border border-yellow-500/30' :
                                 'bg-red-500/10 border border-red-500/20'
           }`}>
-            <div className="text-3xl mb-1.5">
-              {isChampion ? '🏆' : isEliminated ? '💀' : engWon ? '✅' : isDraw ? '🤝' : '❌'}
-            </div>
             <div className={`font-black text-xl leading-tight ${
               isChampion   ? 'text-amber-300' :
               isEliminated ? 'text-red-300' :
@@ -466,9 +463,11 @@ function MomentCard({ moment, opponent }: { moment: MatchMoment; opponent: strin
       <span className="text-slate-500 text-xs font-mono tabular-nums shrink-0 mt-0.5 w-7 text-right">
         {moment.minute}'
       </span>
-      <span className="text-lg shrink-0">
-        {MOMENT_ICON[moment.type] ?? '📢'}
-      </span>
+      {MOMENT_TAG[moment.type] && (
+        <span className={`text-[9px] font-black tracking-wider shrink-0 mt-1 w-11 ${textColour} opacity-70`}>
+          {MOMENT_TAG[moment.type]}
+        </span>
+      )}
       <span className={`text-sm leading-snug font-medium ${textColour} ${
         isHighlight ? 'font-bold' : ''
       }`}>

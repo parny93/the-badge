@@ -24,65 +24,54 @@ interface Props {
 
 type Tab = 'result' | 'matches' | 'squad'
 
-const EXIT_COPY: Record<string, { emoji: string; headline: string; sub: string }> = {
+const EXIT_COPY: Record<string, { headline: string; sub: string }> = {
   Winner: {
-    emoji: '🏆',
     headline: 'IT\'S COMING HOME. IT\'S ACTUALLY COMING HOME.',
     sub: 'England are World Champions. The sixty-year wait is finally over. Alf Ramsey is smiling somewhere.',
   },
   Final: {
-    emoji: '🥈',
     headline: 'So close. The Final. Heartbreak again.',
     sub: 'A runner-up medal. The nation almost dared to believe. Almost.',
   },
   SF: {
-    emoji: '😤',
     headline: 'Semi-final exit. England\'s favourite tournament to lose.',
     sub: 'Gascoigne cried here. Southgate missed here. The hurt just gets passed down the generations.',
   },
   QF: {
-    emoji: '😞',
     headline: 'Quarter-final exit.',
     sub: 'The press will be brutal on Monday. Somewhere, a penalty shootout is being blamed.',
   },
   R16: {
-    emoji: '😬',
     headline: 'Round of 16. An early flight home.',
     sub: 'Not quite good enough. The Golden Generation title is safe for now.',
   },
   R32: {
-    emoji: '😔',
     headline: 'Round of 32. Didn\'t even warm up.',
     sub: 'Out before England fans had finished complaining about the group draw.',
   },
   Group: {
-    emoji: '💀',
     headline: 'England crashed out in the group stage.',
     sub: 'A new low. Even 1950 against the USA was closer than this. The pub is going to be quiet tomorrow.',
   },
 }
 
 const EURO_WINNER_COPY = {
-  emoji: '🏆',
   headline: 'EURO CHAMPIONS! FINALLY!',
   sub: "They've only gone and done it. England are European Champions. The whole nation erupts.",
 }
 
 // Going out on penalties isn't just an exit — it's THE English exit.
 // It overrides the round copy and gets its own headline.
-const OUT_ON_PENS_COPY: Record<string, { emoji: string; headline: string; sub: string }> = {
+const OUT_ON_PENS_COPY: Record<string, { headline: string; sub: string }> = {
   default: {
-    emoji: '🎯',
     headline: 'Out on penalties. Again.',
     sub: 'Pearce. Waddle. Southgate. Batty. And now you. Twelve yards between England and history, and the ball just would not go in.',
   },
   SF: {
-    emoji: '🎯',
     headline: 'Semi-final. Penalties. You know the rest.',
     sub: 'Turin 1990, Wembley 1996 — and now this. Some traditions refuse to die.',
   },
   Final: {
-    emoji: '🎯',
     headline: 'Lost the final on penalties.',
     sub: 'The cruellest possible ending. Wembley 2021 all over again. The trophy was right there.',
   },
@@ -176,12 +165,16 @@ export default function ResultScreen({ worldCup, squad, formation, result, mode,
     <div className="min-h-screen px-4 py-6 pb-32">
       {/* Hero result */}
       <div className="text-center mb-6">
-        <div className="text-6xl mb-3">{copy.emoji}</div>
+        <div className={`text-[11px] font-bold uppercase tracking-[0.3em] mb-3 ${
+          result.exitRound === 'Winner' ? 'text-amber-400' : 'text-slate-500'
+        }`}>
+          {result.exitRound === 'Winner' ? 'Champions' : 'Full Time'}
+        </div>
         <h1 className="text-2xl font-black text-white leading-tight">{copy.headline}</h1>
         <p className="text-slate-400 mt-2 text-sm leading-snug">{copy.sub}</p>
         <div className="mt-3 inline-block bg-white/10 rounded-full px-3 py-1">
           <span className="text-slate-300 text-xs">
-            {lore?.nickname ?? `${worldCup.year} ${compLabel}`} · 📍 {hostLabel} · {formation}
+            {lore?.nickname ?? `${worldCup.year} ${compLabel}`} · {hostLabel} · {formation}
           </span>
         </div>
         {(manager || captainId) && (
@@ -197,12 +190,12 @@ export default function ResultScreen({ worldCup, squad, formation, result, mode,
           <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
             {pens.won > 0 && (
               <span className="text-xs font-bold bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 rounded-full px-3 py-1">
-                🎯 Won on pens{pens.won > 1 ? ` ×${pens.won}` : ''}
+                Won on pens{pens.won > 1 ? ` ×${pens.won}` : ''}
               </span>
             )}
             {pens.lost > 0 && (
               <span className="text-xs font-bold bg-red-500/20 border border-red-500/40 text-red-300 rounded-full px-3 py-1">
-                🎯 Out on pens
+                Out on pens
               </span>
             )}
           </div>
@@ -321,7 +314,7 @@ export default function ResultScreen({ worldCup, squad, formation, result, mode,
         onClick={() => startProCheckout()}
         className="mt-2 mb-2 w-full text-slate-500 hover:text-slate-300 text-xs py-2"
       >
-        🔒 Remove card branding — <span className="text-amber-400/80 font-semibold">Pro</span>
+        Remove card branding — <span className="text-amber-400/80 font-semibold">Pro</span>
       </button>
 
       {/* Fixed buttons */}
@@ -338,7 +331,7 @@ export default function ResultScreen({ worldCup, squad, formation, result, mode,
             disabled={imageBusy}
             className="flex-1 bg-white text-slate-900 font-black text-base py-4 rounded-2xl active:scale-95 transition-all shadow-2xl disabled:opacity-60"
           >
-            {imageBusy ? 'Rendering…' : '🖼️ Copy image'}
+            {imageBusy ? 'Rendering…' : 'Copy image'}
           </button>
         </div>
         <button

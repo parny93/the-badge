@@ -49,7 +49,7 @@ export default function DailyPage() {
 
       <div className="text-center mb-6">
         <div className="text-sky-300 text-xs font-semibold tracking-[0.25em] uppercase mb-2">
-          📅 Daily Challenge
+          Daily Challenge
         </div>
         <h1 className="text-3xl font-black leading-tight">{config.date}</h1>
         <p className="text-slate-400 text-sm mt-2">
@@ -69,7 +69,7 @@ export default function DailyPage() {
           <div className="text-amber-300/80 text-sm italic mt-0.5">{lore.nickname}</div>
         )}
         <div className="text-slate-400 text-sm mt-1">
-          📍 {config.worldCup.host.split(' / ')[0]} · Formation locked: <span className="text-white font-bold">{config.formation}</span> · Draft wheel
+          {config.worldCup.host.split(' / ')[0]} · Formation locked: <span className="text-white font-bold">{config.formation}</span> · Draft wheel
         </div>
       </div>
 
@@ -81,8 +81,8 @@ export default function DailyPage() {
           </div>
           <div className="text-slate-400 text-sm mt-1">
             CHEM {todays.chem} · OVR {todays.ovr} · Eras {todays.era}
-            {todays.wonPens > 0 && ` · 🎯 won on pens`}
-            {todays.lostPens > 0 && ` · 🎯 out on pens`}
+            {todays.wonPens > 0 && ` · won on pens`}
+            {todays.lostPens > 0 && ` · out on pens`}
           </div>
           <Link
             href={`/run/${todays.runId}`}
@@ -123,7 +123,7 @@ export default function DailyPage() {
         <div className="rounded-xl bg-white/5 border border-white/10 p-3">
           <div className="text-slate-500 text-xs">Shootouts won — all time</div>
           <div className="text-white font-black text-lg leading-tight">
-            🎯 {lifetime?.shootoutsWon ?? 0}
+            {lifetime?.shootoutsWon ?? 0}
             {lifetime && lifetime.shootoutsLost > 0 && (
               <span className="text-slate-500 text-xs font-normal"> · {lifetime.shootoutsLost} lost</span>
             )}
@@ -148,8 +148,8 @@ export default function DailyPage() {
                 <span className="text-slate-400 text-xs tabular-nums">{r.date}</span>
                 <span className="text-white text-sm font-semibold">
                   {EXIT_LABEL[r.exit] ?? r.exit}
-                  {r.hard && ' 🔥'}
-                  {r.wonPens > 0 && ' 🎯'}
+                  {r.hard && <span className="text-amber-400/80 text-xs font-bold"> · Hard</span>}
+                  {r.wonPens > 0 && <span className="text-emerald-400/80 text-xs font-bold"> · Pens</span>}
                 </span>
                 <span className="text-slate-500 text-xs">CHEM {r.chem}</span>
               </Link>
@@ -160,7 +160,7 @@ export default function DailyPage() {
               onClick={() => startProCheckout()}
               className="mt-2 w-full text-slate-500 hover:text-slate-300 text-xs py-2"
             >
-              🔒 {history.length - 7} older result{history.length - 7 === 1 ? '' : 's'} in the archive —{' '}
+              {history.length - 7} older result{history.length - 7 === 1 ? '' : 's'} in the archive —{' '}
               <span className="text-amber-400/80 font-semibold">unlock with Pro</span>
             </button>
           )}

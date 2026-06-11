@@ -256,7 +256,7 @@ export default function DraftScreen({ formation, squad, hardMode, daily, dispatc
               {daily ? (
                 <div className="w-full max-w-xs text-center">
                   <span className="inline-block text-xs font-bold text-amber-300 bg-amber-400/10 border border-amber-400/30 rounded-full px-3 py-1.5">
-                    📅 Daily Challenge · {daily}
+                    Daily Challenge · {daily}
                   </span>
                   <p className="text-slate-500 text-xs mt-2 leading-snug">
                     Same wheel, same tournament for everyone today. One attempt counts.
@@ -277,7 +277,7 @@ export default function DraftScreen({ formation, squad, hardMode, daily, dispatc
                             : 'text-slate-400 hover:text-white'
                         }`}
                       >
-                        {d === 'hard' ? '🔥 Hard' : '😌 Easy'}
+                        {d === 'hard' ? 'Hard' : 'Easy'}
                       </button>
                     ))}
                   </div>
@@ -338,7 +338,7 @@ export default function DraftScreen({ formation, squad, hardMode, daily, dispatc
                   text-white font-black text-xl py-4 rounded-2xl transition-all
                   shadow-[0_0_32px_rgba(217,70,239,0.45)]"
               >
-                <span className="relative z-10">🎰 SPIN</span>
+                <span className="relative z-10">SPIN</span>
                 <div className="absolute inset-0 rounded-2xl animate-shimmer" />
               </button>
             </div>

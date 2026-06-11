@@ -89,7 +89,10 @@ export default function ChemistryPanel({ report }: { report: ChemistryReport }) 
         {notes.map((note, i) => (
           <div key={i} className="flex items-start gap-2 text-xs leading-snug">
             <span className="shrink-0 mt-px">
-              {note.type === 'good' ? '✅' : note.type === 'bad' ? '⚠️' : 'ℹ️'}
+              <span className={
+                note.type === 'good' ? 'text-emerald-400' :
+                note.type === 'bad' ? 'text-amber-400' : 'text-slate-500'
+              }>●</span>
             </span>
             <span className={
               note.type === 'good' ? 'text-emerald-300' :

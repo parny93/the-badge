@@ -143,17 +143,17 @@ export async function GET(
           <div style={{ display: 'flex', gap: 12, marginTop: 30, flexWrap: 'wrap' }}>
             {pensSting && (
               <div style={{ display: 'flex', padding: '8px 16px', borderRadius: 10, ...pensColour, fontSize: 22, fontWeight: 800 }}>
-                {`🎯 ${pensSting}`}
+                {pensSting}
               </div>
             )}
             {run.hard && (
               <div style={{ display: 'flex', padding: '8px 16px', borderRadius: 10, background: 'rgba(251,191,36,0.2)', border: `2px solid ${GOLD}`, fontSize: 22, fontWeight: 800, color: GOLD }}>
-                🔥 HARD MODE
+                HARD MODE
               </div>
             )}
             {run.daily && (
               <div style={{ display: 'flex', padding: '8px 16px', borderRadius: 10, background: 'rgba(56,189,248,0.15)', border: '2px solid rgba(56,189,248,0.5)', fontSize: 22, fontWeight: 800, color: '#7dd3fc' }}>
-                {`📅 DAILY ${run.daily}`}
+                {`DAILY ${run.daily}`}
               </div>
             )}
           </div>

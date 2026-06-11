@@ -3,10 +3,9 @@ import { GameAction, GameMode } from '@/types'
 
 interface Props { dispatch: React.Dispatch<GameAction> }
 
-const MODES: { id: GameMode; emoji: string; title: string; tag: string; desc: string; accent: string }[] = [
+const MODES: { id: GameMode; title: string; tag: string; desc: string; accent: string }[] = [
   {
     id: 'alltime',
-    emoji: '👑',
     title: 'All-Time XI',
     tag: 'Free pick · Any era',
     desc: 'Build your perfect England XI from any era — every player at their absolute peak. Your dream team, your call.',
@@ -14,7 +13,6 @@ const MODES: { id: GameMode; emoji: string; title: string; tag: string; desc: st
   },
   {
     id: 'manager',
-    emoji: '📋',
     title: 'Manager Mode',
     tag: 'Free pick · One year',
     desc: 'Step into a single year, from 1950 to today. Pick from the players actually available — rated exactly as they were. Can you fix the Golden Generation?',
@@ -22,7 +20,6 @@ const MODES: { id: GameMode; emoji: string; title: string; tag: string; desc: st
   },
   {
     id: 'draft',
-    emoji: '🎡',
     title: 'All-Time Draft',
     tag: 'Spin the wheel · Chaos',
     desc: 'Spin for your squad. Take what you\'re given and make it work. The hardest, funniest, most shareable way to play.',
@@ -43,12 +40,9 @@ export default function ModeSelectScreen({ dispatch }: Props) {
             onClick={() => dispatch({ type: 'SELECT_MODE', mode: mode.id })}
             className={`relative rounded-2xl p-4 text-left bg-gradient-to-br ${mode.accent} to-white/5 border border-white/10 hover:border-white/30 active:scale-[0.98] transition-all`}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-3xl">{mode.emoji}</span>
-              <div>
-                <div className="font-black text-white text-lg leading-none">{mode.title}</div>
-                <div className="text-xs text-slate-400 mt-1">{mode.tag}</div>
-              </div>
+            <div className="mb-1">
+              <div className="font-black text-white text-lg leading-none">{mode.title}</div>
+              <div className="text-xs text-slate-400 mt-1">{mode.tag}</div>
             </div>
             <p className="text-slate-300 text-sm leading-snug mt-2">{mode.desc}</p>
           </button>
