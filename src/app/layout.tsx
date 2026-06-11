@@ -1,15 +1,24 @@
 import type { Metadata } from 'next'
+import { PLAYER_COUNT, WC_COUNT, EURO_COUNT } from '@/lib/stats'
 import './globals.css'
+
+const DESCRIPTION = `Pick your greatest squad from ${PLAYER_COUNT} England legends, face real opponents across ${WC_COUNT} World Cups and ${EURO_COUNT} Euros, and find out if you can finally bring it home.`
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://thebadge.app'),
   title: 'The Badge — Build Your Golden Generation',
-  description: 'Pick your greatest squad from 102 legends, face real World Cup opponents, and find out if you can finally bring it home.',
+  description: DESCRIPTION,
   openGraph: {
     title: 'The Badge',
-    description: 'Pick your greatest squad from 102 legends across 16 World Cups. Can you finally bring it home?',
+    description: DESCRIPTION,
     type: 'website',
     images: [{ url: '/logo.png', width: 1254, height: 1254 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'The Badge — Build Your Golden Generation',
+    description: DESCRIPTION,
+    images: ['/logo.png'],
   },
   icons: {
     icon: '/logo.png',

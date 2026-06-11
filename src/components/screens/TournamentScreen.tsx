@@ -211,7 +211,9 @@ export default function TournamentScreen({ worldCup, squad, formation, dispatch 
 
         {worldCup.englandQualified === false && (
           <div className="text-amber-400/70 text-xs">
-            England didn&rsquo;t qualify this year — you&rsquo;re here on a wildcard. Make it count.
+            {worldCup.englandEntered === false
+              ? 'England didn’t even enter this one. Pure what-if territory — rewrite history.'
+              : 'England didn’t qualify this year — you’re here on a wildcard. Make it count.'}
           </div>
         )}
 

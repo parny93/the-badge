@@ -4,6 +4,7 @@ import { WORLD_CUPS } from '@/data/worldCups'
 import { EUROS } from '@/data/euros'
 import { getLore } from '@/data/tournamentLore'
 import { calculateTeamStrength } from '@/lib/teamStrength'
+import { WC_FIRST_YEAR, WC_LAST_YEAR, EURO_FIRST_YEAR, EURO_LAST_YEAR } from '@/lib/stats'
 
 interface Props {
   squad: (RatedPlayer | null)[]
@@ -39,7 +40,11 @@ function TournamentCard({ t, dispatch }: { t: WorldCupData; dispatch: React.Disp
       <div className="text-xs text-slate-500 mt-1">
         {isEuro ? '🏅' : '🏆'} {t.historicalWinner === 'TBD' ? 'Up for grabs' : t.historicalWinner}
       </div>
-      {!t.englandQualified && (
+      {t.englandEntered === false ? (
+        <div className="absolute top-2 right-2 text-[9px] font-bold text-slate-400/80 bg-white/10 rounded px-1.5 py-0.5 leading-none">
+          DID NOT ENTER
+        </div>
+      ) : !t.englandQualified && (
         <div className="absolute top-2 right-2 text-[9px] font-bold text-amber-400/70 bg-amber-400/10 rounded px-1.5 py-0.5 leading-none">
           WILDCARD
         </div>
@@ -63,7 +68,7 @@ export default function TournamentSelectScreen({ squad, formation, dispatch }: P
       {/* ── World Cups ─────────────────────────────────────────────────────── */}
       <div className="mb-2 flex items-center gap-2">
         <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">🏆 World Cups</span>
-        <span className="text-xs text-slate-600">1966 – 2026</span>
+        <span className="text-xs text-slate-600">{WC_FIRST_YEAR} – {WC_LAST_YEAR}</span>
       </div>
       <div className="grid grid-cols-2 gap-3 mb-8">
         {WORLD_CUPS.map(wc => (
@@ -74,7 +79,7 @@ export default function TournamentSelectScreen({ squad, formation, dispatch }: P
       {/* ── European Championships ──────────────────────────────────────────── */}
       <div className="mb-2 flex items-center gap-2">
         <span className="text-xs font-bold text-sky-400 uppercase tracking-widest">🏅 European Championships</span>
-        <span className="text-xs text-slate-600">1960 – 2024</span>
+        <span className="text-xs text-slate-600">{EURO_FIRST_YEAR} – {EURO_LAST_YEAR} entered · 1960 &amp; 1964 what-ifs</span>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {EUROS.map(euro => (

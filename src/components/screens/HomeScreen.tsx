@@ -1,6 +1,10 @@
 'use client'
 import Image from 'next/image'
 import { GameAction } from '@/types'
+import {
+  PLAYER_COUNT, WC_COUNT, EURO_COUNT, FORMATION_COUNT,
+  WC_FIRST_YEAR, WC_LAST_YEAR, EURO_FIRST_YEAR,
+} from '@/lib/stats'
 
 interface Props { dispatch: React.Dispatch<GameAction> }
 
@@ -22,7 +26,13 @@ const MODES = [
   },
 ]
 
-const STATS = ['130+ legends', '16 World Cups', '17 European Championships', 'Badge chemistry', '5 formations']
+const STATS = [
+  `${PLAYER_COUNT} legends`,
+  `${WC_COUNT} World Cups`,
+  `${EURO_COUNT} European Championships`,
+  'Badge chemistry',
+  `${FORMATION_COUNT} formations`,
+]
 
 export default function HomeScreen({ dispatch }: Props) {
   return (
@@ -79,16 +89,16 @@ export default function HomeScreen({ dispatch }: Props) {
       {/* Feature highlights */}
       <div className="w-full max-w-sm grid grid-cols-2 gap-3 mb-10">
         <div className="rounded-xl bg-white/5 border border-white/8 px-4 py-3.5">
-          <div className="text-amber-400 font-black text-2xl leading-none">120+</div>
+          <div className="text-amber-400 font-black text-2xl leading-none">{PLAYER_COUNT}</div>
           <div className="text-slate-400 text-xs mt-1 leading-snug">England legends from every era</div>
         </div>
         <div className="rounded-xl bg-white/5 border border-white/8 px-4 py-3.5">
-          <div className="text-amber-400 font-black text-2xl leading-none">16</div>
-          <div className="text-slate-400 text-xs mt-1 leading-snug">World Cups from 1966 to 2026</div>
+          <div className="text-amber-400 font-black text-2xl leading-none">{WC_COUNT}</div>
+          <div className="text-slate-400 text-xs mt-1 leading-snug">World Cups from {WC_FIRST_YEAR} to {WC_LAST_YEAR}</div>
         </div>
         <div className="rounded-xl bg-white/5 border border-white/8 px-4 py-3.5">
-          <div className="text-amber-400 font-black text-2xl leading-none">17</div>
-          <div className="text-slate-400 text-xs mt-1 leading-snug">European Championships from 1960</div>
+          <div className="text-amber-400 font-black text-2xl leading-none">{EURO_COUNT}</div>
+          <div className="text-slate-400 text-xs mt-1 leading-snug">European Championships from {EURO_FIRST_YEAR}</div>
         </div>
         <div className="rounded-xl bg-white/5 border border-white/8 px-4 py-3.5">
           <div className="text-amber-400 font-black text-2xl leading-none">Real</div>

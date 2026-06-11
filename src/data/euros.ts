@@ -15,7 +15,8 @@ export const EUROS: WorldCupData[] = [
     historicalWinner: 'USSR',
     format: 'euro-4-team',
     competition: 'Euro',
-    englandQualified: false, // didn't qualify — wildcard entry
+    englandQualified: false,
+    englandEntered: false, // England did not enter Euro 1960 — playable as a counterfactual only
     englandGroup: 'Group 1',
     groups: [
       // France (host, finished 4th) replaced by England
@@ -28,7 +29,8 @@ export const EUROS: WorldCupData[] = [
     historicalWinner: 'Spain',
     format: 'euro-4-team',
     competition: 'Euro',
-    englandQualified: false, // didn't qualify — wildcard entry
+    englandQualified: false,
+    englandEntered: false, // England did not enter Euro 1964 — playable as a counterfactual only
     englandGroup: 'Group 1',
     groups: [
       // Denmark (4th place) replaced by England

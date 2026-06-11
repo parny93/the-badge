@@ -123,6 +123,7 @@ export interface WorldCupData {
   groups: WCGroup[]
   englandGroup: string           // which group England are placed in
   englandQualified: boolean      // did England actually qualify
+  englandEntered?: boolean       // false = England didn't even enter (Euro 1960/1964); omit = entered
   competition?: 'WorldCup' | 'Euro'  // omit = WorldCup (back-compat)
 }
 
