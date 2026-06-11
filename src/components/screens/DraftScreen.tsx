@@ -18,10 +18,33 @@ interface Props {
 type Phase = 'idle' | 'spinning' | 'choosing' | 'placing'
 type Difficulty = 'easy' | 'hard'
 
+// ─── Era wheel ────────────────────────────────────────────────────────────────
+// The spin lands on an era, and your picks come from that era — so what the
+// reel shows is what you actually get.
+
+interface Era { decade: number; label: string; nickname: string }
+
+const ERAS: Era[] = [
+  { decade: 1950, label: "THE '50s", nickname: 'Matthews, Finney & Wright' },
+  { decade: 1960, label: "THE '60s", nickname: "The Boys of '66" },
+  { decade: 1970, label: "THE '70s", nickname: 'The Wilderness Years' },
+  { decade: 1980, label: "THE '80s", nickname: "Robson's England" },
+  { decade: 1990, label: "THE '90s", nickname: "Gazza's England" },
+  { decade: 2000, label: "THE '00s", nickname: 'The Golden Generation' },
+  { decade: 2010, label: "THE '10s", nickname: 'The Rebuild' },
+  { decade: 2020, label: "THE '20s", nickname: 'New England' },
+]
+
+// Pre-1950 peaks (Matthews, Mannion) fold into the '50s bucket.
+function eraOf(peakYear: number): number {
+  return Math.min(2020, Math.max(1950, Math.floor(peakYear / 10) * 10))
+}
+
 export default function DraftScreen({ formation, squad, hardMode, daily, dispatch }: Props) {
   const slots = FORMATIONS[formation]
   const [phase, setPhase] = useState<Phase>('idle')
   const [drawn, setDrawn] = useState<RatedPlayer[]>([])
+  const [drawnEra, setDrawnEra] = useState<Era | null>(null)
   const [chosen, setChosen] = useState<RatedPlayer | null>(null)
   const [reelRows, setReelRows] = useState<string[]>(['???', '???', '???', '???', '???'])
   const [reelPopped, setReelPopped] = useState(false)
@@ -57,6 +80,35 @@ export default function DraftScreen({ formation, squad, hardMode, daily, dispatc
     }
     if (pool.length === 0) return
 
+    // ── Land on an era first, then draw the picks FROM that era ────────────
+    // rand() (not Math.random) so Daily Challenge spins are identical for all.
+    const byEra = new Map<number, RatedPlayer[]>()
+    for (const p of pool) {
+      const d = eraOf(p.peakYear)
+      byEra.set(d, [...(byEra.get(d) ?? []), p])
+    }
+    // Weighted by how many eligible players each era still has, so the wheel
+    // never lands on an empty decade.
+    const weighted: Era[] = ERAS.filter(e => (byEra.get(e.decade)?.length ?? 0) > 0)
+    const totalWeight = weighted.reduce((s, e) => s + byEra.get(e.decade)!.length, 0)
+    let roll = rand() * totalWeight
+    let era = weighted[0]
+    for (const e of weighted) {
+      roll -= byEra.get(e.decade)!.length
+      if (roll <= 0) { era = e; break }
+    }
+
+    // The era's players, topped up from neighbouring decades when it's thin.
+    let eraPool = [...(byEra.get(era.decade) ?? [])]
+    if (eraPool.length < drawCount) {
+      const fillers = pool
+        .filter(p => !eraPool.includes(p))
+        .sort((a, b) => Math.abs(eraOf(a.peakYear) - era.decade) - Math.abs(eraOf(b.peakYear) - era.decade))
+      eraPool = [...eraPool, ...fillers].slice(0, Math.max(drawCount, eraPool.length))
+    }
+    const shuffled = [...eraPool].sort(() => rand() - 0.5)
+    const picked = shuffled.slice(0, Math.min(drawCount, shuffled.length))
+
     setPhase('spinning')
     setChosen(null)
     setReelPopped(false)
@@ -68,11 +120,13 @@ export default function DraftScreen({ formation, squad, hardMode, daily, dispatc
     const doTick = () => {
       ticks++
 
-      // Update the reel rows — show a window of 5 names
-      const names = Array.from({ length: 5 }, () =>
-        pool[Math.floor(Math.random() * pool.length)].name
+      // The reel cycles era labels (cosmetic — Math.random is fine here)
+      // and freezes with the chosen era in the centre on the final tick.
+      const rows = Array.from({ length: 5 }, () =>
+        ERAS[Math.floor(Math.random() * ERAS.length)].label
       )
-      setReelRows(names)
+      if (ticks >= TOTAL) rows[2] = era.label
+      setReelRows(rows)
 
       // Speed curve: fast → slow → stop
       const delay =
@@ -84,10 +138,7 @@ export default function DraftScreen({ formation, squad, hardMode, daily, dispatc
       if (ticks < TOTAL) {
         timerRef.current = setTimeout(doTick, delay)
       } else {
-        // Done spinning — freeze on final name then reveal cards.
-        // rand() so Daily Challenge draws are identical for everyone.
-        const shuffled = [...pool].sort(() => rand() - 0.5)
-        const picked = shuffled.slice(0, Math.min(drawCount, pool.length))
+        setDrawnEra(era)
         setDrawn(picked)
 
         timerRef.current = setTimeout(() => {
@@ -117,6 +168,7 @@ export default function DraftScreen({ formation, squad, hardMode, daily, dispatc
     dispatch({ type: 'PICK_PLAYER', player: chosen, slotIndex })
     setChosen(null)
     setDrawn([])
+    setDrawnEra(null)
     setPhase('idle')
   }
 
@@ -287,8 +339,15 @@ export default function DraftScreen({ formation, squad, hardMode, daily, dispatc
           {/* ── CHOOSING ── */}
           {phase === 'choosing' && (
             <div className="p-4">
-              <div className="text-slate-400 text-xs uppercase tracking-widest mb-3 text-center font-bold">
-                Pick one to draft
+              <div className="text-center mb-3">
+                {drawnEra && (
+                  <div className="text-fuchsia-300 font-black text-base leading-tight">
+                    {drawnEra.label} <span className="text-slate-400 font-semibold text-xs">· {drawnEra.nickname}</span>
+                  </div>
+                )}
+                <div className="text-slate-400 text-xs uppercase tracking-widest mt-1 font-bold">
+                  Pick one to draft
+                </div>
               </div>
               <div className="flex flex-col gap-2.5">
                 {drawn.map((p, i) => (
