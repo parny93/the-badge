@@ -4,6 +4,78 @@ import { TeamRatings } from '@/types'
 // Tuned for gameplay feel — great teams in great years are correctly terrifying.
 
 export const TEAM_RATINGS: TeamRatings = {
+  1950: {
+    'England': 84,        // pre-tournament favourites with Brazil — then the USA happened
+    'Brazil': 88,         // Ademir's 8 goals; lost the Maracanazo
+    'Uruguay': 87,        // Maracanazo winners — Varela, Schiaffino, Ghiggia
+    'Spain': 79,
+    'Sweden': 78,         // 1948 Olympic champions' core
+    'Yugoslavia': 77,
+    'Italy': 75,          // weakened by the Superga disaster (1949)
+    'Chile': 70,
+    'Switzerland': 68,
+    'Mexico': 65,
+    'USA': 58,            // and yet: Belo Horizonte, 1-0
+    'Paraguay': 66,
+    'Bolivia': 60,
+    'France': 72,
+    'Scotland': 73,
+    'Turkey': 64,
+  },
+  1954: {
+    'Hungary': 96,        // the Mighty Magyars — Puskás, Kocsis, Hidegkuti; greatest side never to win it
+    'West Germany': 84,   // the Miracle of Bern
+    'Uruguay': 86,        // still unbeaten in World Cups until the SF
+    'Austria': 84,        // Ocwirk's Wunderteam echo — 3rd place
+    'England': 80,        // Matthews, Finney, Wright — QF exit
+    'Brazil': 82,
+    'Yugoslavia': 78,
+    'Switzerland': 72,    // hosts, QF
+    'Italy': 74,
+    'France': 73,
+    'Czechoslovakia': 70,
+    'Scotland': 68,
+    'Turkey': 66,
+    'Belgium': 67,
+    'Mexico': 64,
+    'South Korea': 52,
+  },
+  1958: {
+    'Brazil': 93,         // 17-year-old Pelé, Garrincha, Didi — the first of the five
+    'Sweden': 84,         // hosts, finalists — Liedholm, Hamrin
+    'France': 86,         // Fontaine's 13 goals, Kopa pulling strings
+    'West Germany': 82,   // holders, 4th
+    'England': 79,        // post-Munich — Edwards, Taylor, Byrne all gone
+    'USSR': 81,           // Yashin
+    'Hungary': 76,        // post-'56 exodus, fading Magyars
+    'Yugoslavia': 78,
+    'Czechoslovakia': 75,
+    'Northern Ireland': 73, // QF — the Danny Blanchflower miracle
+    'Wales': 72,            // QF — John Charles and co.
+    'Argentina': 74,
+    'Scotland': 67,
+    'Paraguay': 70,
+    'Austria': 71,
+    'Mexico': 63,
+  },
+  1962: {
+    'Brazil': 92,         // Garrincha's World Cup — back-to-back champions
+    'Czechoslovakia': 81, // finalists — Masopust
+    'Chile': 78,          // hosts, 3rd place
+    'Yugoslavia': 79,     // 4th
+    'England': 79,        // Greaves, Charlton, a 21-year-old Moore
+    'USSR': 82,           // Yashin
+    'Hungary': 78,
+    'West Germany': 80,
+    'Argentina': 75,
+    'Italy': 78,          // the Battle of Santiago
+    'Uruguay': 73,
+    'Spain': 77,          // Puskás and Di Stéfano (injured) naturalised
+    'Mexico': 66,
+    'Bulgaria': 65,
+    'Colombia': 62,
+    'Switzerland': 64,
+  },
   1966: {
     'England': 87,
     'West Germany': 87,

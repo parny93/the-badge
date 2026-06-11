@@ -1,10 +1,70 @@
 import { WorldCupData } from '@/types'
 
-// All World Cups 1966–2026.
+// All World Cups 1950–2026 (England first entered in 1950).
 // For years England didn't qualify (1974, 1978, 1994) we add England as a wildcard.
 // englandGroup = the group we place England in for that year.
+// 1950–1962 groups follow the real draws; where a real group had withdrawals
+// (1950 had three- and two-team groups) we pad with the era's withdrawn
+// entrants so every group plays as a four. Squad lists from contemporary
+// records — verify against 11v11.com when the scraping pipeline lands.
 
 export const WORLD_CUPS: WorldCupData[] = [
+  {
+    year: 1950,
+    host: 'Brazil',
+    historicalWinner: 'Uruguay',
+    format: '16-team',
+    englandQualified: true, // England's first ever World Cup — and the USA defeat
+    englandGroup: 'Group 2',
+    groups: [
+      { name: 'Group 1', teams: ['Brazil', 'Yugoslavia', 'Switzerland', 'Mexico'] },
+      { name: 'Group 2', teams: ['England', 'Spain', 'Chile', 'USA'] },
+      { name: 'Group 3', teams: ['Sweden', 'Italy', 'Paraguay', 'France'] },        // France withdrew — padded
+      { name: 'Group 4', teams: ['Uruguay', 'Bolivia', 'Scotland', 'Turkey'] },     // Scotland & Turkey withdrew — padded
+    ],
+  },
+  {
+    year: 1954,
+    host: 'Switzerland',
+    historicalWinner: 'West Germany',
+    format: '16-team',
+    englandQualified: true, // QF exit to reigning champions Uruguay
+    englandGroup: 'Group 4',
+    groups: [
+      { name: 'Group 1', teams: ['Brazil', 'Yugoslavia', 'France', 'Mexico'] },
+      { name: 'Group 2', teams: ['Hungary', 'West Germany', 'Turkey', 'South Korea'] },
+      { name: 'Group 3', teams: ['Uruguay', 'Austria', 'Czechoslovakia', 'Scotland'] },
+      { name: 'Group 4', teams: ['England', 'Switzerland', 'Italy', 'Belgium'] },
+    ],
+  },
+  {
+    year: 1958,
+    host: 'Sweden',
+    historicalWinner: 'Brazil',
+    format: '16-team',
+    englandQualified: true, // group play-off exit, months after Munich took Edwards, Taylor and Byrne
+    englandGroup: 'Group 4',
+    groups: [
+      { name: 'Group 1', teams: ['West Germany', 'Czechoslovakia', 'Northern Ireland', 'Argentina'] },
+      { name: 'Group 2', teams: ['France', 'Yugoslavia', 'Paraguay', 'Scotland'] },
+      { name: 'Group 3', teams: ['Sweden', 'Hungary', 'Wales', 'Mexico'] },
+      { name: 'Group 4', teams: ['Brazil', 'USSR', 'England', 'Austria'] },
+    ],
+  },
+  {
+    year: 1962,
+    host: 'Chile',
+    historicalWinner: 'Brazil',
+    format: '16-team',
+    englandQualified: true, // QF exit to eventual champions Brazil — Garrincha's tournament
+    englandGroup: 'Group 4',
+    groups: [
+      { name: 'Group 1', teams: ['USSR', 'Yugoslavia', 'Uruguay', 'Colombia'] },
+      { name: 'Group 2', teams: ['Chile', 'West Germany', 'Italy', 'Switzerland'] },
+      { name: 'Group 3', teams: ['Brazil', 'Czechoslovakia', 'Mexico', 'Spain'] },
+      { name: 'Group 4', teams: ['Hungary', 'England', 'Argentina', 'Bulgaria'] },
+    ],
+  },
   {
     year: 1966,
     host: 'England',

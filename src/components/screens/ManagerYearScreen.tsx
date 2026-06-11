@@ -6,6 +6,10 @@ interface Props { dispatch: React.Dispatch<GameAction> }
 // Notable England squad years — the eras people actually want to relive.
 // `tournament` names the real competition that summer so the year reads correctly.
 const YEARS: { year: number; tournament: string; blurb: string }[] = [
+  { year: 1950, tournament: '1950 World Cup', blurb: 'England\'s first — Matthews, Finney, Mortensen' },
+  { year: 1954, tournament: '1954 World Cup', blurb: 'Wright\'s England against Puskás\'s Hungary' },
+  { year: 1958, tournament: '1958 World Cup', blurb: 'After Munich — Haynes, Finney, a grieving squad' },
+  { year: 1962, tournament: '1962 World Cup', blurb: 'Greaves, Charlton, a 21-year-old Bobby Moore' },
   { year: 1970, tournament: '1970 World Cup', blurb: 'Reigning champions — Moore, Banks, Hurst' },
   { year: 1986, tournament: '1986 World Cup', blurb: 'Lineker\'s Golden Boot, Robson, Hoddle' },
   { year: 1990, tournament: '1990 World Cup', blurb: 'Italia \'90 — Gazza, Lineker, Pearce, Waddle' },

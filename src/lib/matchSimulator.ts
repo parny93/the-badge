@@ -2,6 +2,7 @@ import { MatchMoment, MatchResult, RatedPlayer } from '@/types'
 import { Formation } from '@/types'
 import { calculateTeamStrength } from './teamStrength'
 import { Manager } from '@/data/managers'
+import { penaltyRating } from '@/data/playerTags'
 import { rand } from './rng'
 import { getTeamRating } from '@/data/teamRatings'
 import { atmosphereDeck } from '@/data/tournamentLore'
@@ -332,7 +333,19 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
       : undefined) ?? (englandSquad.filter(Boolean) as RatedPlayer[])
       .sort((a, b) => b.ratingAtYear - a.ratingAtYear)[0]
     const capFactor  = captain ? captain.ratingAtYear / 100 : 0.80
-    const penWinProb = 0.38 + gkFactor * 0.12 + capFactor * 0.10 + (manager?.penaltyBoost ?? 0)
+
+    // Takers step up in penalty-rating order — the derived blend of goal
+    // threat per cap, shooting and the known-takers list.
+    const rankedTakers = (englandSquad.filter(Boolean) as RatedPlayer[])
+      .filter(p => p.positions[0] !== 'GK')
+      .sort((a, b) => penaltyRating(b) - penaltyRating(a))
+    const top5 = rankedTakers.slice(0, 5)
+    const avgPen = top5.length > 0
+      ? top5.reduce((s, p) => s + penaltyRating(p), 0) / top5.length
+      : 70
+
+    const penWinProb = 0.34 + gkFactor * 0.12 + capFactor * 0.08 +
+      (avgPen - 70) * 0.004 + (manager?.penaltyBoost ?? 0)
 
     const engWinsPens = rand() < penWinProb
 
@@ -340,8 +353,8 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
     const engScored: boolean[] = []
     const oppScored: boolean[] = []
 
-    // England takers have a ~76% conversion rate; boosted by captain quality
-    const engConvert = 0.72 + capFactor * 0.08
+    // Conversion driven by the takers' penalty ratings; steadied by the captain
+    const engConvert = 0.60 + (avgPen / 100) * 0.18 + capFactor * 0.04
     // Opponent conversion rate similar but boosted/penalised by GK
     const oppConvert = 0.72 - gkFactor * 0.06
 
@@ -354,9 +367,7 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
     }
 
     // Generate kick moments
-    const takers = (englandSquad.filter(Boolean) as RatedPlayer[])
-      .filter(p => p.positions[0] !== 'GK')
-      .slice(0, 5)
+    const takers = top5
 
     for (let k = 0; k < 5; k++) {
       const taker = takers[k]

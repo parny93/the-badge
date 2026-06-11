@@ -93,6 +93,28 @@ const INTL_OVERRIDES: Record<string, { from?: number; to?: number }> = {
   tony_morley:      { from: 1980, to: 1984 },  // 6 caps; Aston Villa European Cup winner
   trevor_steven:    { from: 1985, to: 1992 },  // 36 caps; 1986 & 1990 WC; Euro 88
   steve_hodge:      { from: 1986, to: 1991 },  // 24 caps; 1986 & 1990 WC
+  // ── Pre-1966 era (1950–1962 World Cups) ──
+  stanley_matthews: { from: 1946, to: 1957 },  // post-war window; England career ran to 42
+  tom_finney:       { from: 1946, to: 1958 },
+  billy_wright:     { from: 1946, to: 1959 },  // first man to 100 caps
+  alf_ramsey_player:{ from: 1948, to: 1953 },  // the Hungary defeats ended his England career
+  neil_franklin:    { from: 1946, to: 1950 },  // Bogotá move ended England career pre-1950 WC
+  wilf_mannion:     { from: 1946, to: 1951 },
+  stan_mortensen:   { from: 1947, to: 1953 },
+  jackie_milburn:   { from: 1948, to: 1955 },
+  bert_williams:    { from: 1949, to: 1955 },
+  gil_merrick:      { from: 1951, to: 1954 },
+  jimmy_dickinson:  { from: 1949, to: 1956 },
+  duncan_edwards:   { from: 1955, to: 1957 },  // Munich, February 1958
+  tommy_taylor:     { from: 1953, to: 1957 },  // Munich
+  roger_byrne:      { from: 1954, to: 1957 },  // Munich
+  colin_mcdonald:   { from: 1957, to: 1959 },
+  bryan_douglas:    { from: 1957, to: 1963 },
+  johnny_haynes:    { from: 1954, to: 1962 },  // car crash ended England career
+  ron_flowers:      { from: 1955, to: 1966 },  // in the 1966 winning squad
+  ron_springett:    { from: 1959, to: 1966 },
+  bobby_smith:      { from: 1960, to: 1963 },
+  gerry_hitchens:   { from: 1961, to: 1962 },
 }
 
 export function eligibleYears(player: Player): { from: number; to: number } {

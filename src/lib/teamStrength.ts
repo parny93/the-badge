@@ -1,6 +1,7 @@
 import { Formation, FormationSlot, RatedPlayer, TeamStrength } from '@/types'
 import { analyzeChemistry, familiarity } from './chemistry'
 import { Manager } from '@/data/managers'
+import { isGoldenGeneration } from '@/data/playerTags'
 
 // Optional squad context: the gaffer, the armband and the bench all nudge
 // the numbers the match sim consumes.
@@ -164,6 +165,15 @@ export function calculateTeamStrength(
     chemistry.notes.push({
       type: 'good',
       text: `${captain.name.split(' ').pop()} wears the armband — the dressing room follows him`,
+    })
+  }
+
+  // ── Golden Generation easter egg — the landing-page challenge, recognised ─
+  const goldenCount = rated.filter(r => isGoldenGeneration(r.player.id)).length
+  if (goldenCount >= 8) {
+    chemistry.notes.push({
+      type: 'info',
+      text: 'The Golden Generation rides again — surely THIS time it works',
     })
   }
 

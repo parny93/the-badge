@@ -17,7 +17,7 @@ const MODES: { id: GameMode; emoji: string; title: string; tag: string; desc: st
     emoji: '📋',
     title: 'Manager Mode',
     tag: 'Free pick · One year',
-    desc: 'Step into a single year. Pick from the players actually available — rated exactly as they were. Can you fix the Golden Generation?',
+    desc: 'Step into a single year, from 1950 to today. Pick from the players actually available — rated exactly as they were. Can you fix the Golden Generation?',
     accent: 'from-sky-500/20',
   },
   {
