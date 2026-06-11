@@ -4,6 +4,9 @@ import { FORMATIONS } from './teamStrength'
 // Bounds for the era-range setting.
 export const ERA_MIN = 1950
 export const ERA_MAX = 2026
+// Default window starts at Mexico '86 — modern-football-and-back-a-bit; the
+// full range stays one preset tap away.
+export const ERA_DEFAULT_FROM = 1986
 
 export const INITIAL_STATE: GameState = {
   screen: 'home',
@@ -18,7 +21,7 @@ export const INITIAL_STATE: GameState = {
   hardMode: false,
   difficultyLevel: 'normal',
   respinsLeft: RESPINS.normal,
-  yearFrom: ERA_MIN,
+  yearFrom: ERA_DEFAULT_FROM,
   yearTo: ERA_MAX,
   daily: null,
   bench: Array(BENCH_SIZE).fill(null),

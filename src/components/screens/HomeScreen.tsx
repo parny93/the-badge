@@ -189,12 +189,13 @@ export default function HomeScreen({ dispatch }: Props) {
           Start Playing →
         </button>
 
-        {/* Ko-fi — plug the real URL in before launch */}
+        {/* Ko-fi — hidden until after launch. To enable: set the real URL and
+            remove the `hidden` class. */}
         <a
           href="https://ko-fi.com/thebadgeapp"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block text-amber-400/80 hover:text-amber-300 text-sm font-semibold mb-6"
+          className="hidden text-amber-400/80 hover:text-amber-300 text-sm font-semibold mb-6"
         >
           Enjoying it? Buy us a coffee
         </a>

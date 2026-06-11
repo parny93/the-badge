@@ -15,7 +15,6 @@ const DIFFICULTIES: {
   title: string
   desc: string
   accent: string
-  pro?: boolean
 }[] = [
   {
     level: 'easy',
@@ -34,7 +33,6 @@ const DIFFICULTIES: {
     title: 'Hard',
     desc: 'No re-spins. Era wheel only — ratings hidden everywhere until squad review, and a Hard Mode badge on your card.',
     accent: 'border-red-400 bg-red-400/10',
-    pro: true,
   },
 ]
 
@@ -70,14 +68,7 @@ export default function SettingsScreen({ yearFrom, yearTo, difficultyLevel, disp
                 level === d.level ? d.accent : 'border-white/10 bg-white/5 hover:border-white/25'
               }`}
             >
-              <div className="flex items-center gap-2">
-                <span className="text-white font-bold text-sm">{d.title}</span>
-                {d.pro && (
-                  <span className="text-[9px] font-bold text-amber-400/70 bg-amber-400/10 rounded px-1.5 py-0.5">
-                    PRO · free while in beta
-                  </span>
-                )}
-              </div>
+              <div className="text-white font-bold text-sm">{d.title}</div>
               <div className="text-slate-400 text-xs leading-snug mt-0.5">{d.desc}</div>
             </button>
           ))}
@@ -94,26 +85,37 @@ export default function SettingsScreen({ yearFrom, yearTo, difficultyLevel, disp
           Only players whose peak falls in this window are in your pool — across every mode.
         </p>
 
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-slate-500 text-[10px] w-8 shrink-0">From</span>
+        {/* Dual-handle slider — drag either end of the one track */}
+        <div className="relative h-7 mb-3">
+          <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1.5 rounded-full bg-white/10" />
+          <div
+            className="absolute top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-amber-400/70"
+            style={{
+              left: `${((from - ERA_MIN) / (ERA_MAX - ERA_MIN)) * 100}%`,
+              right: `${100 - ((to - ERA_MIN) / (ERA_MAX - ERA_MIN)) * 100}%`,
+            }}
+          />
           <input
             type="range"
+            aria-label="Era range from"
             min={ERA_MIN}
             max={ERA_MAX}
             value={from}
             onChange={e => setFrom(Math.min(Number(e.target.value), to))}
-            className="w-full accent-amber-400"
+            className="dual-range"
+            // When both handles sit at the right edge, the From thumb must win
+            // the click so the range can be reopened.
+            style={{ zIndex: from > (ERA_MIN + ERA_MAX) / 2 ? 30 : 20 }}
           />
-        </div>
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-slate-500 text-[10px] w-8 shrink-0">To</span>
           <input
             type="range"
+            aria-label="Era range to"
             min={ERA_MIN}
             max={ERA_MAX}
             value={to}
             onChange={e => setTo(Math.max(Number(e.target.value), from))}
-            className="w-full accent-amber-400"
+            className="dual-range"
+            style={{ zIndex: 25 }}
           />
         </div>
 
