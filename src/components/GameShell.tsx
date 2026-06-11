@@ -3,6 +3,7 @@ import { useReducer, useEffect, useRef } from 'react'
 import { gameReducer, INITIAL_STATE, loadState, saveState } from '@/lib/gameReducer'
 import { seedRng, resetRng } from '@/lib/rng'
 import { DailyConfig, saveDailyResult } from '@/lib/daily'
+import { recordRunStats } from '@/lib/lifetimeStats'
 import { calculateTeamStrength } from '@/lib/teamStrength'
 import { encodeRun, shootoutRecord, eraSpread } from '@/lib/runCodec'
 
@@ -34,6 +35,7 @@ export default function GameShell({ daily }: Props) {
   const [state, dispatch] = useReducer(gameReducer, INITIAL_STATE)
   const hydrated = useRef(false)
   const dailySaved = useRef(false)
+  const statsRecorded = useRef(false)
 
   // Restore any in-progress game after mount (avoids SSR hydration mismatch).
   // Daily runs skip restore: they start fresh from the day's seed instead.
@@ -53,6 +55,18 @@ export default function GameShell({ daily }: Props) {
   useEffect(() => {
     if (hydrated.current) saveState(state)
   }, [state])
+
+  // Lifetime stats (shootouts won/lost, titles) — every finished run counts.
+  useEffect(() => {
+    if (state.screen !== 'result') {
+      statsRecorded.current = false
+      return
+    }
+    if (statsRecorded.current || !state.tournament) return
+    statsRecorded.current = true
+    const pens = shootoutRecord(state.tournament)
+    recordRunStats({ exit: state.tournament.exitRound, wonPens: pens.won, lostPens: pens.lost })
+  }, [state.screen, state.tournament])
 
   // Record the Daily Challenge result the moment the run finishes.
   useEffect(() => {

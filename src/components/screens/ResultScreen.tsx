@@ -63,13 +63,38 @@ const EURO_WINNER_COPY = {
   sub: "They've only gone and done it. England are European Champions. The whole nation erupts.",
 }
 
+// Going out on penalties isn't just an exit — it's THE English exit.
+// It overrides the round copy and gets its own headline.
+const OUT_ON_PENS_COPY: Record<string, { emoji: string; headline: string; sub: string }> = {
+  default: {
+    emoji: '🎯',
+    headline: 'Out on penalties. Again.',
+    sub: 'Pearce. Waddle. Southgate. Batty. And now you. Twelve yards between England and history, and the ball just would not go in.',
+  },
+  SF: {
+    emoji: '🎯',
+    headline: 'Semi-final. Penalties. You know the rest.',
+    sub: 'Turin 1990, Wembley 1996 — and now this. Some traditions refuse to die.',
+  },
+  Final: {
+    emoji: '🎯',
+    headline: 'Lost the final on penalties.',
+    sub: 'The cruellest possible ending. Wembley 2021 all over again. The trophy was right there.',
+  },
+}
+
 export default function ResultScreen({ worldCup, squad, formation, result, mode, hardMode, daily, dispatch }: Props) {
   const [tab, setTab] = useState<Tab>('result')
   const [imageBusy, setImageBusy] = useState(false)
   const isEuro = worldCup.competition === 'Euro'
   const compLabel = isEuro ? 'European Championship' : 'World Cup'
+  const pens = useMemo(() => shootoutRecord(result), [result])
+  const outOnPens = result.exitRound !== 'Winner' && pens.lost > 0
   const rawCopy = EXIT_COPY[result.exitRound] ?? EXIT_COPY['Group']
-  const copy = result.exitRound === 'Winner' && isEuro ? EURO_WINNER_COPY : rawCopy
+  const copy =
+    outOnPens ? (OUT_ON_PENS_COPY[result.exitRound] ?? OUT_ON_PENS_COPY.default) :
+    result.exitRound === 'Winner' && isEuro ? EURO_WINNER_COPY :
+    rawCopy
 
   const lore = getLore(worldCup.year)
   const hostLabel = lore?.host ?? worldCup.host.split(' / ')[0]
@@ -80,7 +105,6 @@ export default function ResultScreen({ worldCup, squad, formation, result, mode,
 
   // ── Shareable run card — the run is encoded into the URL itself ──────────
   const strength = useMemo(() => calculateTeamStrength(squad, formation), [squad, formation])
-  const pens = useMemo(() => shootoutRecord(result), [result])
 
   const runPayload = useMemo(() => ({
     v: 1 as const,
@@ -148,6 +172,22 @@ export default function ResultScreen({ worldCup, squad, formation, result, mode,
             {lore?.nickname ?? `${worldCup.year} ${compLabel}`} · 📍 {hostLabel} · {formation}
           </span>
         </div>
+
+        {/* Shootouts are first-class results — wear them */}
+        {(pens.won > 0 || pens.lost > 0) && (
+          <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
+            {pens.won > 0 && (
+              <span className="text-xs font-bold bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 rounded-full px-3 py-1">
+                🎯 Won on pens{pens.won > 1 ? ` ×${pens.won}` : ''}
+              </span>
+            )}
+            {pens.lost > 0 && (
+              <span className="text-xs font-bold bg-red-500/20 border border-red-500/40 text-red-300 rounded-full px-3 py-1">
+                🎯 Out on pens
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Tabs */}

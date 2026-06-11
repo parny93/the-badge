@@ -6,11 +6,13 @@ import {
   DailyConfig, DailyResult, EXIT_LABEL, getDailyConfig,
   loadDailyResults, personalBests,
 } from '@/lib/daily'
+import { LifetimeStats, loadLifetimeStats } from '@/lib/lifetimeStats'
 import { getLore } from '@/data/tournamentLore'
 
 export default function DailyPage() {
   const [config, setConfig] = useState<DailyConfig | null>(null)
   const [results, setResults] = useState<Record<string, DailyResult>>({})
+  const [lifetime, setLifetime] = useState<LifetimeStats | null>(null)
   const [playing, setPlaying] = useState(false)
 
   // Config + results are read on the client so the UTC date and localStorage
@@ -18,6 +20,7 @@ export default function DailyPage() {
   useEffect(() => {
     setConfig(getDailyConfig())
     setResults(loadDailyResults())
+    setLifetime(loadLifetimeStats())
   }, [playing])
 
   if (playing && config) return <GameShell daily={config} />
@@ -117,8 +120,13 @@ export default function DailyPage() {
           </div>
         </div>
         <div className="rounded-xl bg-white/5 border border-white/10 p-3">
-          <div className="text-slate-500 text-xs">Shootouts won</div>
-          <div className="text-white font-black text-lg leading-tight">🎯 {bests.shootoutsWon}</div>
+          <div className="text-slate-500 text-xs">Shootouts won — all time</div>
+          <div className="text-white font-black text-lg leading-tight">
+            🎯 {lifetime?.shootoutsWon ?? 0}
+            {lifetime && lifetime.shootoutsLost > 0 && (
+              <span className="text-slate-500 text-xs font-normal"> · {lifetime.shootoutsLost} lost</span>
+            )}
+          </div>
         </div>
       </div>
       <p className="text-slate-600 text-xs mb-6">
