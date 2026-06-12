@@ -4,7 +4,7 @@ import { DifficultyLevel, Formation, GameAction, Position, RatedPlayer } from '@
 import { FORMATIONS } from '@/lib/teamStrength'
 import { familiarity } from '@/lib/chemistry'
 import { getDraftPool, canPlaySlot } from '@/lib/playerPool'
-import { weightedDraw, TIER_SHARES, GOLDEN_SHARES, GOLDEN_RUN_CHANCE } from '@/lib/draftWeights'
+import { weightedDraw, rollRunState, RunState, TIER_SHARES, SILVER_SHARES, GOLDEN_SHARES } from '@/lib/draftWeights'
 import { rand } from '@/lib/rng'
 import FormationDisplay from '@/components/ui/FormationDisplay'
 
@@ -57,7 +57,7 @@ export default function DraftScreen({ formation, squad, difficultyLevel, respins
   const [revealedCount, setRevealedCount] = useState(-1)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Decided once, on the first spin of the run; never announced.
-  const goldenRun = useRef<boolean | null>(null)
+  const runState = useRef<RunState | null>(null)
 
   const hard = difficultyLevel === 'hard'
   const drawCount = 3
@@ -95,8 +95,11 @@ export default function DraftScreen({ formation, squad, difficultyLevel, respins
     if (pool.length === 0) return
 
     // rand() (not Math.random) so Daily Challenge spins are identical for all.
-    if (goldenRun.current === null) goldenRun.current = rand() < GOLDEN_RUN_CHANCE
-    const shares = goldenRun.current ? GOLDEN_SHARES : TIER_SHARES[difficultyLevel]
+    if (runState.current === null) runState.current = rollRunState(rand())
+    const shares =
+      runState.current === 'golden' ? GOLDEN_SHARES :
+      runState.current === 'silver' ? SILVER_SHARES :
+      TIER_SHARES[difficultyLevel]
 
     let era: Era | null = null
     let picked: RatedPlayer[]

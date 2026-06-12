@@ -20,18 +20,39 @@ export function draftTier(p: RatedPlayer): DraftTier {
 }
 
 // Share of CARDS each tier gets (normalised by tier population, so flooding
-// the pool with fringe players never floods the wheel).
+// the pool with fringe players never floods the wheel). Tuned so a typical
+// run lands 1–2 elite names, a good core, and a couple of jokers.
 export const TIER_SHARES: Record<DifficultyLevel, Record<DraftTier, number>> = {
-  easy:   { elite: 18, solid: 70, joker: 12 },
-  normal: { elite: 13, solid: 69, joker: 18 },
-  hard:   { elite: 10, solid: 66, joker: 24 },
+  easy:   { elite: 7, solid: 73, joker: 20 },
+  normal: { elite: 5, solid: 71, joker: 24 },
+  hard:   { elite: 4, solid: 67, joker: 29 },
 }
 
-// ── The golden run ────────────────────────────────────────────────────────────
-// Roughly 1 in 17 drafts, the wheel quietly runs hot for the whole draft:
-// legends keep coming and a genuine superstar XI is on. Never announced —
-// players just notice, screenshot it, and don't quite believe it.
-export const GOLDEN_RUN_CHANCE = 1 / 17
+// ── Special runs ──────────────────────────────────────────────────────────────
+// Decided silently on the first spin of a draft; never announced.
+//
+// SILVER (~1 in 12): the wheel runs warm — 2–3 legends and a strong core, a
+// genuinely competitive side that can win a tournament but will still have to
+// earn it against peak opposition.
+//
+// GOLDEN (~1 in 100): the truly viral one. Legends nearly every spin; the
+// full superstar XI is on. When it happens, that's the screenshot.
+export type RunState = 'base' | 'silver' | 'golden'
+
+export const GOLDEN_RUN_CHANCE = 1 / 100
+export const SILVER_RUN_CHANCE = 1 / 12
+
+export function rollRunState(roll: number): RunState {
+  if (roll < GOLDEN_RUN_CHANCE) return 'golden'
+  if (roll < GOLDEN_RUN_CHANCE + SILVER_RUN_CHANCE) return 'silver'
+  return 'base'
+}
+
+export const SILVER_SHARES: Record<DraftTier, number> = {
+  elite: 13,
+  solid: 82,
+  joker: 5,
+}
 
 export const GOLDEN_SHARES: Record<DraftTier, number> = {
   elite: 60,
