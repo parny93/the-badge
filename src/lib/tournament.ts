@@ -3,6 +3,7 @@ import { Formation } from '@/types'
 import { simulateMatch } from './matchSimulator'
 import { calculateTeamStrength } from './teamStrength'
 import { Manager } from '@/data/managers'
+import { TournamentStats, createStats, attributeGoals, attributeEnglandGoals } from './tournamentStats'
 import { rand } from './rng'
 import { getTeamRating } from '@/data/teamRatings'
 import { KNOCKOUT_ROUNDS } from '@/data/worldCups'
@@ -45,82 +46,9 @@ export interface TournamentContext {
   bench?: (RatedPlayer | null)[]
 }
 
-function runGroup(
-  group: { name: string; teams: string[] },
-  wcYear: number,
-  englandSquad: (RatedPlayer | null)[],
-  englandFormation: Formation,
-  ctx: TournamentContext
-): { standings: GroupTeam[]; englandMatches: import('@/types').MatchResult[] } {
-  const teams = group.teams
-  const standings: GroupTeam[] = teams.map(name => ({
-    name, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0,
-  }))
-
-  const englandMatches: import('@/types').MatchResult[] = []
-
-  // Play all group matches
-  for (let i = 0; i < teams.length; i++) {
-    for (let j = i + 1; j < teams.length; j++) {
-      const teamA = teams[i]
-      const teamB = teams[j]
-      const isEnglandMatch = teamA === 'England' || teamB === 'England'
-
-      let goalsA: number, goalsB: number
-      let matchResult: import('@/types').MatchResult | null = null
-
-      if (isEnglandMatch) {
-        const opponent = teamA === 'England' ? teamB : teamA
-        matchResult = simulateMatch({
-          englandSquad,
-          englandFormation,
-          opponent,
-          wcYear,
-          isKnockout: false,
-          ...ctx,
-        })
-        if (teamA === 'England') {
-          goalsA = matchResult.homeGoals
-          goalsB = matchResult.awayGoals
-        } else {
-          goalsA = matchResult.awayGoals
-          goalsB = matchResult.homeGoals
-        }
-        englandMatches.push(matchResult)
-      } else {
-        ;[goalsA, goalsB] = simGroupMatch(teamA, teamB, wcYear)
-      }
-
-      // Update standings
-      const sA = standings.find(s => s.name === teamA)!
-      const sB = standings.find(s => s.name === teamB)!
-      sA.played++; sB.played++
-      sA.gf += goalsA; sA.ga += goalsB
-      sB.gf += goalsB; sB.ga += goalsA
-
-      if (goalsA > goalsB) {
-        sA.won++; sA.points += 3; sB.lost++
-      } else if (goalsA < goalsB) {
-        sB.won++; sB.points += 3; sA.lost++
-      } else {
-        sA.drawn++; sA.points++
-        sB.drawn++; sB.points++
-      }
-    }
-  }
-
-  standings.sort((a, b) =>
-    b.points - a.points ||
-    (b.gf - b.ga) - (a.gf - a.ga) ||
-    b.gf - a.gf
-  )
-
-  return { standings, englandMatches }
-}
-
 // ─── Knockout simulation ──────────────────────────────────────────────────────
 
-function simKnockoutOpponent(teamA: string, teamB: string, wcYear: number): string {
+function simKnockoutOpponent(teamA: string, teamB: string, wcYear: number): { winner: string; goalsA: number; goalsB: number } {
   const ratingA = getTeamRating(teamA, wcYear)
   const ratingB = getTeamRating(teamB, wcYear)
   // Knockout football rewards the better team more than the group stage — a
@@ -132,9 +60,10 @@ function simKnockoutOpponent(teamA: string, teamB: string, wcYear: number): stri
   const goalsA = poissonSample(Math.max(0.2, 1.0 + diff))
   const goalsB = poissonSample(Math.max(0.2, 1.0 - diff))
 
-  if (goalsA !== goalsB) return goalsA > goalsB ? teamA : teamB
-  // Penalties
-  return rand() < winProbA ? teamA : teamB
+  const winner = goalsA !== goalsB
+    ? (goalsA > goalsB ? teamA : teamB)
+    : (rand() < winProbA ? teamA : teamB)  // penalties
+  return { winner, goalsA, goalsB }
 }
 
 // ─── Bracket seeding ──────────────────────────────────────────────────────────
@@ -175,129 +104,6 @@ function buildSeededField(
   return field
 }
 
-// ─── Full tournament ──────────────────────────────────────────────────────────
-
-export function runTournament(
-  worldCup: WorldCupData,
-  englandSquad: (RatedPlayer | null)[],
-  englandFormation: Formation,
-  ctx: TournamentContext = {}
-): TournamentResult {
-  const rounds: TournamentRound[] = []
-
-  // ── Group stage ──────────────────────────────────────────────────────────
-  const englandGroupData = worldCup.groups.find(g => g.name === worldCup.englandGroup)!
-  const allGroupResults: { groupName: string; standings: GroupTeam[] }[] = []
-
-  // Run all groups
-  const allEnglandGroupMatches: import('@/types').MatchResult[] = []
-  let englandGroupPosition = 4
-
-  for (const group of worldCup.groups) {
-    if (group.name === worldCup.englandGroup) {
-      const { standings, englandMatches } = runGroup(group, worldCup.year, englandSquad, englandFormation, ctx)
-      allEnglandGroupMatches.push(...englandMatches)
-      englandGroupPosition = standings.findIndex(s => s.name === 'England') + 1
-      allGroupResults.push({ groupName: group.name, standings })
-    } else {
-      // Simulate other groups without England
-      const standings: GroupTeam[] = group.teams.map(name => ({
-        name, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0,
-      }))
-      const teams = group.teams
-      for (let i = 0; i < teams.length; i++) {
-        for (let j = i + 1; j < teams.length; j++) {
-          const [gA, gB] = simGroupMatch(teams[i], teams[j], worldCup.year)
-          const sA = standings.find(s => s.name === teams[i])!
-          const sB = standings.find(s => s.name === teams[j])!
-          sA.played++; sB.played++
-          sA.gf += gA; sA.ga += gB; sB.gf += gB; sB.ga += gA
-          if (gA > gB) { sA.won++; sA.points += 3; sB.lost++ }
-          else if (gA < gB) { sB.won++; sB.points += 3; sA.lost++ }
-          else { sA.drawn++; sA.points++; sB.drawn++; sB.points++ }
-        }
-      }
-      standings.sort((a, b) => b.points - a.points || (b.gf-b.ga) - (a.gf-a.ga) || b.gf - a.gf)
-      allGroupResults.push({ groupName: group.name, standings })
-    }
-  }
-
-  rounds.push({
-    type: 'Group',
-    matches: allEnglandGroupMatches,
-  })
-
-  // Did England qualify?
-  // euro-24-team and 48-team WC both take top 3 from each group
-  const qualifyThreshold =
-    worldCup.format === '48-team' || worldCup.format === 'euro-24-team' ? 3 : 2
-  if (englandGroupPosition > qualifyThreshold) {
-    return {
-      rounds,
-      exitRound: 'Group',
-      groupPosition: englandGroupPosition,
-    }
-  }
-
-  // ── Knockout stage ───────────────────────────────────────────────────────
-  const knockoutRounds = KNOCKOUT_ROUNDS[worldCup.format] as KnockoutRound[]
-
-  // Build initial knockout bracket — group winners/runners-up
-  // For simplicity we create a pool of qualified teams sorted by strength
-  let qualifiedTeams: string[] = ['England']
-  for (const gr of allGroupResults) {
-    const topN = gr.standings.slice(0, qualifyThreshold).map(s => s.name)
-    topN.forEach(t => { if (t !== 'England' && !qualifiedTeams.includes(t)) qualifiedTeams.push(t) })
-  }
-  // Pad to power of 2 if needed
-  while (qualifiedTeams.length < getExpectedKOSize(worldCup.format)) {
-    qualifiedTeams.push('Unknown')
-  }
-  qualifiedTeams = qualifiedTeams.slice(0, getExpectedKOSize(worldCup.format))
-
-  let currentRound = qualifiedTeams
-
-  for (const roundName of knockoutRounds) {
-    const matchResults: import('@/types').MatchResult[] = []
-    const nextRound: string[] = []
-
-    for (let i = 0; i < currentRound.length; i += 2) {
-      const teamA = currentRound[i]
-      const teamB = currentRound[i + 1] ?? 'Unknown'
-
-      if (teamA === 'England' || teamB === 'England') {
-        const opponent = teamA === 'England' ? teamB : teamA
-        const result = simulateMatch({
-          englandSquad,
-          englandFormation,
-          opponent: opponent === 'Unknown' ? 'Rest of the World' : opponent,
-          wcYear: worldCup.year,
-          isKnockout: true,
-          ...ctx,
-        })
-        matchResults.push(result)
-        nextRound.push(result.englandWon ? 'England' : opponent)
-
-        if (!result.englandWon) {
-          rounds.push({ type: roundName, matches: matchResults })
-          return { rounds, exitRound: roundName }
-        }
-      } else {
-        const winner = teamA === 'Unknown' || teamB === 'Unknown'
-          ? teamA === 'Unknown' ? teamB : teamA
-          : simKnockoutOpponent(teamA, teamB, worldCup.year)
-        nextRound.push(winner)
-      }
-    }
-
-    rounds.push({ type: roundName, matches: matchResults })
-    currentRound = nextRound
-  }
-
-  // If we're still here, England won!
-  return { rounds, exitRound: 'Winner' }
-}
-
 function getExpectedKOSize(format: WorldCupData['format']): number {
   switch (format) {
     case '16-team':      return 8
@@ -330,6 +136,7 @@ export interface TournamentRun {
   rounds: TournamentRound[]
   exitRound: TournamentResult['exitRound'] | null
   groupPosition?: number
+  stats: TournamentStats        // golden-boot race across the whole tournament
 }
 
 function sortStandings(s: GroupTeam[]): void {
@@ -341,6 +148,7 @@ function sortStandings(s: GroupTeam[]): void {
 }
 
 export function createTournamentRun(worldCup: WorldCupData): TournamentRun {
+  const stats = createStats()
   const group = worldCup.groups.find(g => g.name === worldCup.englandGroup)!
   const standings: GroupTeam[] = group.teams.map(name => ({
     name, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0,
@@ -351,6 +159,8 @@ export function createTournamentRun(worldCup: WorldCupData): TournamentRun {
   for (let i = 0; i < others.length; i++) {
     for (let j = i + 1; j < others.length; j++) {
       const [gA, gB] = simGroupMatch(others[i], others[j], worldCup.year)
+      attributeGoals(stats, others[i], worldCup.year, gA)
+      attributeGoals(stats, others[j], worldCup.year, gB)
       const sA = standings.find(s => s.name === others[i])!
       const sB = standings.find(s => s.name === others[j])!
       sA.played++; sB.played++
@@ -371,6 +181,8 @@ export function createTournamentRun(worldCup: WorldCupData): TournamentRun {
     for (let i = 0; i < g.teams.length; i++) {
       for (let j = i + 1; j < g.teams.length; j++) {
         const [gA, gB] = simGroupMatch(g.teams[i], g.teams[j], worldCup.year)
+        attributeGoals(stats, g.teams[i], worldCup.year, gA)
+        attributeGoals(stats, g.teams[j], worldCup.year, gB)
         const sA = st.find(s => s.name === g.teams[i])!
         const sB = st.find(s => s.name === g.teams[j])!
         sA.played++; sB.played++
@@ -395,6 +207,7 @@ export function createTournamentRun(worldCup: WorldCupData): TournamentRun {
     field: [],
     rounds: [{ type: 'Group', matches: [] }],
     exitRound: null,
+    stats,
   }
 }
 
@@ -428,6 +241,7 @@ export function playNextEnglandMatch(
     knockoutQueue: [...run.knockoutQueue],
     field: [...run.field],
     rounds: run.rounds.map(round => ({ ...round, matches: [...round.matches] })),
+    stats: { scorers: run.stats.scorers.map(s => ({ ...s })) },
   }
 
   if (r.stage === 'group') {
@@ -436,6 +250,8 @@ export function playNextEnglandMatch(
       englandSquad: squad, englandFormation: formation,
       opponent, wcYear: r.worldCup.year, isKnockout: false, ...ctx,
     })
+    attributeEnglandGoals(r.stats, squad, match.homeGoals)
+    attributeGoals(r.stats, opponent, r.worldCup.year, match.awayGoals)
     const sE = r.standings.find(s => s.name === 'England')!
     const sO = r.standings.find(s => s.name === opponent)!
     const ge = match.homeGoals, go = match.awayGoals
@@ -508,11 +324,15 @@ export function playNextEnglandMatch(
         opponent: opponent === 'Unknown' ? 'Rest of the World' : opponent,
         wcYear: r.worldCup.year, isKnockout: true, ...ctx,
       })
+      attributeEnglandGoals(r.stats, squad, englandMatch.homeGoals)
+      attributeGoals(r.stats, opponent, r.worldCup.year, englandMatch.awayGoals)
       nextField.push(englandMatch.englandWon ? 'England' : opponent)
+    } else if (teamA === 'Unknown' || teamB === 'Unknown') {
+      nextField.push(teamA === 'Unknown' ? teamB : teamA)
     } else {
-      const winner = teamA === 'Unknown' || teamB === 'Unknown'
-        ? (teamA === 'Unknown' ? teamB : teamA)
-        : simKnockoutOpponent(teamA, teamB, r.worldCup.year)
+      const { winner, goalsA, goalsB } = simKnockoutOpponent(teamA, teamB, r.worldCup.year)
+      attributeGoals(r.stats, teamA, r.worldCup.year, goalsA)
+      attributeGoals(r.stats, teamB, r.worldCup.year, goalsB)
       nextField.push(winner)
     }
   }

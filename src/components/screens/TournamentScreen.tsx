@@ -5,6 +5,7 @@ import {
   TournamentRun, createTournamentRun, playNextEnglandMatch, runResult,
   nextOpponent, nextRoundType,
 } from '@/lib/tournament'
+import { topScorers, topAssists } from '@/lib/tournamentStats'
 import { AvailabilityEvent, rollAvailabilityEvents, injectEventMoments } from '@/lib/matchEvents'
 import { calculateTeamStrength, FORMATIONS } from '@/lib/teamStrength'
 import { Manager } from '@/data/managers'
@@ -15,7 +16,7 @@ import FormationDisplay from '@/components/ui/FormationDisplay'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Phase = 'loading' | 'intro' | 'team-sheet' | 'prematch' | 'live' | 'scoreboard'
+type Phase = 'loading' | 'intro' | 'bracket' | 'team-sheet' | 'prematch' | 'live' | 'scoreboard'
 
 const ROUND_LABELS: Record<string, string> = {
   Group: 'Group Stage',
@@ -175,7 +176,9 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
     setNews(pendingEvents.current.map(e => e.text))
     pendingEvents.current = []
     setSelectedSlot(null)
-    setPhase('team-sheet')
+    // Entering the knockouts (or between knockout rounds) → show the bracket
+    // and tournament stats first; the group stage rolls straight on.
+    setPhase(run.stage === 'knockout' ? 'bracket' : 'team-sheet')
   }, [run, dispatch])
 
   // ── Loading ───────────────────────────────────────────────────────────────
@@ -229,6 +232,143 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
           Begin the Campaign →
         </button>
         <p className="text-slate-700 text-xs">or tap anywhere</p>
+      </div>
+    )
+  }
+
+  // ── Bracket + tournament stats — the famous knockout tree, the other side ──
+  if (phase === 'bracket') {
+    const roundType = nextRoundType(run) ?? 'R16'
+    const engOVR = calculateTeamStrength(squad, formation, { manager, captainId, bench }).overall
+    const field = run.field
+    const half = field.length / 2
+    const engIdx = field.indexOf('England')
+    const engTopHalf = engIdx < half
+    // The two halves; England's first. Pair up [0,1],[2,3]… within each.
+    const toPairs = (teams: string[]) => {
+      const pairs: [string, string][] = []
+      for (let i = 0; i < teams.length; i += 2) pairs.push([teams[i], teams[i + 1] ?? 'TBD'])
+      return pairs
+    }
+    const topPairs = toPairs(field.slice(0, half))
+    const botPairs = toPairs(field.slice(half))
+    const yourPairs = engTopHalf ? topPairs : botPairs
+    const otherPairs = engTopHalf ? botPairs : topPairs
+
+    const scorers = topScorers(run.stats, 6)
+    const assists = topAssists(run.stats, 3)
+    const isFinalNext = roundType === 'Final'
+
+    const Pairing = ({ pair }: { pair: [string, string] }) => {
+      const has = (t: string) => t === 'England'
+      return (
+        <div className="flex flex-col rounded-lg border border-white/10 overflow-hidden text-sm">
+          {pair.map((t, i) => (
+            <div
+              key={i}
+              className={`px-3 py-1.5 flex items-center justify-between ${
+                has(t) ? 'bg-amber-400/15 text-amber-200 font-bold' : 'text-slate-300'
+              } ${i === 0 ? 'border-b border-white/8' : ''}`}
+            >
+              <span>{t === 'Rest of the World' ? 'Qualifier' : t}</span>
+              {t !== 'TBD' && t !== 'Rest of the World' && (
+                <span className="text-slate-600 text-xs tabular-nums">
+                  {t === 'England' ? engOVR : getTeamRating(t, worldCup.year)}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    return (
+      <div className="min-h-screen px-4 py-5 pb-28 flex flex-col gap-4 bg-[#0c1420]">
+        <div className="text-center">
+          <div className="text-amber-400/80 text-xs font-bold uppercase tracking-[0.25em]">
+            {worldCup.year} {worldCup.competition === 'Euro' ? 'Euros' : 'World Cup'}
+          </div>
+          <h2 className="text-white font-black text-2xl leading-tight mt-0.5">
+            {isFinalNext ? 'The Final' : `${ROUND_LABELS[roundType] ?? roundType} draw`}
+          </h2>
+          <p className="text-slate-500 text-xs mt-1">
+            {isFinalNext ? 'One match from glory.' : 'The bracket takes shape. Watch the other side.'}
+          </p>
+        </div>
+
+        {/* Bracket */}
+        {!isFinalNext && (
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400/80 mb-1.5">Your side</div>
+              <div className="flex flex-col gap-2">
+                {yourPairs.map((p, i) => <Pairing key={i} pair={p} />)}
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">The other side</div>
+              <div className="flex flex-col gap-2">
+                {otherPairs.map((p, i) => <Pairing key={i} pair={p} />)}
+              </div>
+            </div>
+          </div>
+        )}
+        {isFinalNext && (
+          <div className="flex items-center justify-center gap-3">
+            {field.map((t, i) => (
+              <div key={i} className="contents">
+                {i === 1 && <span className="text-slate-600 font-black">v</span>}
+                <div className={`rounded-xl px-4 py-3 text-center font-black ${
+                  t === 'England' ? 'bg-amber-400/15 text-amber-200 border border-amber-400/40' : 'bg-white/5 text-slate-200 border border-white/10'
+                }`}>
+                  {t}
+                  <div className="text-slate-600 text-xs font-normal tabular-nums">
+                    {t === 'England' ? engOVR : getTeamRating(t, worldCup.year)} OVR
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Golden boot race */}
+        {scorers.length > 0 && (
+          <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400/80">Golden Boot race</span>
+              <span className="text-slate-600 text-[10px]">Goals · Assists</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              {scorers.map((s, i) => (
+                <div key={i} className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-2 min-w-0">
+                    <span className="text-slate-600 text-xs w-3 text-right">{i + 1}</span>
+                    <span className={`font-semibold truncate ${s.nation === 'England' ? 'text-amber-200' : 'text-white'}`}>{s.name}</span>
+                    <span className="text-slate-500 text-xs truncate">{s.nation}</span>
+                  </span>
+                  <span className="text-slate-400 text-xs tabular-nums shrink-0">
+                    <span className="text-white font-bold">{s.goals}</span>
+                    {s.assists > 0 && <span className="text-slate-500"> · {s.assists}</span>}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {assists.length > 0 && (
+              <div className="mt-2 pt-2 border-t border-white/8 text-xs text-slate-500">
+                Most assists: {assists.map(a => `${a.name} (${a.assists})`).join(' · ')}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="fixed bottom-4 left-4 right-4 z-30 max-w-md mx-auto">
+          <button
+            onClick={() => setPhase('team-sheet')}
+            className="w-full bg-amber-400 text-slate-900 font-black text-lg py-4 rounded-2xl active:scale-95 transition-all shadow-2xl"
+          >
+            {isFinalNext ? 'To the Final →' : `On to the ${ROUND_LABELS[roundType] ?? roundType} →`}
+          </button>
+        </div>
       </div>
     )
   }

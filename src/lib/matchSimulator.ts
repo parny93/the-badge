@@ -3,6 +3,7 @@ import { Formation } from '@/types'
 import { calculateTeamStrength } from './teamStrength'
 import { Manager } from '@/data/managers'
 import { penaltyRating } from '@/data/playerTags'
+import { oppScorer, oppKeeper, oppDefender } from '@/data/opponentStars'
 import { ENGLAND_PLAYERS } from '@/data/players'
 import { displaySurname } from './names'
 import { rand } from './rng'
@@ -257,18 +258,24 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
     })
   }
 
-  // Add opponent goal moments
-  const OPP_GOAL_LINES = [
-    `${opponent} find the net — England must respond now`,
-    `${opponent} score — this is a setback, but England have been here before`,
-    `${opponent} go ahead — the Three Lions need to dig deep`,
-    `${opponent} punish England — a reminder this won't be easy`,
-    `${opponent} with a clinical finish — England chasing the game`,
-  ]
+  // Add opponent goal moments — credited to a real, era-appropriate scorer
+  // for the nation when we have one ("Mbappé finishes for France").
   for (const min of oppGoalSlots) {
+    const scorer = oppScorer(opponent, wcYear)
+    const lines = scorer ? [
+      `${scorer} finishes for ${opponent} — England must respond now`,
+      `${scorer} strikes — ${opponent} go ahead and the Three Lions need to dig deep`,
+      `${scorer} punishes England — a reminder this won't be easy`,
+      `${scorer} with a clinical finish for ${opponent} — England chasing the game`,
+    ] : [
+      `${opponent} find the net — England must respond now`,
+      `${opponent} score — a setback, but England have been here before`,
+      `${opponent} go ahead — the Three Lions need to dig deep`,
+      `${opponent} punish England — a reminder this won't be easy`,
+    ]
     moments.push({
       minute: min,
-      text: OPP_GOAL_LINES[Math.floor(rand() * OPP_GOAL_LINES.length)],
+      text: lines[Math.floor(rand() * lines.length)],
       type: 'goal',
       team: 'opponent',
     })
@@ -285,13 +292,29 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
     const roll = rand()
 
     if (roll < 0.20) {
-      // Big save
-      moments.push({ minute: min, text: englandSaveMoment(englandSquad), type: 'save' })
+      // Big save — sometimes the OPPOSITION keeper denies England by name.
+      const oppGK = oppKeeper(opponent, wcYear)
+      const fwdS = randomAttacker(englandSquad, ['ST', 'LW', 'RW', 'CAM', 'RM', 'LM'])
+      if (oppGK && rand() < 0.5) {
+        const eName = fwdS ? displaySurname(fwdS.name) : 'England'
+        moments.push({
+          minute: min,
+          text: `${oppGK} flings himself across to deny ${eName} — ${opponent}'s keeper stands tall`,
+          type: 'save',
+        })
+      } else {
+        moments.push({ minute: min, text: englandSaveMoment(englandSquad), type: 'save' })
+      }
     } else if (roll < 0.38) {
-      // Miss
+      // Miss — occasionally an opposition defender throws himself in the way.
       const fwd = randomAttacker(englandSquad, ['ST', 'LW', 'RW', 'CAM', 'RM', 'LM'])
       const surname = fwd ? displaySurname(fwd.name) : 'England'
-      moments.push({ minute: min, text: `${surname} ${pick(MISS)}`, type: 'miss' })
+      const oppDef = oppDefender(opponent, wcYear)
+      if (oppDef && rand() < 0.35) {
+        moments.push({ minute: min, text: `${oppDef} throws himself in front of ${surname}'s effort — vital ${opponent} block`, type: 'miss' })
+      } else {
+        moments.push({ minute: min, text: `${surname} ${pick(MISS)}`, type: 'miss' })
+      }
     } else if (roll < 0.52) {
       // Hit the post / bar
       const fwd2 = randomAttacker(englandSquad, ['ST', 'LW', 'RW', 'CAM', 'RM', 'LM'])
