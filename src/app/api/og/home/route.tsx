@@ -6,6 +6,18 @@ export const dynamic = 'force-static'
 const GOLD = '#fbbf24'
 const BG = '#0c1420'
 
+// A St George's cross drawn with divs — robust in next/og where emoji fonts
+// (especially the England subdivision-flag emoji) can't be relied on at render.
+function StGeorge({ width, height }: { width: number; height: number }) {
+  const bar = Math.round(height * 0.18)
+  return (
+    <div style={{ display: 'flex', position: 'relative', width, height, background: 'white', borderRadius: 4 }}>
+      <div style={{ position: 'absolute', left: (width - bar) / 2, top: 0, width: bar, height, background: '#ce1124' }} />
+      <div style={{ position: 'absolute', top: (height - bar) / 2, left: 0, height: bar, width, background: '#ce1124' }} />
+    </div>
+  )
+}
+
 // The graphic that unfurls when a link to the game itself is shared — a bold
 // 1200×630 hero so a posted thebadge.app link looks the part on X / socials.
 export async function GET() {
@@ -35,9 +47,10 @@ export async function GET() {
         <div style={{ position: 'absolute', left: 0, top: 315, width: 1200, height: 2, background: 'rgba(255,255,255,0.06)' }} />
         <div style={{ position: 'absolute', left: 480, top: 195, width: 240, height: 240, border: '2px solid rgba(255,255,255,0.06)', borderRadius: 240 }} />
 
-        {/* Flag + wordmark */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-          <div style={{ display: 'flex', fontSize: 64 }}>🏴󠁧󠁢󠁥󠁮󠁧󠁿</div>
+        {/* Flag + wordmark — the flag is drawn, not an emoji, so the image
+            never depends on emoji fonts being fetchable at render time. */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
+          <StGeorge width={84} height={56} />
           <div style={{ display: 'flex', fontSize: 78, fontWeight: 900, letterSpacing: 8, color: GOLD }}>
             THE BADGE
           </div>

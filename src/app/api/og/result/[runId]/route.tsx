@@ -9,6 +9,19 @@ export const dynamic = 'force-dynamic'
 const GOLD = '#fbbf24'
 const BG = '#0c1420'
 
+// St George's cross drawn with divs — avoids depending on emoji fonts (the
+// England subdivision-flag emoji fails to render in next/og on some runtimes,
+// which breaks the whole card on Twitter).
+function StGeorge({ width, height }: { width: number; height: number }) {
+  const bar = Math.round(height * 0.18)
+  return (
+    <div style={{ display: 'flex', position: 'relative', width, height, background: 'white', borderRadius: 3 }}>
+      <div style={{ position: 'absolute', left: (width - bar) / 2, top: 0, width: bar, height, background: '#ce1124' }} />
+      <div style={{ position: 'absolute', top: (height - bar) / 2, left: 0, height: bar, width, background: '#ce1124' }} />
+    </div>
+  )
+}
+
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ runId: string }> }
@@ -118,7 +131,7 @@ export async function GET(
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ display: 'flex', fontSize: 26 }}>🏴󠁧󠁢󠁥󠁮󠁧󠁿</div>
+            <StGeorge width={40} height={27} />
             <div style={{ display: 'flex', fontSize: 26, fontWeight: 800, letterSpacing: 4, color: GOLD }}>THE BADGE</div>
           </div>
 
