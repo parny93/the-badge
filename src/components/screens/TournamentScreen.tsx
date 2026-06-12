@@ -6,7 +6,7 @@ import {
   nextOpponent, nextRoundType,
 } from '@/lib/tournament'
 import { topScorers, topAssists } from '@/lib/tournamentStats'
-import { AvailabilityEvent, rollAvailabilityEvents, injectEventMoments } from '@/lib/matchEvents'
+import { AvailabilityEvent, rollAvailabilityEvents } from '@/lib/matchEvents'
 import { calculateTeamStrength, FORMATIONS } from '@/lib/teamStrength'
 import { Manager } from '@/data/managers'
 import { getTeamRating } from '@/data/teamRatings'
@@ -106,12 +106,12 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
   const kickOff = useCallback(() => {
     if (!run || run.stage === 'done') return
     clearTimer()
-    const { run: nextRun, match: m, roundType } = playNextEnglandMatch(
-      run, squad, formation, { manager, captainId, bench, realFixtures }
-    )
-    // Injuries / suspensions — rolled per match, woven into the feed.
+    // Roll injuries / sendings-off FIRST so the match feed knows who's left the
+    // pitch — a sent-off player can't then score or hit the post.
     const events = rollAvailabilityEvents(squad)
-    injectEventMoments(m, events)
+    const { run: nextRun, match: m, roundType } = playNextEnglandMatch(
+      run, squad, formation, { manager, captainId, bench, realFixtures, availabilityEvents: events }
+    )
     pendingEvents.current = events
 
     setRun(nextRun)

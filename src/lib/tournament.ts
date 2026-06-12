@@ -46,6 +46,7 @@ export interface TournamentContext {
   captainId?: string | null
   bench?: (RatedPlayer | null)[]
   realFixtures?: boolean
+  availabilityEvents?: import('./matchEvents').AvailabilityEvent[]
 }
 
 // In real-fixtures mode, force England's bracket pair to the actual historical

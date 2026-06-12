@@ -6,6 +6,7 @@ import { Manager } from '@/data/managers'
 import { penaltyRating } from '@/data/playerTags'
 import { oppScorer, oppKeeper, oppDefender } from '@/data/opponentStars'
 import { rollEasterEggs } from '@/data/easterEggs'
+import { AvailabilityEvent } from './matchEvents'
 import { bizarreSpark } from './spark'
 import { ENGLAND_PLAYERS } from '@/data/players'
 import { displaySurname } from './names'
@@ -89,12 +90,13 @@ const CARD_ENG = [
   'yellow card — he\'ll know better than that. Won\'t he.',
 ]
 
+// {N} = opponent nation, so cards read "Red card for Paraguay", not "the opponent".
 const CARD_OPP = [
-  'the opposition are reduced to ten men — England have a chance now',
-  'red card for the opponent — a reckless lunge right in front of the referee',
-  'a cynical foul — the referee reaches for red. England surge forward.',
-  'yellow card for simulation — the crowd let him know exactly what they think',
-  'ten men now — just like 1998, England must make their advantage count',
+  '{N} are reduced to ten men — England have a chance now',
+  'Red card for {N} — a reckless lunge right in front of the referee',
+  'A cynical foul — the referee reaches for red. {N} are down a man, England surge forward.',
+  'Yellow card for {N} for simulation — the crowd let him know exactly what they think',
+  'Ten men for {N} now — just like 1998, England must make their advantage count',
 ]
 
 const VAR = [
@@ -196,11 +198,21 @@ export interface SimMatchInput {
   manager?: Manager
   captainId?: string | null
   bench?: (RatedPlayer | null)[]
+  availabilityEvents?: AvailabilityEvent[]   // injuries / sendings-off this match
 }
 
 export function simulateMatch(input: SimMatchInput): MatchResult {
   const { englandSquad, englandFormation, opponent, wcYear, isKnockout, manager, captainId, bench } = input
   const round = input.round ?? (isKnockout ? 'QF' : 'Group')
+
+  // A player sent off or injured at minute M is OFF for the rest of the match —
+  // he must not then score, hit the post or take a penalty. availableAt() gives
+  // the players still on the pitch at a given minute.
+  const events = input.availabilityEvents ?? []
+  const exitMin = new Map<string, number>()
+  for (const e of events) exitMin.set(e.playerId, e.minute)
+  const availableAt = (minute: number): (RatedPlayer | null)[] =>
+    englandSquad.map(p => (p && exitMin.has(p.id) && minute >= exitMin.get(p.id)!) ? null : p)
 
   // Iconic scripted moments for this exact fixture (Hand of God, Zidane red…).
   const scripted = iconicFor(wcYear, opponent, round)
@@ -273,11 +285,21 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
     else                            moments.push({ minute: s.minute, text: s.text, type: 'info' })
   }
 
-  // Add England goal moments
+  // Injuries / sendings-off — woven in at their minute; the player is then off.
+  for (const e of events) {
+    moments.push({
+      minute: e.minute,
+      text: e.text,
+      type: e.type === 'red' ? 'card' : 'info',
+      team: 'england',
+    })
+  }
+
+  // Add England goal moments (scorer must still be on the pitch at that minute)
   for (const min of engGoalSlots) {
     moments.push({
       minute: min,
-      text: englandGoalMoment(englandSquad),
+      text: englandGoalMoment(availableAt(min)),
       type: 'goal',
       team: 'england',
     })
@@ -319,7 +341,7 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
     if (roll < 0.20) {
       // Big save — sometimes the OPPOSITION keeper denies England by name.
       const oppGK = oppKeeper(opponent, wcYear)
-      const fwdS = randomAttacker(englandSquad, ['ST', 'LW', 'RW', 'CAM', 'RM', 'LM'])
+      const fwdS = randomAttacker(availableAt(min), ['ST', 'LW', 'RW', 'CAM', 'RM', 'LM'])
       if (oppGK && rand() < 0.5) {
         const eName = fwdS ? displaySurname(fwdS.name) : 'England'
         moments.push({
@@ -328,11 +350,11 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
           type: 'save',
         })
       } else {
-        moments.push({ minute: min, text: englandSaveMoment(englandSquad), type: 'save' })
+        moments.push({ minute: min, text: englandSaveMoment(availableAt(min)), type: 'save' })
       }
     } else if (roll < 0.38) {
       // Miss — occasionally an opposition defender throws himself in the way.
-      const fwd = randomAttacker(englandSquad, ['ST', 'LW', 'RW', 'CAM', 'RM', 'LM'])
+      const fwd = randomAttacker(availableAt(min), ['ST', 'LW', 'RW', 'CAM', 'RM', 'LM'])
       const surname = fwd ? displaySurname(fwd.name) : 'England'
       const oppDef = oppDefender(opponent, wcYear)
       if (oppDef && rand() < 0.35) {
@@ -342,7 +364,7 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
       }
     } else if (roll < 0.52) {
       // Hit the post / bar
-      const fwd2 = randomAttacker(englandSquad, ['ST', 'LW', 'RW', 'CAM', 'RM', 'LM'])
+      const fwd2 = randomAttacker(availableAt(min), ['ST', 'LW', 'RW', 'CAM', 'RM', 'LM'])
       const surname2 = fwd2 ? displaySurname(fwd2.name) : 'England'
       moments.push({ minute: min, text: `${surname2} ${pick(POST)}`, type: 'post' })
     } else if (roll < 0.62) {
@@ -352,8 +374,8 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
         // Red card for England (uncommon, dramatic)
         moments.push({ minute: min, text: pick(CARD_ENG), type: 'card', team: 'england' })
       } else if (cardRoll < 0.40) {
-        // Red card for opponent
-        moments.push({ minute: min, text: pick(CARD_OPP), type: 'card', team: 'opponent' })
+        // Red card for the opponent — named ("Red card for Paraguay")
+        moments.push({ minute: min, text: pick(CARD_OPP).replace('{N}', opponent), type: 'card', team: 'opponent' })
       } else {
         // Yellow (less dramatic, still notable)
         moments.push({ minute: min, text: 'a yellow card shown — passions running high', type: 'card' })
@@ -370,13 +392,13 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
         moments.push({ minute: min, text: pick(VAR), type: 'info' })
       } else {
         // Fall through to a chance if we've exhausted the atmosphere deck.
-        const fwd0 = randomAttacker(englandSquad, ['ST', 'LW', 'RW', 'CAM', 'RM', 'LM'])
+        const fwd0 = randomAttacker(availableAt(min), ['ST', 'LW', 'RW', 'CAM', 'RM', 'LM'])
         const s0 = fwd0 ? displaySurname(fwd0.name) : null
         moments.push({ minute: min, text: s0 ? `${s0} — ${pick(CHANCE)}` : pick(CHANCE), type: 'chance' })
       }
     } else {
       // Chance / atmosphere
-      const fwd3 = randomAttacker(englandSquad, ['ST', 'LW', 'RW', 'CAM', 'RM', 'LM'])
+      const fwd3 = randomAttacker(availableAt(min), ['ST', 'LW', 'RW', 'CAM', 'RM', 'LM'])
       const surname3 = fwd3 ? displaySurname(fwd3.name) : null
       const text = surname3 ? `${surname3} — ${pick(CHANCE)}` : pick(CHANCE)
       moments.push({ minute: min, text, type: 'chance' })
@@ -422,20 +444,23 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
 
     moments.push({ minute: 120, text: pick(PENS_BUILD), type: 'info' })
 
+    // Only players still on the pitch after 120 minutes can take a penalty —
+    // nobody sent off or injured earlier steps up.
+    const onPitch = availableAt(121)
     // Penalty shootout simulation — each kick is a moment
-    const gk = englandSquad.find(p => p?.positions[0] === 'GK') as RatedPlayer | undefined
+    const gk = onPitch.find(p => p?.positions[0] === 'GK') as RatedPlayer | undefined
     const gkFactor   = gk   ? gk.ratingAtYear   / 90  : 0.80
-    // The actual armband holder steadies the shootout; falls back to the
-    // best-rated player when no captain was named.
+    // The actual armband holder steadies the shootout (if he's still on);
+    // otherwise the best-rated player available.
     const captain    = (captainId
-      ? englandSquad.find(p => p?.id === captainId)
-      : undefined) ?? (englandSquad.filter(Boolean) as RatedPlayer[])
+      ? onPitch.find(p => p?.id === captainId)
+      : undefined) ?? (onPitch.filter(Boolean) as RatedPlayer[])
       .sort((a, b) => b.ratingAtYear - a.ratingAtYear)[0]
     const capFactor  = captain ? captain.ratingAtYear / 100 : 0.80
 
     // Takers step up in penalty-rating order — the derived blend of goal
     // threat per cap, shooting and the known-takers list.
-    const rankedTakers = (englandSquad.filter(Boolean) as RatedPlayer[])
+    const rankedTakers = (onPitch.filter(Boolean) as RatedPlayer[])
       .filter(p => p.positions[0] !== 'GK')
       .sort((a, b) => penaltyRating(b) - penaltyRating(a))
     const top5 = rankedTakers.slice(0, 5)
