@@ -6,6 +6,7 @@ import { familiarity } from '@/lib/chemistry'
 import { getDraftPool, canPlaySlot } from '@/lib/playerPool'
 import { weightedDraw, rollRunState, RunState, TIER_SHARES, SILVER_SHARES, GOLDEN_SHARES } from '@/lib/draftWeights'
 import { displaySurname } from '@/lib/names'
+import { ratingStyle } from '@/lib/ratingColor'
 import { rand } from '@/lib/rng'
 import FormationDisplay from '@/components/ui/FormationDisplay'
 
@@ -240,8 +241,6 @@ export default function DraftScreen({ formation, squad, bench, difficultyLevel, 
     return familiarity(chosen, slots[slotIndex].position) >= 0.9 ? 'good' : 'oop'
   }
 
-  const ratingColor = (r: number) =>
-    r >= 88 ? 'text-yellow-400' : r >= 82 ? 'text-emerald-400' : 'text-sky-400'
 
   return (
     <div className="min-h-screen px-4 py-4 pb-32 flex flex-col gap-4">
@@ -481,11 +480,14 @@ export default function DraftScreen({ formation, squad, bench, difficultyLevel, 
                             &rsquo;{String(p.peakYear).slice(2)}
                           </div>
                         </div>
-                      ) : (
-                        <div className={`text-2xl font-black ${ratingColor(p.ratingAtYear)}`}>
-                          {p.ratingAtYear}
-                        </div>
-                      )}
+                      ) : (() => {
+                        const rs = ratingStyle(p.peakRating, p.ratingAtYear)
+                        return (
+                          <div className="text-2xl font-black" style={{ color: rs.color, textShadow: rs.textShadow }}>
+                            {p.ratingAtYear}
+                          </div>
+                        )
+                      })()}
                       <div className="text-slate-600 text-sm">→</div>
                     </div>
                   </button>

@@ -3,6 +3,7 @@ import { Formation, GameAction, GameMode, RatedPlayer } from '@/types'
 import FormationDisplay from '@/components/ui/FormationDisplay'
 import ChemistryPanel from '@/components/ui/ChemistryPanel'
 import { calculateTeamStrength } from '@/lib/teamStrength'
+import { ratingStyle } from '@/lib/ratingColor'
 
 interface Props {
   mode: GameMode
@@ -107,12 +108,10 @@ export default function SquadReviewScreen({ mode, squadYear, formation, squad, c
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-500">Age {player.ageAtYear}</span>
-                  <span className={`font-bold text-sm ${
-                    player.ratingAtYear >= 88 ? 'text-yellow-400' :
-                    player.ratingAtYear >= 82 ? 'text-emerald-400' :
-                    player.ratingAtYear >= 75 ? 'text-sky-400' :
-                    'text-slate-400'
-                  }`}>{player.ratingAtYear}</span>
+                  {(() => {
+                    const rs = ratingStyle(player.peakRating, player.ratingAtYear)
+                    return <span className="font-bold text-sm" style={{ color: rs.color, textShadow: rs.textShadow }}>{player.ratingAtYear}</span>
+                  })()}
                 </div>
               </button>
             )

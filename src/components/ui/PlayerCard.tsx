@@ -1,6 +1,7 @@
 'use client'
 import { RatedPlayer } from '@/types'
 import { TREND_ARROW, TREND_COLOUR } from '@/lib/agingCurve'
+import { ratingStyle } from '@/lib/ratingColor'
 
 interface Props {
   player: RatedPlayer
@@ -14,11 +15,7 @@ export default function PlayerCard({ player, selected, onClick, showAge = true, 
   const arrow = TREND_ARROW[player.trend]
   const colour = TREND_COLOUR[player.trend]
 
-  const ratingColour =
-    player.ratingAtYear >= 88 ? 'text-yellow-400' :
-    player.ratingAtYear >= 82 ? 'text-emerald-400' :
-    player.ratingAtYear >= 75 ? 'text-sky-400' :
-    'text-slate-400'
+  const rs = ratingStyle(player.peakRating, player.ratingAtYear)
 
   return (
     <button
@@ -59,10 +56,15 @@ export default function PlayerCard({ player, selected, onClick, showAge = true, 
             </>
           ) : (
             <>
-              <div className={`text-2xl font-black leading-none ${ratingColour}`}>
+              <div
+                className="text-2xl font-black leading-none"
+                style={{ color: rs.color, textShadow: rs.textShadow }}
+              >
                 {player.ratingAtYear}
               </div>
-              <div className="text-xs text-slate-500 mt-0.5">{player.peakRating} peak</div>
+              <div className="text-xs text-slate-500 mt-0.5">
+                {rs.icon ? 'ICON' : `${player.peakRating} peak`}
+              </div>
             </>
           )}
         </div>

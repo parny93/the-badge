@@ -2,6 +2,7 @@
 import { RatedPlayer, Formation } from '@/types'
 import { FORMATIONS } from '@/lib/teamStrength'
 import { displaySurname } from '@/lib/names'
+import { ratingStyle } from '@/lib/ratingColor'
 
 interface Props {
   squad: (RatedPlayer | null)[]
@@ -169,20 +170,25 @@ export default function FormationDisplay({ squad, formation, activeIndex, onSele
               )}
             </div>
 
-            {/* Rating badge (non-compact only) */}
-            {!compact && isFilled && (
-              <span
-                className="text-white text-center font-bold leading-none rounded px-1.5 py-0.5"
-                style={{
-                  fontSize: 9,
-                  maxWidth: 52,
-                  background: 'rgba(0,0,0,0.55)',
-                  backdropFilter: 'blur(2px)',
-                }}
-              >
-                {player.ratingAtYear}
-              </span>
-            )}
+            {/* Rating badge (non-compact only) — coloured by tier */}
+            {!compact && isFilled && (() => {
+              const rs = ratingStyle(player.peakRating, player.ratingAtYear)
+              return (
+                <span
+                  className="text-center font-black leading-none rounded px-1.5 py-0.5"
+                  style={{
+                    fontSize: 9,
+                    maxWidth: 52,
+                    color: rs.color,
+                    textShadow: rs.textShadow,
+                    background: 'rgba(0,0,0,0.6)',
+                    backdropFilter: 'blur(2px)',
+                  }}
+                >
+                  {player.ratingAtYear}
+                </span>
+              )
+            })()}
           </div>
         )
       })}
