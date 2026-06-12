@@ -6,6 +6,7 @@ import { Manager } from '@/data/managers'
 import { penaltyRating } from '@/data/playerTags'
 import { oppScorer, oppKeeper, oppDefender } from '@/data/opponentStars'
 import { rollEasterEggs } from '@/data/easterEggs'
+import { bizarreSpark } from './spark'
 import { ENGLAND_PLAYERS } from '@/data/players'
 import { displaySurname } from './names'
 import { rand } from './rng'
@@ -386,6 +387,16 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
   // one — but not every match; a line a game wore thin fast.
   if (atmoCursor === 0 && atmoDeck.length > 0 && rand() < 0.4) {
     moments.push({ minute: 1 + Math.floor(rand() * 88), text: atmoDeck[0], type: 'info' })
+  }
+
+  // ── Bizarre spark — when a random link clicks, the commentary notices ──────
+  const spark = bizarreSpark(englandSquad)
+  if (spark) {
+    moments.push({
+      minute: 15 + Math.floor(rand() * 60),
+      text: `Where on earth has THIS come from? ${spark.hero} and ${spark.partner} have struck up the most bizarre understanding — nobody saw this coming.`,
+      type: 'info',
+    })
   }
 
   // ── Random easter eggs — Suárez's bite, Šimunić's yellows, the lot ─────────

@@ -4,7 +4,7 @@ import {
 } from '@/types'
 import { displaySurname } from './names'
 import { clubOf } from '@/data/playerClubs'
-import { sparkFor } from './spark'
+import { activeLinkups } from './spark'
 
 // ─── Position coordinates (kept for familiarity() used by teamStrength.ts) ──
 
@@ -237,16 +237,17 @@ export function analyzeChemistry(
   // Cap the club contribution so it complements, not replaces, position fit.
   bonus += Math.min(24, clubBonus)
 
-  // ── Spark link-up — a limited player playing out of his skin ────────────────
-  const spark = sparkFor(squad)
-  if (spark) {
-    bonus += Math.round(spark.boost * 0.35)
-    attackMod += 2
-    defenseMod += 1
-    notes.push({
-      type: 'good',
-      text: `${spark.hero} and ${spark.partner} have struck up something special — ${spark.hero} is playing the game of his life`,
-    })
+  // ── Link-ups & sparks — documented partnerships and the odd random spark ────
+  for (const link of activeLinkups(squad)) {
+    if (link.positive) {
+      bonus += Math.round(link.boost * 0.35)
+      attackMod += 2
+      defenseMod += 1
+    } else {
+      bonus += link.boost            // negative — a misfit costs
+      attackMod -= 1
+    }
+    notes.push({ type: link.positive ? 'good' : 'bad', text: link.note })
   }
 
   // ── 4. CB pace check ──────────────────────────────────────────────────────

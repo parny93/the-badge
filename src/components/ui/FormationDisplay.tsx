@@ -4,7 +4,7 @@ import { FORMATIONS } from '@/lib/teamStrength'
 import { displaySurname } from '@/lib/names'
 import { ratingStyle } from '@/lib/ratingColor'
 import { ratingInPosition } from '@/lib/positionRating'
-import { sparkFor } from '@/lib/spark'
+import { activeLinkups } from '@/lib/spark'
 
 interface Props {
   squad: (RatedPlayer | null)[]
@@ -84,8 +84,11 @@ function PitchMarkings() {
 export default function FormationDisplay({ squad, formation, activeIndex, onSelectSlot, compact, showRatings = true, captainId, flaggedIds }: Props) {
   const slots = FORMATIONS[formation]
   const pitchH = compact ? 260 : 360
-  // A lucky spark lifts one limited player — shown boosted (and gold) here.
-  const spark = sparkFor(squad)
+  // Link-ups & sparks lift certain players — shown boosted (and gold) here.
+  const boosts = new Map<string, number>()
+  for (const link of activeLinkups(squad)) {
+    if (link.positive) boosts.set(link.playerId, (boosts.get(link.playerId) ?? 0) + link.boost)
+  }
 
   return (
     <div
@@ -179,8 +182,9 @@ export default function FormationDisplay({ squad, formation, activeIndex, onSele
                 (a player out of position reads lower), plus any spark boost.
                 Hidden when blind. */}
             {showRatings && isFilled && (() => {
-              const sparked = spark?.playerId === player.id
-              const shown = ratingInPosition(player, slot.position) + (sparked ? spark!.boost : 0)
+              const linkBoost = boosts.get(player.id) ?? 0
+              const sparked = linkBoost > 0
+              const shown = ratingInPosition(player, slot.position) + linkBoost
               const rs = sparked
                 ? { color: '#fbbf24', textShadow: '0 0 10px rgba(251,191,36,0.8)' }
                 : ratingStyle(player.peakRating, shown)
