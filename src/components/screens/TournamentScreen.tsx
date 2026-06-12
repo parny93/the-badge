@@ -1,27 +1,25 @@
 'use client'
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { Formation, GameAction, MatchMoment, MatchResult, RatedPlayer, TournamentResult, WorldCupData } from '@/types'
-import { runTournament } from '@/lib/tournament'
-import { calculateTeamStrength } from '@/lib/teamStrength'
+import { Formation, GameAction, MatchMoment, MatchResult, RatedPlayer, WorldCupData } from '@/types'
+import {
+  TournamentRun, createTournamentRun, playNextEnglandMatch, runResult,
+  nextOpponent, nextRoundType,
+} from '@/lib/tournament'
+import { AvailabilityEvent, rollAvailabilityEvents, injectEventMoments } from '@/lib/matchEvents'
+import { calculateTeamStrength, FORMATIONS } from '@/lib/teamStrength'
 import { Manager } from '@/data/managers'
-import { FORMATIONS } from '@/lib/teamStrength'
 import { getTeamRating } from '@/data/teamRatings'
 import { getLore } from '@/data/tournamentLore'
+import { displaySurname } from '@/lib/names'
+import FormationDisplay from '@/components/ui/FormationDisplay'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface MatchDisplay {
-  match: MatchResult
-  roundLabel: string
-  isKnockout: boolean
-  isGroupFinal: boolean  // last group game
-  isFinal: boolean       // the actual WC Final
-}
-
-type Phase = 'loading' | 'intro' | 'prematch' | 'live' | 'scoreboard'
+type Phase = 'loading' | 'intro' | 'team-sheet' | 'prematch' | 'live' | 'scoreboard'
 
 const ROUND_LABELS: Record<string, string> = {
   Group: 'Group Stage',
+  R32:   'Round of 32',
   R16:   'Round of 16',
   QF:    'Quarter-Final',
   SF:    'Semi-Final',
@@ -54,7 +52,10 @@ const TENSION_LINES = [
   'Not just a game. Never just a game for England.',
 ]
 
-// ─── Props ────────────────────────────────────────────────────────────────────
+interface Unavailability {
+  games: number
+  reason: string
+}
 
 interface Props {
   worldCup: WorldCupData
@@ -69,109 +70,116 @@ interface Props {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function TournamentScreen({ worldCup, squad, formation, manager, captainId, bench, dispatch }: Props) {
+  const [run, setRun]               = useState<TournamentRun | null>(null)
   const [phase, setPhase]           = useState<Phase>('loading')
-  const [matches, setMatches]       = useState<MatchDisplay[]>([])
-  const [matchIdx, setMatchIdx]     = useState(0)
-  const [momentIdx, setMomentIdx]   = useState(0)   // how many moments are visible
-  const [finalResult, setFinalResult] = useState<TournamentResult | null>(null)
+  const [match, setMatch]           = useState<MatchResult | null>(null)
+  const [roundLabel, setRoundLabel] = useState('Group Stage')
+  const [isKnockoutMatch, setIsKnockoutMatch] = useState(false)
+  const [momentIdx, setMomentIdx]   = useState(0)
+  const [unavailable, setUnavailable] = useState<Record<string, Unavailability>>({})
+  const [news, setNews]             = useState<string[]>([])
+  const [selectedSlot, setSelectedSlot] = useState<number | null>(null)
   const [tensionLine]               = useState(() => TENSION_LINES[Math.floor(Math.random() * TENSION_LINES.length)])
 
+  const pendingEvents = useRef<AvailabilityEvent[]>([])
   const timer   = useRef<ReturnType<typeof setTimeout> | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
 
   const clearTimer = () => { if (timer.current) clearTimeout(timer.current) }
 
-  // ── Compute full tournament on mount ──────────────────────────────────────
+  // ── Create the run on mount ────────────────────────────────────────────────
   useEffect(() => {
-    const res = runTournament(worldCup, squad, formation, { manager, captainId, bench })
-
-    const flat: MatchDisplay[] = []
-    const groupRound = res.rounds.find(r => r.type === 'Group')
-    const groupMatches = groupRound?.matches.filter(m => m.home === 'England' || m.away === 'England') ?? []
-
-    res.rounds.forEach(round => {
-      round.matches
-        .filter(m => m.home === 'England' || m.away === 'England')
-        .forEach(m => {
-          flat.push({
-            match: m,
-            roundLabel: ROUND_LABELS[round.type] ?? round.type,
-            isKnockout: round.type !== 'Group',
-            isGroupFinal: round.type === 'Group' && groupMatches.indexOf(m) === groupMatches.length - 1,
-            isFinal: round.type === 'Final',
-          })
-        })
-    })
-
-    setFinalResult(res)
-    setMatches(flat)
-    // Open with a nostalgic tournament intro (when we have lore for the year),
-    // otherwise go straight to the first prematch.
-    const opener: Phase = getLore(worldCup.year) ? 'intro' : 'prematch'
+    setRun(createTournamentRun(worldCup))
+    const opener: Phase = getLore(worldCup.year) ? 'intro' : 'team-sheet'
     timer.current = setTimeout(() => setPhase(opener), 800)
     return clearTimer
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // ── Kick off the next England match with the CURRENT squad ────────────────
+  const kickOff = useCallback(() => {
+    if (!run || run.stage === 'done') return
+    clearTimer()
+    const { run: nextRun, match: m, roundType } = playNextEnglandMatch(
+      run, squad, formation, { manager, captainId, bench }
+    )
+    // Injuries / suspensions — rolled per match, woven into the feed.
+    const events = rollAvailabilityEvents(squad)
+    injectEventMoments(m, events)
+    pendingEvents.current = events
+
+    setRun(nextRun)
+    setMatch(m)
+    setRoundLabel(ROUND_LABELS[roundType] ?? roundType)
+    setIsKnockoutMatch(roundType !== 'Group')
+    setMomentIdx(0)
+    setPhase('prematch')
+  }, [run, squad, formation, manager, captainId, bench])
 
   // ── Prematch → live auto-advance ──────────────────────────────────────────
   useEffect(() => {
     if (phase !== 'prematch') return
     timer.current = setTimeout(() => { setPhase('live'); setMomentIdx(0) }, 2200)
     return clearTimer
-  }, [phase, matchIdx])
+  }, [phase])
 
   // ── Moment drip-feed ──────────────────────────────────────────────────────
   useEffect(() => {
-    if (phase !== 'live') return
-    const m = matches[matchIdx]
-    if (!m) return
-    const total = m.match.moments.length
+    if (phase !== 'live' || !match) return
+    const total = match.moments.length
 
     if (momentIdx < total) {
-      const isPenalty = m.match.moments[momentIdx]?.type === 'penalty'
+      const isPenalty = match.moments[momentIdx]?.type === 'penalty'
       timer.current = setTimeout(() => {
         setMomentIdx(i => i + 1)
-        // scroll to bottom of feed
         scrollRef.current?.scrollTo({ top: 99999, behavior: 'smooth' })
       }, isPenalty ? 1100 : 950)
     } else {
-      // All moments shown → pause for drama then reveal scoreboard
       timer.current = setTimeout(() => setPhase('scoreboard'), 800)
     }
     return clearTimer
-  }, [phase, momentIdx, matchIdx, matches])
+  }, [phase, momentIdx, match])
 
   // ── Skip / tap-through ────────────────────────────────────────────────────
   const skipPhase = useCallback(() => {
     clearTimer()
-    const m = matches[matchIdx]
-    if (!m) return
-
+    if (!match) return
     if (phase === 'prematch') {
       setPhase('live')
       setMomentIdx(0)
     } else if (phase === 'live') {
-      setMomentIdx(m.match.moments.length)
+      setMomentIdx(match.moments.length)
       setPhase('scoreboard')
     }
-    // scoreboard phase: tap does nothing — must use the button
-  }, [phase, matchIdx, matches])
+  }, [phase, match])
 
-  // ── Advance to next match or end ──────────────────────────────────────────
+  // ── Advance: tournament over → result; otherwise next team sheet ──────────
   const advance = useCallback(() => {
     clearTimer()
-    if (!finalResult) return
-
-    if (matchIdx < matches.length - 1) {
-      setMatchIdx(i => i + 1)
-      setMomentIdx(0)
-      setPhase('prematch')
-    } else {
-      dispatch({ type: 'SET_TOURNAMENT', result: finalResult })
+    if (!run) return
+    if (run.stage === 'done') {
+      dispatch({ type: 'SET_TOURNAMENT', result: runResult(run) })
+      return
     }
-  }, [finalResult, matchIdx, matches, dispatch])
+    // Players who sat this match out have served one game; new knocks begin.
+    setUnavailable(prev => {
+      const next: Record<string, Unavailability> = {}
+      for (const [id, u] of Object.entries(prev)) {
+        if (u.games - 1 > 0) next[id] = { ...u, games: u.games - 1 }
+      }
+      for (const e of pendingEvents.current) {
+        next[e.playerId] = { games: e.games, reason: e.type === 'injury' ? 'Injured' : 'Suspended' }
+      }
+      return next
+    })
+    setNews(pendingEvents.current.map(e => e.text))
+    pendingEvents.current = []
+    setSelectedSlot(null)
+    setPhase('team-sheet')
+  }, [run, dispatch])
 
-  // ── Loading screen ────────────────────────────────────────────────────────
-  if (phase === 'loading' || matches.length === 0) {
+  // ── Loading ───────────────────────────────────────────────────────────────
+  if (phase === 'loading' || !run) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-5 px-4">
         <div className="text-5xl animate-spin" style={{ animationDuration: '1.5s' }}>⚽</div>
@@ -180,41 +188,33 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
     )
   }
 
-  // ── Tournament intro — sets the nostalgic scene before the first match ──────
+  // ── Tournament intro — sets the nostalgic scene before the first match ─────
   if (phase === 'intro') {
     const lore = getLore(worldCup.year)!
     const compName = worldCup.competition === 'Euro' ? 'European Championship' : 'World Cup'
     return (
       <div
         className="min-h-screen flex flex-col items-center justify-center gap-6 px-6 py-10 text-center bg-[#0c1420]"
-        onClick={() => { clearTimer(); setPhase('prematch') }}
+        onClick={() => { clearTimer(); setPhase('team-sheet') }}
       >
         <div className="text-amber-400/80 text-xs font-bold uppercase tracking-[0.3em]">
           {compName}
         </div>
-
-        {/* Nickname — the way fans actually say it */}
         <h1 className="text-4xl font-black text-white leading-none">{lore.nickname}</h1>
-
         <div className="inline-flex items-center gap-2 text-slate-400 text-sm">
           <span>{lore.host}</span>
           <span className="text-slate-700">·</span>
           <span>{worldCup.year}</span>
         </div>
-
-        {/* Tagline */}
         <p className="text-amber-200/90 text-base italic leading-relaxed max-w-sm">
           {lore.tagline}
         </p>
-
-        {/* England's story — the iconic headlines */}
         <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4 max-w-sm">
           <div className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-2">
             England&rsquo;s story
           </div>
           <p className="text-slate-200 text-sm leading-relaxed">{lore.englandTale}</p>
         </div>
-
         {worldCup.englandQualified === false && (
           <div className="text-amber-400/70 text-xs">
             {worldCup.englandEntered === false
@@ -222,9 +222,8 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
               : 'England didn’t qualify this year — you’re here on a wildcard. Make it count.'}
           </div>
         )}
-
         <button
-          onClick={(e) => { e.stopPropagation(); clearTimer(); setPhase('prematch') }}
+          onClick={(e) => { e.stopPropagation(); clearTimer(); setPhase('team-sheet') }}
           className="mt-2 bg-amber-400 text-slate-900 font-black text-lg px-8 py-3.5 rounded-2xl active:scale-95 transition-all shadow-[0_0_32px_rgba(251,191,36,0.35)]"
         >
           Begin the Campaign →
@@ -234,25 +233,145 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
     )
   }
 
-  const { match, roundLabel, isKnockout, isFinal } = matches[matchIdx]
-  const opponent     = match.home === 'England' ? match.away : match.home
+  // ── Team sheet — rotate between matches, resolve injuries/suspensions ──────
+  if (phase === 'team-sheet') {
+    const opponent = nextOpponent(run) ?? 'TBD'
+    const roundType = nextRoundType(run) ?? 'Group'
+    const flaggedIds = (squad.filter(Boolean) as RatedPlayer[])
+      .filter(p => unavailable[p.id])
+      .map(p => p.id)
+    const benchPlayers = bench ?? []
+    const slots = FORMATIONS[formation]
+
+    const benchUsable = (b: RatedPlayer | null, slotIndex: number | null): boolean => {
+      if (!b || unavailable[b.id]) return false
+      if (slotIndex === null) return false
+      const slotIsGK = slots[slotIndex]?.position === 'GK'
+      return (b.positions[0] === 'GK') === slotIsGK
+    }
+
+    // Block kick-off only while an unavailable starter has a legal replacement
+    // sitting on the bench.
+    const blockingSlot = squad.findIndex((p, i) =>
+      p && unavailable[p.id] && benchPlayers.some(b => benchUsable(b, i))
+    )
+    const canKickOff = blockingSlot === -1
+
+    return (
+      <div className="min-h-screen px-4 py-5 pb-28 flex flex-col gap-3 bg-[#0c1420]">
+        <div className="text-center">
+          <div className="text-slate-500 text-xs font-bold uppercase tracking-widest">
+            Next · {ROUND_LABELS[roundType] ?? roundType}
+          </div>
+          <div className="text-white font-black text-2xl leading-tight mt-0.5">
+            England v {opponent}
+          </div>
+          <div className="text-slate-600 text-xs mt-0.5">
+            {getTeamRating(opponent, worldCup.year)} OVR opposition · your XI {calculateTeamStrength(squad, formation, { manager, captainId, bench }).overall} OVR
+          </div>
+        </div>
+
+        {/* Treatment-room news from the last match */}
+        {news.length > 0 && (
+          <div className="rounded-xl bg-amber-400/10 border border-amber-400/30 px-3.5 py-2.5 flex flex-col gap-1">
+            {news.map((n, i) => (
+              <p key={i} className="text-amber-300 text-xs leading-snug">{n}</p>
+            ))}
+          </div>
+        )}
+        {flaggedIds.length > 0 && (
+          <p className="text-red-300 text-xs text-center">
+            {flaggedIds.map(id => {
+              const p = (squad.filter(Boolean) as RatedPlayer[]).find(x => x.id === id)!
+              return `${displaySurname(p.name)} (${unavailable[id].reason.toLowerCase()}, ${unavailable[id].games} more)`
+            }).join(' · ')} — tap him, then a replacement below.
+          </p>
+        )}
+
+        <FormationDisplay
+          squad={squad}
+          formation={formation}
+          activeIndex={selectedSlot ?? undefined}
+          onSelectSlot={i => setSelectedSlot(s => s === i ? null : i)}
+          captainId={captainId}
+          flaggedIds={flaggedIds}
+        />
+
+        {/* Bench */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Bench</span>
+            <span className="text-slate-600 text-[10px]">
+              {selectedSlot === null ? 'Tap a starter to rotate' : 'Now tap his replacement'}
+            </span>
+          </div>
+          {benchPlayers.filter(Boolean).length === 0 ? (
+            <p className="text-slate-600 text-xs">No bench drafted — the XI goes again.</p>
+          ) : (
+            <div className="grid grid-cols-4 gap-1.5">
+              {benchPlayers.map((b, bi) => {
+                if (!b) return null
+                const out = !!unavailable[b.id]
+                const usable = benchUsable(b, selectedSlot)
+                return (
+                  <button
+                    key={bi}
+                    disabled={!usable}
+                    onClick={() => {
+                      if (selectedSlot === null) return
+                      dispatch({ type: 'SWAP_PLAYER', slotIndex: selectedSlot, benchIndex: bi })
+                      setSelectedSlot(null)
+                    }}
+                    className={`rounded-lg border px-1.5 py-2 text-center transition-all ${
+                      out ? 'border-red-500/40 bg-red-500/10 opacity-60' :
+                      usable ? 'border-amber-400/60 bg-amber-400/10' :
+                      'border-white/10 bg-white/5 opacity-70'
+                    }`}
+                  >
+                    <div className="text-white text-[11px] font-bold leading-tight truncate">
+                      {displaySurname(b.name)}
+                    </div>
+                    <div className="text-slate-500 text-[9px]">
+                      {out ? unavailable[b.id].reason : `${b.positions[0]} · ${b.ratingAtYear}`}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="fixed bottom-4 left-4 right-4 z-30 max-w-md mx-auto">
+          <button
+            onClick={kickOff}
+            disabled={!canKickOff}
+            className="w-full bg-amber-400 text-slate-900 font-black text-lg py-4 rounded-2xl active:scale-95 transition-all shadow-2xl disabled:opacity-50"
+          >
+            {canKickOff ? 'Kick Off →' : 'Resolve your team sheet first'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Match phases ──────────────────────────────────────────────────────────
+  if (!match) return null
+  const opponent     = match.away
   const oppRating    = getTeamRating(opponent, worldCup.year)
   const engStrength  = calculateTeamStrength(squad, formation, { manager, captainId, bench })
   const visibleMoments = match.moments.slice(0, momentIdx)
 
-  // Running score — derived from visible goal moments
   let engScore = 0, oppScore = 0
   for (const m of visibleMoments) {
     if (m.type === 'goal' && m.team === 'england')   engScore++
     if (m.type === 'goal' && m.team === 'opponent')  oppScore++
   }
-  // In scoreboard phase, show the real final score
   const showFinalScore = phase === 'scoreboard'
   const displayEng = showFinalScore ? match.homeGoals : engScore
   const displayOpp = showFinalScore ? match.awayGoals : oppScore
 
   const engWon  = match.englandWon
-  const isDraw  = !isKnockout && match.homeGoals === match.awayGoals
+  const isDraw  = !isKnockoutMatch && match.homeGoals === match.awayGoals
   const scoreColour =
     showFinalScore
       ? engWon  ? 'text-emerald-400'
@@ -260,9 +379,10 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
         : 'text-red-400'
       : 'text-white'
 
-  // Is this the last match we'll ever see? (knocked out or won)
-  const isEliminated = isKnockout && !engWon
-  const isChampion   = finalResult?.exitRound === 'Winner' && matchIdx === matches.length - 1
+  const done        = run.stage === 'done'
+  const isChampion  = done && run.exitRound === 'Winner'
+  const isEliminated = done && run.exitRound !== 'Winner' && isKnockoutMatch
+  const isFinal     = roundLabel === 'The Final'
 
   return (
     <div
@@ -275,14 +395,12 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
           {worldCup.year} {worldCup.competition === 'Euro' ? 'European Championship' : 'World Cup'} · {worldCup.host.split(' / ')[0]} · {roundLabel}
         </div>
 
-        {/* Teams + score */}
         <div className="flex items-center gap-4 w-full max-w-sm mt-1">
           <div className="flex-1 text-center">
             <div className="text-white font-black text-sm leading-tight">England</div>
             <div className="text-slate-600 text-xs">{engStrength.overall} OVR</div>
           </div>
 
-          {/* Score */}
           <div className="text-center min-w-[72px]">
             {phase === 'prematch' ? (
               <div className="text-slate-400 font-black text-2xl">vs</div>
@@ -323,10 +441,9 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
       {(phase === 'live' || phase === 'scoreboard') && (
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2.5">
           {visibleMoments.map((moment, i) => (
-            <MomentCard key={i} moment={moment} opponent={opponent} />
+            <MomentCard key={i} moment={moment} />
           ))}
 
-          {/* Typing indicator while waiting for next moment */}
           {phase === 'live' && momentIdx < match.moments.length && (
             <div className="flex gap-1 items-center px-3 py-2">
               {[0, 1, 2].map(i => (
@@ -336,7 +453,6 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
             </div>
           )}
 
-          {/* Full time banner once all moments are shown */}
           {phase === 'scoreboard' && (
             <div className="text-center py-2">
               <span className="text-slate-500 text-xs font-bold uppercase tracking-widest">
@@ -350,7 +466,6 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
       {/* ── Scoreboard result panel ──────────────────────────────── */}
       {phase === 'scoreboard' && (
         <div className="px-4 pb-8 pt-2 border-t border-white/8 flex flex-col gap-3">
-          {/* Result verdict */}
           <div className={`rounded-2xl px-4 py-4 text-center ${
             isChampion        ? 'bg-amber-400/20 border border-amber-400/40' :
             isEliminated      ? 'bg-red-500/15 border border-red-500/30' :
@@ -400,18 +515,11 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
                   : 'bg-white/10 text-white'
             }`}
           >
-            {isEliminated || isChampion || (matchIdx === matches.length - 1)
-              ? 'See Full Campaign →'
-              : 'Next Match →'}
+            {done ? 'See Full Campaign →' : 'Next Match →'}
           </button>
-
-          {phase !== 'scoreboard' && (
-            <p className="text-center text-slate-700 text-xs">Tap anywhere to skip</p>
-          )}
         </div>
       )}
 
-      {/* Tap-to-skip hint during live feed */}
       {phase === 'live' && (
         <div className="px-4 pb-3 text-center">
           <p className="text-slate-700 text-xs">Tap to skip</p>
@@ -423,7 +531,7 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
 
 // ─── Moment card ──────────────────────────────────────────────────────────────
 
-function MomentCard({ moment, opponent }: { moment: MatchMoment; opponent: string }) {
+function MomentCard({ moment }: { moment: MatchMoment }) {
   const isEngGoal  = moment.type === 'goal'    && moment.team === 'england'
   const isOppGoal  = moment.type === 'goal'    && moment.team === 'opponent'
   const isPenEng   = moment.type === 'penalty' && moment.team === 'england'
@@ -453,7 +561,6 @@ function MomentCard({ moment, opponent }: { moment: MatchMoment; opponent: strin
     isGoodCard                       ? 'text-amber-300' :
                                        'text-slate-300'
 
-  // Make England goals extra prominent
   const isHighlight = isEngGoal || isOppGoal
 
   return (

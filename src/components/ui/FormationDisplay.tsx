@@ -10,6 +10,7 @@ interface Props {
   onSelectSlot?: (index: number) => void
   compact?: boolean
   captainId?: string | null
+  flaggedIds?: string[]   // injured/suspended — red ring + dimmed
 }
 
 // ─── Pitch markings SVG ───────────────────────────────────────────────────────
@@ -76,7 +77,7 @@ function PitchMarkings() {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function FormationDisplay({ squad, formation, activeIndex, onSelectSlot, compact, captainId }: Props) {
+export default function FormationDisplay({ squad, formation, activeIndex, onSelectSlot, compact, captainId, flaggedIds }: Props) {
   const slots = FORMATIONS[formation]
   const pitchH = compact ? 260 : 360
 
@@ -116,12 +117,16 @@ export default function FormationDisplay({ squad, formation, activeIndex, onSele
         const bottom = `${slot.y}%`
         const size = compact ? 36 : 44
 
+        const isFlagged = isFilled && flaggedIds?.includes(player.id)
+
         // Token ring colour based on state
-        const ringCls = isActive
-          ? 'ring-4 ring-amber-400'
-          : isFilled
-            ? 'ring-2 ring-white/50'
-            : 'ring-2 ring-white/30'
+        const ringCls = isFlagged
+          ? 'ring-4 ring-red-500 opacity-70'
+          : isActive
+            ? 'ring-4 ring-amber-400'
+            : isFilled
+              ? 'ring-2 ring-white/50'
+              : 'ring-2 ring-white/30'
 
         // Token background
         const bgCls = isActive

@@ -157,6 +157,20 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'CONFIRM_BENCH':
       return { ...state, screen: 'manager-pick' }
 
+    case 'SWAP_PLAYER': {
+      // Mid-tournament rotation: starter <-> bench seat. Keepers only swap
+      // with keepers; outfielders only with outfielders.
+      const squad = [...state.squad]
+      const bench = [...state.bench]
+      const starter = squad[action.slotIndex]
+      const sub = bench[action.benchIndex]
+      const slotIsGK = FORMATIONS[state.formation][action.slotIndex]?.position === 'GK'
+      if (sub && (sub.positions[0] === 'GK') !== slotIsGK) return state
+      squad[action.slotIndex] = sub
+      bench[action.benchIndex] = starter
+      return { ...state, squad, bench }
+    }
+
     case 'SELECT_MANAGER':
       // Daily Challenge: the tournament is fixed by the day's seed — skip selection.
       return {

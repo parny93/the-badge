@@ -246,6 +246,7 @@ export type GameAction =
   | { type: 'REMOVE_BENCH'; slotIndex: number }
   | { type: 'SET_BENCH_SLOT'; slotIndex: number }
   | { type: 'CONFIRM_BENCH' }
+  | { type: 'SWAP_PLAYER'; slotIndex: number; benchIndex: number }
   | { type: 'SET_CAPTAIN'; playerId: string }
   | { type: 'SELECT_MANAGER'; managerId: string }
   | { type: 'SELECT_TOURNAMENT'; worldCup: WorldCupData }

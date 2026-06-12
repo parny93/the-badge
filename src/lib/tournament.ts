@@ -269,3 +269,214 @@ function getExpectedKOSize(format: WorldCupData['format']): number {
     default: return 16
   }
 }
+
+// ─── Stepwise tournament engine ───────────────────────────────────────────────
+// Plays England's campaign ONE match at a time so the manager can rotate the
+// squad (and absorb injuries/suspensions) between games. Non-England results
+// are simulated around England's fixtures; the accumulated output is the same
+// TournamentResult shape the rest of the app consumes.
+
+export interface TournamentRun {
+  worldCup: WorldCupData
+  stage: 'group' | 'knockout' | 'done'
+  englandFixtures: string[]
+  groupMatchesPlayed: number
+  standings: GroupTeam[]                                   // England's group
+  otherGroups: { groupName: string; standings: GroupTeam[] }[]
+  knockoutQueue: KnockoutRound[]
+  field: string[]                                          // current knockout field
+  rounds: TournamentRound[]
+  exitRound: TournamentResult['exitRound'] | null
+  groupPosition?: number
+}
+
+function sortStandings(s: GroupTeam[]): void {
+  s.sort((a, b) =>
+    b.points - a.points ||
+    (b.gf - b.ga) - (a.gf - a.ga) ||
+    b.gf - a.gf
+  )
+}
+
+export function createTournamentRun(worldCup: WorldCupData): TournamentRun {
+  const group = worldCup.groups.find(g => g.name === worldCup.englandGroup)!
+  const standings: GroupTeam[] = group.teams.map(name => ({
+    name, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0,
+  }))
+
+  // Pre-play the fixtures that don't involve England (in England's group).
+  const others = group.teams.filter(t => t !== 'England')
+  for (let i = 0; i < others.length; i++) {
+    for (let j = i + 1; j < others.length; j++) {
+      const [gA, gB] = simGroupMatch(others[i], others[j], worldCup.year)
+      const sA = standings.find(s => s.name === others[i])!
+      const sB = standings.find(s => s.name === others[j])!
+      sA.played++; sB.played++
+      sA.gf += gA; sA.ga += gB; sB.gf += gB; sB.ga += gA
+      if (gA > gB) { sA.won++; sA.points += 3; sB.lost++ }
+      else if (gA < gB) { sB.won++; sB.points += 3; sA.lost++ }
+      else { sA.drawn++; sA.points++; sB.drawn++; sB.points++ }
+    }
+  }
+
+  // Other groups play out in full.
+  const otherGroups: TournamentRun['otherGroups'] = []
+  for (const g of worldCup.groups) {
+    if (g.name === worldCup.englandGroup) continue
+    const st: GroupTeam[] = g.teams.map(name => ({
+      name, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0,
+    }))
+    for (let i = 0; i < g.teams.length; i++) {
+      for (let j = i + 1; j < g.teams.length; j++) {
+        const [gA, gB] = simGroupMatch(g.teams[i], g.teams[j], worldCup.year)
+        const sA = st.find(s => s.name === g.teams[i])!
+        const sB = st.find(s => s.name === g.teams[j])!
+        sA.played++; sB.played++
+        sA.gf += gA; sA.ga += gB; sB.gf += gB; sB.ga += gA
+        if (gA > gB) { sA.won++; sA.points += 3; sB.lost++ }
+        else if (gA < gB) { sB.won++; sB.points += 3; sA.lost++ }
+        else { sA.drawn++; sA.points++; sB.drawn++; sB.points++ }
+      }
+    }
+    sortStandings(st)
+    otherGroups.push({ groupName: g.name, standings: st })
+  }
+
+  return {
+    worldCup,
+    stage: 'group',
+    englandFixtures: others,
+    groupMatchesPlayed: 0,
+    standings,
+    otherGroups,
+    knockoutQueue: [...(KNOCKOUT_ROUNDS[worldCup.format] as KnockoutRound[])],
+    field: [],
+    rounds: [{ type: 'Group', matches: [] }],
+    exitRound: null,
+  }
+}
+
+// England's NEXT opponent, for the team-sheet screen.
+export function nextOpponent(run: TournamentRun): string | null {
+  if (run.stage === 'group') return run.englandFixtures[run.groupMatchesPlayed] ?? null
+  if (run.stage === 'knockout') {
+    const idx = run.field.indexOf('England')
+    if (idx === -1) return null
+    const partner = idx % 2 === 0 ? run.field[idx + 1] : run.field[idx - 1]
+    return !partner || partner === 'Unknown' ? 'Rest of the World' : partner
+  }
+  return null
+}
+
+export function nextRoundType(run: TournamentRun): 'Group' | KnockoutRound | null {
+  if (run.stage === 'group') return 'Group'
+  if (run.stage === 'knockout') return run.knockoutQueue[0] ?? null
+  return null
+}
+
+export function playNextEnglandMatch(
+  run: TournamentRun,
+  squad: (RatedPlayer | null)[],
+  formation: Formation,
+  ctx: TournamentContext = {}
+): { run: TournamentRun; match: import('@/types').MatchResult; roundType: 'Group' | KnockoutRound } {
+  const r: TournamentRun = {
+    ...run,
+    standings: run.standings.map(s => ({ ...s })),
+    knockoutQueue: [...run.knockoutQueue],
+    field: [...run.field],
+    rounds: run.rounds.map(round => ({ ...round, matches: [...round.matches] })),
+  }
+
+  if (r.stage === 'group') {
+    const opponent = r.englandFixtures[r.groupMatchesPlayed]
+    const match = simulateMatch({
+      englandSquad: squad, englandFormation: formation,
+      opponent, wcYear: r.worldCup.year, isKnockout: false, ...ctx,
+    })
+    const sE = r.standings.find(s => s.name === 'England')!
+    const sO = r.standings.find(s => s.name === opponent)!
+    const ge = match.homeGoals, go = match.awayGoals
+    sE.played++; sO.played++
+    sE.gf += ge; sE.ga += go; sO.gf += go; sO.ga += ge
+    if (ge > go) { sE.won++; sE.points += 3; sO.lost++ }
+    else if (ge < go) { sO.won++; sO.points += 3; sE.lost++ }
+    else { sE.drawn++; sE.points++; sO.drawn++; sO.points++ }
+
+    r.rounds[0].matches.push(match)
+    r.groupMatchesPlayed++
+
+    if (r.groupMatchesPlayed >= r.englandFixtures.length) {
+      sortStandings(r.standings)
+      const pos = r.standings.findIndex(s => s.name === 'England') + 1
+      r.groupPosition = pos
+      const threshold =
+        r.worldCup.format === '48-team' || r.worldCup.format === 'euro-24-team' ? 3 : 2
+      if (pos > threshold) {
+        r.exitRound = 'Group'
+        r.stage = 'done'
+      } else {
+        // Build the knockout field, England first (mirrors the one-shot engine).
+        let field: string[] = ['England']
+        const allGroups = [
+          { groupName: r.worldCup.englandGroup, standings: r.standings },
+          ...r.otherGroups,
+        ]
+        for (const g of allGroups) {
+          for (const t of g.standings.slice(0, threshold)) {
+            if (t.name !== 'England' && !field.includes(t.name)) field.push(t.name)
+          }
+        }
+        const size = getExpectedKOSize(r.worldCup.format)
+        while (field.length < size) field.push('Unknown')
+        r.field = field.slice(0, size)
+        r.stage = 'knockout'
+      }
+    }
+    return { run: r, match, roundType: 'Group' }
+  }
+
+  // ── Knockout round ────────────────────────────────────────────────────────
+  const roundName = r.knockoutQueue.shift()!
+  let englandMatch: import('@/types').MatchResult | null = null
+  const nextField: string[] = []
+
+  for (let i = 0; i < r.field.length; i += 2) {
+    const teamA = r.field[i]
+    const teamB = r.field[i + 1] ?? 'Unknown'
+    if (teamA === 'England' || teamB === 'England') {
+      const opponent = teamA === 'England' ? teamB : teamA
+      englandMatch = simulateMatch({
+        englandSquad: squad, englandFormation: formation,
+        opponent: opponent === 'Unknown' ? 'Rest of the World' : opponent,
+        wcYear: r.worldCup.year, isKnockout: true, ...ctx,
+      })
+      nextField.push(englandMatch.englandWon ? 'England' : opponent)
+    } else {
+      const winner = teamA === 'Unknown' || teamB === 'Unknown'
+        ? (teamA === 'Unknown' ? teamB : teamA)
+        : simKnockoutOpponent(teamA, teamB, r.worldCup.year)
+      nextField.push(winner)
+    }
+  }
+
+  r.rounds.push({ type: roundName, matches: [englandMatch!] })
+  r.field = nextField
+
+  if (!englandMatch!.englandWon) {
+    r.exitRound = roundName
+    r.stage = 'done'
+  } else if (r.knockoutQueue.length === 0) {
+    r.exitRound = 'Winner'
+    r.stage = 'done'
+  }
+  return { run: r, match: englandMatch!, roundType: roundName }
+}
+
+export function runResult(run: TournamentRun): TournamentResult {
+  return {
+    rounds: run.rounds,
+    exitRound: run.exitRound ?? 'Group',
+    groupPosition: run.groupPosition,
+  }
+}
