@@ -205,9 +205,14 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
   }
   const oppRating   = getTeamRating(opponent, wcYear)
 
+  // Group-stage opposition plays a touch within itself — progression is the
+  // base expectation, and failing the group should trace back to tactical
+  // problems in YOUR squad, not dice. Knockouts get the full swing.
+  const swingBase = isKnockout ? 0.85 : 0.80
+  const swingSpan = isKnockout ? 0.30 : 0.25
   const oppStrength = {
-    attack:  Math.round(oppRating * (0.85 + rand() * 0.30)),
-    defense: Math.round(oppRating * (0.85 + rand() * 0.30)),
+    attack:  Math.round(oppRating * (swingBase + rand() * swingSpan)),
+    defense: Math.round(oppRating * (swingBase + rand() * swingSpan)),
   }
 
   const engLambda = Math.max(0.2, 0.9 + (engStrength.attack - oppStrength.defense) * 0.025)

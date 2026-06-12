@@ -147,6 +147,45 @@ export function calculateTeamStrength(
   let defense = rawDef * 0.7 + gkScore * 0.3 + chemistry.defenseMod
   let chemScore = chemistry.score
 
+  // ── Tactical balance — bad combinations sink good players ────────────────
+  // Getting out of the group should be the base expectation; these are the
+  // self-inflicted wounds that change that.
+  const centralMids = chemistry.players.filter(p => ['CDM', 'CM', 'CAM'].includes(p.slotLabel))
+
+  // No shield in front of the back four (no CDM slot, no destroyer/runner in
+  // central midfield): organised opposition will play through England.
+  const hasShield = centralMids.some(p =>
+    p.slotLabel === 'CDM' || p.style === 'SENTINEL' || p.style === 'DYNAMO'
+  )
+  if (centralMids.length > 0 && !hasShield) {
+    defense -= 5
+    chemScore -= 4
+    chemistry.notes.push({
+      type: 'bad',
+      text: 'Nobody minding the house in midfield — organised sides will cut straight through',
+    })
+  }
+
+  // The Gascoigne + Scholes problem: two or more central mids who are ALL
+  // craft and no graft. Beautiful on the ball, chaos off it.
+  if (centralMids.length >= 2 && centralMids.every(p => ['CONDUCTOR', 'WIZARD', 'SCHEMER'].includes(p.style))) {
+    defense -= 3
+    chemistry.notes.push({
+      type: 'bad',
+      text: 'All craft, no graft through the middle — a wonderful midfield to watch lose the ball',
+    })
+  }
+
+  // Lone-striker weak link: a limited No 9 caps the whole system.
+  const stSlots = rated.filter(r => r.slot.position === 'ST')
+  if (stSlots.length === 1 && stSlots[0].player.ratingAtYear < 80) {
+    attack -= 3
+    chemistry.notes.push({
+      type: 'bad',
+      text: `${displaySurname(stSlots[0].player.name)} is isolated up front — the system lives and dies on his finishing`,
+    })
+  }
+
   // ── Manager bump — flavoured to the gaffer's real tactics ────────────────
   if (ctx.manager) {
     attack += ctx.manager.attackMod
