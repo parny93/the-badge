@@ -536,8 +536,12 @@ function MomentCard({ moment }: { moment: MatchMoment }) {
   const isOppGoal  = moment.type === 'goal'    && moment.team === 'opponent'
   const isPenEng   = moment.type === 'penalty' && moment.team === 'england'
   const isPenOpp   = moment.type === 'penalty' && moment.team === 'opponent'
-  const isBadCard  = moment.type === 'card'    && moment.team === 'england'
-  const isGoodCard = moment.type === 'card'    && moment.team === 'opponent'
+
+  // Colour cards by the card SHOWN, not by team — a red card should never
+  // render in a yellow box. A second yellow / sending-off counts as red.
+  const isCard     = moment.type === 'card'
+  const isRedCard  = isCard && /\bred\b|sent off|second yellow|early bath|ten men|red card/i.test(moment.text)
+  const isYellowCard = isCard && !isRedCard
 
   const bg =
     isEngGoal                        ? 'bg-emerald-500/20 border-emerald-500/40' :
@@ -547,8 +551,8 @@ function MomentCard({ moment }: { moment: MatchMoment }) {
     moment.type === 'save'           ? 'bg-sky-500/15 border-sky-500/30' :
     moment.type === 'post'           ? 'bg-orange-500/10 border-orange-500/20' :
     moment.type === 'miss'           ? 'bg-slate-500/10 border-white/8' :
-    isBadCard                        ? 'bg-red-500/20 border-red-500/40' :
-    isGoodCard                       ? 'bg-amber-500/10 border-amber-500/20' :
+    isRedCard                        ? 'bg-red-500/20 border-red-500/40' :
+    isYellowCard                     ? 'bg-yellow-500/15 border-yellow-500/35' :
                                        'bg-white/5 border-white/8'
 
   const textColour =
@@ -557,10 +561,11 @@ function MomentCard({ moment }: { moment: MatchMoment }) {
     moment.type === 'save'           ? 'text-sky-300' :
     moment.type === 'post'           ? 'text-orange-300' :
     moment.type === 'miss'           ? 'text-slate-400' :
-    isBadCard                        ? 'text-red-300' :
-    isGoodCard                       ? 'text-amber-300' :
+    isRedCard                        ? 'text-red-300' :
+    isYellowCard                     ? 'text-yellow-300' :
                                        'text-slate-300'
 
+  const tag = isRedCard ? 'RED' : isYellowCard ? 'YELLOW' : MOMENT_TAG[moment.type]
   const isHighlight = isEngGoal || isOppGoal
 
   return (
@@ -570,9 +575,9 @@ function MomentCard({ moment }: { moment: MatchMoment }) {
       <span className="text-slate-500 text-xs font-mono tabular-nums shrink-0 mt-0.5 w-7 text-right">
         {moment.minute}'
       </span>
-      {MOMENT_TAG[moment.type] && (
+      {tag && (
         <span className={`text-[9px] font-black tracking-wider shrink-0 mt-1 w-11 ${textColour} opacity-70`}>
-          {MOMENT_TAG[moment.type]}
+          {tag}
         </span>
       )}
       <span className={`text-sm leading-snug font-medium ${textColour} ${

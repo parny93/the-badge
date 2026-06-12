@@ -1,6 +1,7 @@
 import { WorldCupData, TournamentResult, TournamentRound, KnockoutRound, RatedPlayer } from '@/types'
 import { Formation } from '@/types'
 import { simulateMatch } from './matchSimulator'
+import { calculateTeamStrength } from './teamStrength'
 import { Manager } from '@/data/managers'
 import { rand } from './rng'
 import { getTeamRating } from '@/data/teamRatings'
@@ -122,8 +123,11 @@ function runGroup(
 function simKnockoutOpponent(teamA: string, teamB: string, wcYear: number): string {
   const ratingA = getTeamRating(teamA, wcYear)
   const ratingB = getTeamRating(teamB, wcYear)
-  const diff = (ratingA - ratingB) * 0.025
-  const winProbA = 1 / (1 + Math.exp(-diff * 2))
+  // Knockout football rewards the better team more than the group stage — a
+  // steeper coefficient means fewer upset finals (no 75-rated team cruising
+  // the far half of the draw), without making it deterministic.
+  const diff = (ratingA - ratingB) * 0.045
+  const winProbA = 1 / (1 + Math.exp(-diff * 2.2))
 
   const goalsA = poissonSample(Math.max(0.2, 1.0 + diff))
   const goalsB = poissonSample(Math.max(0.2, 1.0 - diff))
@@ -131,6 +135,44 @@ function simKnockoutOpponent(teamA: string, teamB: string, wcYear: number): stri
   if (goalsA !== goalsB) return goalsA > goalsB ? teamA : teamB
   // Penalties
   return rand() < winProbA ? teamA : teamB
+}
+
+// ─── Bracket seeding ──────────────────────────────────────────────────────────
+// Standard single-elimination seed order so the top seeds are spread across
+// the bracket and only meet late: for 8 → [1,8,4,5,2,7,3,6].
+function bracketSeedOrder(size: number): number[] {
+  let pots = [1]
+  while (pots.length < size) {
+    const len = pots.length * 2 + 1
+    const next: number[] = []
+    for (const p of pots) { next.push(p); next.push(len - p) }
+    pots = next
+  }
+  return pots
+}
+
+interface SeedTeam { name: string; rating: number }
+
+// Arrange the knockout field by seeded strength. Stronger qualifiers earn the
+// kinder slots (they meet other giants latest), so better teams reach later
+// rounds more often. A little noise keeps it from being identical every time.
+function buildSeededField(
+  qualifiers: SeedTeam[],
+  size: number,
+  fillPool: SeedTeam[],
+): string[] {
+  const have = new Set(qualifiers.map(q => q.name))
+  const pool = [...qualifiers]
+  for (const t of [...fillPool].sort((a, b) => b.rating - a.rating)) {
+    if (pool.length >= size) break
+    if (!have.has(t.name)) { pool.push(t); have.add(t.name) }
+  }
+  pool.sort((a, b) => (b.rating + (rand() * 4 - 2)) - (a.rating + (rand() * 4 - 2)))
+  const seeds = pool.slice(0, size)
+  const order = bracketSeedOrder(size)
+  const field: string[] = new Array(size)
+  order.forEach((seed, pos) => { field[pos] = seeds[seed - 1]?.name ?? 'Rest of the World' })
+  return field
 }
 
 // ─── Full tournament ──────────────────────────────────────────────────────────
@@ -416,20 +458,35 @@ export function playNextEnglandMatch(
         r.exitRound = 'Group'
         r.stage = 'done'
       } else {
-        // Build the knockout field, England first (mirrors the one-shot engine).
-        let field: string[] = ['England']
+        // Build a SEEDED knockout field. England is rated by its actual XI so
+        // a strong squad earns a kinder draw; group winners get a small bump.
         const allGroups = [
           { groupName: r.worldCup.englandGroup, standings: r.standings },
           ...r.otherGroups,
         ]
+        const engOVR = calculateTeamStrength(squad, formation, ctx).overall
+        const seedOf = (name: string, groupPos: number): SeedTeam => {
+          const base = name === 'England' ? engOVR : getTeamRating(name, r.worldCup.year)
+          return { name, rating: base + (groupPos === 0 ? 3 : 0) } // winners seeded above runners-up
+        }
+        const qualifiers: SeedTeam[] = []
         for (const g of allGroups) {
-          for (const t of g.standings.slice(0, threshold)) {
-            if (t.name !== 'England' && !field.includes(t.name)) field.push(t.name)
+          g.standings.slice(0, threshold).forEach((t, gp) => {
+            if (!qualifiers.some(q => q.name === t.name)) qualifiers.push(seedOf(t.name, gp))
+          })
+        }
+        // Fill pool: everyone NOT already qualified, for the odd format where
+        // qualifiers fall short of the bracket size — strongest names, not 'Unknown'.
+        const fillPool: SeedTeam[] = []
+        for (const g of r.worldCup.groups) {
+          for (const name of g.teams) {
+            if (!qualifiers.some(q => q.name === name) && !fillPool.some(f => f.name === name)) {
+              fillPool.push({ name, rating: name === 'England' ? engOVR : getTeamRating(name, r.worldCup.year) })
+            }
           }
         }
         const size = getExpectedKOSize(r.worldCup.format)
-        while (field.length < size) field.push('Unknown')
-        r.field = field.slice(0, size)
+        r.field = buildSeededField(qualifiers, size, fillPool)
         r.stage = 'knockout'
       }
     }
