@@ -4,7 +4,7 @@ import { Formation, GameAction, GameMode, RatedPlayer, TournamentResult, WorldCu
 import { getLore } from '@/data/tournamentLore'
 import { getManager } from '@/data/managers'
 import { calculateTeamStrength } from '@/lib/teamStrength'
-import { encodeRun, shootoutRecord, tweetLine, resultLine } from '@/lib/runCodec'
+import { encodeRun, shootoutRecord, tweetLine, resultLine, runHighlights } from '@/lib/runCodec'
 import { startProCheckout } from '@/lib/pro'
 import FormationDisplay from '@/components/ui/FormationDisplay'
 
@@ -104,6 +104,8 @@ export default function ResultScreen({ worldCup, squad, formation, result, mode,
     [squad, formation, manager, captainId, bench]
   )
 
+  const highlights = useMemo(() => runHighlights(result), [result])
+
   const runPayload = useMemo(() => ({
     v: 1 as const,
     mode,
@@ -122,13 +124,36 @@ export default function ResultScreen({ worldCup, squad, formation, result, mode,
     bench: bench.filter(Boolean).map(p => p!.id),
     groupPos: result.groupPosition,
     daily: daily ?? undefined,
-  }), [mode, formation, worldCup.year, isEuro, result, strength, pens, squad, hardMode, daily, captainId, managerId, bench])
+    fin: highlights.fin,
+    hl: highlights.hl,
+  }), [mode, formation, worldCup.year, isEuro, result, strength, pens, squad, hardMode, daily, captainId, managerId, bench, highlights])
 
   const runId = useMemo(() => encodeRun(runPayload), [runPayload])
   const runUrl = `https://thebadge.app/run/${runId}`
 
-  const shareToX = () => {
-    const text = `🏴󠁧󠁢󠁥󠁮󠁧󠁿 ${resultLine(runPayload)}\n${tweetLine(runPayload)}`
+  // Share the actual result-card graphic via the native share sheet (mobile +
+  // supporting browsers) — no ugly URL, just the image. Falls back to the X
+  // intent (with a clean line, link last) where file-sharing isn't available.
+  const shareCard = async () => {
+    if (imageBusy) return
+    const text = `${resultLine(runPayload)} — ${tweetLine(runPayload)}`
+    try {
+      setImageBusy(true)
+      const res = await fetch(`/api/og/result/${runId}`)
+      if (res.ok && typeof navigator !== 'undefined' && navigator.canShare) {
+        const blob = await res.blob()
+        const file = new File([blob], `the-badge-${worldCup.year}.png`, { type: blob.type })
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], text: `${text}\nthebadge.app` })
+          return
+        }
+      }
+    } catch {
+      // user cancelled the share sheet, or share unsupported — fall through
+    } finally {
+      setImageBusy(false)
+    }
+    // Desktop / unsupported: X intent. The card unfurls from the run link.
     window.open(
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(runUrl)}`,
       '_blank'
@@ -318,10 +343,11 @@ export default function ResultScreen({ worldCup, squad, formation, result, mode,
       <div className="fixed bottom-4 left-4 right-4 flex flex-col gap-2 z-30">
         <div className="flex gap-2">
           <button
-            onClick={shareToX}
-            className="flex-1 bg-yellow-400 text-slate-900 font-black text-base py-4 rounded-2xl active:scale-95 transition-all shadow-2xl"
+            onClick={shareCard}
+            disabled={imageBusy}
+            className="flex-1 bg-yellow-400 text-slate-900 font-black text-base py-4 rounded-2xl active:scale-95 transition-all shadow-2xl disabled:opacity-60"
           >
-            𝕏 Share to X
+            {imageBusy ? 'Sharing…' : 'Share result'}
           </button>
           <button
             onClick={copyImage}

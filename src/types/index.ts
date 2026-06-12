@@ -156,6 +156,7 @@ export interface MatchMoment {
   text: string
   type: 'goal' | 'save' | 'miss' | 'card' | 'chance' | 'info' | 'post' | 'penalty'
   team?: 'england' | 'opponent'  // present on goal / card / penalty moments
+  tag?: 'egg' | 'iconic'         // standout moments — easter eggs / scripted icons
 }
 
 export interface MatchResult {

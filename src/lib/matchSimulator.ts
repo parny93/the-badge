@@ -394,11 +394,11 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
 
   // Push the scripted iconic moments at their fixed minutes.
   for (const s of scripted) {
-    if (s.kind === 'eng-goal')      moments.push({ minute: s.minute, text: s.text, type: 'goal', team: 'england' })
-    else if (s.kind === 'opp-goal') moments.push({ minute: s.minute, text: s.text, type: 'goal', team: 'opponent' })
-    else if (s.kind === 'eng-red')  moments.push({ minute: s.minute, text: s.text, type: 'card', team: 'england' })
-    else if (s.kind === 'opp-red')  moments.push({ minute: s.minute, text: s.text, type: 'card', team: 'opponent' })
-    else                            moments.push({ minute: s.minute, text: s.text, type: 'info' })
+    if (s.kind === 'eng-goal')      moments.push({ minute: s.minute, text: s.text, type: 'goal', team: 'england', tag: 'iconic' })
+    else if (s.kind === 'opp-goal') moments.push({ minute: s.minute, text: s.text, type: 'goal', team: 'opponent', tag: 'iconic' })
+    else if (s.kind === 'eng-red')  moments.push({ minute: s.minute, text: s.text, type: 'card', team: 'england', tag: 'iconic' })
+    else if (s.kind === 'opp-red')  moments.push({ minute: s.minute, text: s.text, type: 'card', team: 'opponent', tag: 'iconic' })
+    else                            moments.push({ minute: s.minute, text: s.text, type: 'info', tag: 'iconic' })
   }
 
   // Injuries / sendings-off — woven in at their minute; the player is then off.
@@ -541,9 +541,9 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
   for (const egg of rollEasterEggs(opponent, wcYear)) {
     const minute = 20 + Math.floor(rand() * 68)
     if (egg.kind === 'opp-red') {
-      moments.push({ minute, text: egg.text, type: 'card', team: 'opponent' })
+      moments.push({ minute, text: egg.text, type: 'card', team: 'opponent', tag: 'egg' })
     } else {
-      moments.push({ minute, text: egg.text, type: 'info' })
+      moments.push({ minute, text: egg.text, type: 'info', tag: 'egg' })
     }
   }
 

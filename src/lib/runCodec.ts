@@ -24,6 +24,8 @@ export interface RunPayload {
   bench?: string[]        // bench player ids
   groupPos?: number
   daily?: string          // UTC date key when this was a Daily Challenge run
+  fin?: string            // England's defining last match, e.g. "Final: England 1–1 Brazil"
+  hl?: string             // standout moment of the run (easter egg / iconic)
 }
 
 function toB64url(s: string): string {
@@ -77,6 +79,42 @@ export function shootoutRecord(result: TournamentResult): { won: number; lost: n
     }
   }
   return { won, lost }
+}
+
+const ROUND_LABEL: Record<string, string> = {
+  Group: 'Group', R32: 'R32', R16: 'Round of 16', QF: 'Quarter-final', SF: 'Semi-final', Final: 'Final',
+}
+
+// Pull a shareable highlight + the defining last match out of a finished run,
+// so the card can summarise the campaign (and surface any easter-egg moment
+// like the Rooney–Ronaldo wink).
+export function runHighlights(result: TournamentResult): { fin?: string; hl?: string } {
+  const eng = result.rounds.flatMap(r => r.matches
+    .filter(m => m.home === 'England' || m.away === 'England')
+    .map(m => ({ round: r.type as string, m })))
+  if (eng.length === 0) return {}
+
+  // Standout moment: an easter egg first, then a scripted icon.
+  const moments = eng.flatMap(x => x.m.moments)
+  const pick = moments.find(m => m.tag === 'egg') ?? moments.find(m => m.tag === 'iconic')
+  let hl: string | undefined
+  if (pick) {
+    hl = pick.text.replace(/\s+/g, ' ').trim()
+    if (hl.length > 116) hl = hl.slice(0, 113).trimEnd() + '…'
+  }
+
+  // Defining last match — the deepest game England played.
+  const last = eng[eng.length - 1]
+  const m = last.m
+  const oppName = m.home === 'England' ? m.away : m.home
+  const eg = m.home === 'England' ? m.homeGoals : m.awayGoals
+  const og = m.home === 'England' ? m.awayGoals : m.homeGoals
+  const pe = m.home === 'England' ? m.homePenalties : m.awayPenalties
+  const po = m.home === 'England' ? m.awayPenalties : m.homePenalties
+  const pens = m.wentToPenalties && pe !== undefined ? ` (pens ${pe}–${po})` : ''
+  const fin = `${ROUND_LABEL[last.round] ?? last.round}: England ${eg}–${og} ${oppName}${pens}`
+
+  return { fin, hl }
 }
 
 export function eraSpread(squad: (RatedPlayer | null)[]): string {

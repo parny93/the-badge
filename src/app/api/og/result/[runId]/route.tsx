@@ -138,17 +138,17 @@ export async function GET(
           <div
             style={{
               display: 'flex',
-              marginTop: 36,
-              fontSize: won ? 52 : 44,
+              marginTop: 28,
+              fontSize: won ? 50 : 40,
               fontWeight: 900,
-              lineHeight: 1.1,
+              lineHeight: 1.12,
               color: won ? GOLD : 'white',
             }}
           >
             {resultLine(run)}
           </div>
 
-          <div style={{ display: 'flex', marginTop: 14, fontSize: 28, fontStyle: 'italic', color: '#cbd5e1' }}>
+          <div style={{ display: 'flex', marginTop: 16, fontSize: 26, fontStyle: 'italic', color: '#cbd5e1' }}>
             {`“${tweetLine(run)}”`}
           </div>
 
@@ -170,6 +170,18 @@ export async function GET(
               </div>
             )}
           </div>
+
+          {/* Tournament highlights — the defining last match + a standout moment */}
+          {(run.fin || run.hl) && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 26, padding: '16px 20px', borderRadius: 14, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              {run.fin && (
+                <div style={{ display: 'flex', fontSize: 24, fontWeight: 800, color: 'white' }}>{run.fin}</div>
+              )}
+              {run.hl && (
+                <div style={{ display: 'flex', fontSize: 20, color: GOLD, lineHeight: 1.25 }}>{`“${run.hl}”`}</div>
+              )}
+            </div>
+          )}
 
           {/* stat grid */}
           <div style={{ display: 'flex', gap: 14, marginTop: 'auto' }}>
