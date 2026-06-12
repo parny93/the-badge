@@ -68,6 +68,7 @@ export interface PlayerChemEntry {
   name: string
   pips: number           // 0–3 (like FUT chem pip dots)
   style: ChemistryStyle
+  club: string | null    // defining club, for link-up chemistry
   slotLabel: string
 }
 

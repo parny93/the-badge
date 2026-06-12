@@ -1,6 +1,6 @@
 'use client'
 import { ChemistryReport, PlayerChemEntry } from '@/types'
-import { CHEM_LABEL, STYLE_LABEL, STYLE_COLOUR } from '@/lib/chemistry'
+import { CHEM_LABEL } from '@/lib/chemistry'
 import { displaySurname } from '@/lib/names'
 
 // ── Pip dots (like FUT chemistry dots) ────────────────────────────────────────
@@ -29,8 +29,8 @@ function PlayerChemRow({ entry }: { entry: PlayerChemEntry }) {
     <div className="flex items-center gap-2">
       <div className="w-20 text-slate-300 text-xs font-semibold truncate">{surname}</div>
       <PipDots pips={entry.pips} />
-      <div className={`text-xs font-medium ${STYLE_COLOUR[entry.style]}`}>
-        {STYLE_LABEL[entry.style]}
+      <div className="text-xs font-medium text-slate-400 truncate">
+        {entry.club ?? '—'}
       </div>
     </div>
   )

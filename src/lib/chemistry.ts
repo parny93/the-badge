@@ -3,6 +3,7 @@ import {
   ChemistryStyle, PlayerChemEntry, RatedPlayer,
 } from '@/types'
 import { displaySurname } from './names'
+import { clubOf } from '@/data/playerClubs'
 
 // ─── Position coordinates (kept for familiarity() used by teamStrength.ts) ──
 
@@ -208,72 +209,32 @@ export function analyzeChemistry(
     })
   }
 
-  // ── 3. Style synergy bonuses ───────────────────────────────────────────────
+  // ── 3. Club link-ups ───────────────────────────────────────────────────────
+  // Real club blocs gel: the '66 West Ham trio, the Class of '92, the Chelsea
+  // and Liverpool spines, this City side. The bigger the bloc, the bigger the
+  // bonus — and a settled spine tightens the whole team.
   let bonus = 0
-
-  // Synergy A: Defensive foundation (+8)
-  // At least one SENTINEL or RAZOR in the defensive block (CB/FB/CDM)
-  const hasDefenderAnchor = filled.some(sp =>
-    ['CB', 'RB', 'LB'].includes(sp.slot.position) &&
-    (sp.style === 'SENTINEL' || sp.style === 'RAZOR')
-  )
-  const hasMidAnchor = filled.some(sp =>
-    sp.slot.position === 'CDM' ||
-    (sp.slot.position === 'CM' && sp.style === 'SENTINEL')
-  )
-  if (hasDefenderAnchor && hasMidAnchor) {
-    bonus += 8
-    defenseMod += 5
-    notes.push({ type: 'good', text: 'Defensive anchor locked in — the back four is well protected' })
-  } else if (hasDefenderAnchor || hasMidAnchor) {
-    bonus += 4
-    defenseMod += 2
+  const clubCounts = new Map<string, number>()
+  for (const sp of filled) {
+    const club = clubOf(sp.player.id)
+    if (club) clubCounts.set(club, (clubCounts.get(club) ?? 0) + 1)
   }
-
-  // Synergy B: Creative midfield (+8)
-  const centralMids = filled.filter(sp =>
-    ['CDM', 'CM', 'CAM'].includes(sp.slot.position)
-  )
-  const hasCreativeMid = centralMids.some(sp =>
-    ['CONDUCTOR', 'SCHEMER', 'WIZARD'].includes(sp.style)
-  )
-  const hasWorkerMid = centralMids.some(sp =>
-    ['DYNAMO', 'SENTINEL'].includes(sp.style)
-  )
-  if (hasCreativeMid && hasWorkerMid) {
-    bonus += 8
-    attackMod += 3
-    defenseMod += 2
-    notes.push({ type: 'good', text: 'Balanced midfield — craft and graft in equal measure' })
-  } else if (hasCreativeMid) {
-    bonus += 4
-    attackMod += 2
-    notes.push({ type: 'good', text: 'Creative midfielder pulling the strings — this team can unlock anyone' })
-  } else if (centralMids.length >= 2 && !hasCreativeMid) {
+  let clubBonus = 0
+  const blocs = [...clubCounts.entries()].filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1])
+  for (const [club, n] of blocs) {
+    const blocBonus = n === 2 ? 4 : n === 3 ? 9 : n === 4 ? 14 : 18
+    clubBonus += blocBonus
+    defenseMod += Math.min(4, n - 1)
+    attackMod += Math.min(3, n - 1)
     notes.push({
-      type: 'info',
-      text: 'All runners in midfield — dangerous going forward, but exposed when you turn the ball over',
+      type: 'good',
+      text: n >= 4
+        ? `A ${club} core of ${n} — they could play this in their sleep`
+        : `${n} ${club} teammates linking up — the understanding shows`,
     })
   }
-
-  // Synergy C: Forward threat (+8)
-  const attackers = filled.filter(sp =>
-    ['ST', 'RW', 'LW', 'RM', 'LM'].includes(sp.slot.position)
-  )
-  const hasPaceAttack = attackers.some(sp =>
-    sp.style === 'RAPTOR' || sp.style === 'ROCKET'
-  )
-  const hasFocalAttack = attackers.some(sp =>
-    sp.style === 'COLOSSUS' || sp.style === 'TOWER' || sp.style === 'MARKSMAN'
-  )
-  if (hasPaceAttack && hasFocalAttack) {
-    bonus += 8
-    attackMod += 5
-    notes.push({ type: 'good', text: 'Strike force has focal point and pace in behind — defenders face a nightmare' })
-  } else if (hasPaceAttack || hasFocalAttack) {
-    bonus += 4
-    attackMod += 2
-  }
+  // Cap the club contribution so it complements, not replaces, position fit.
+  bonus += Math.min(24, clubBonus)
 
   // ── 4. CB pace check ──────────────────────────────────────────────────────
   const cbs = filled.filter(sp => sp.slot.position === 'CB')
@@ -303,12 +264,13 @@ export function analyzeChemistry(
     notes.push({ type: 'info', text: 'A sensible, well-balanced selection' })
   }
 
-  // ── Per-player chem data (FUT-style) ──────────────────────────────────────
+  // ── Per-player chem data ──────────────────────────────────────────────────
   const players: PlayerChemEntry[] = filled.map(sp => ({
     playerId: sp.player.id,
     name: sp.player.name,
     pips: sp.pips,
     style: sp.style,
+    club: clubOf(sp.player.id),
     slotLabel: sp.slot.label,
   }))
 
