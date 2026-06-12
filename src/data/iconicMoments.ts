@@ -116,6 +116,64 @@ const ICONIC: IconicMatch[] = [
       { minute: 73, text: "Palmer, on as a sub, sweeps it into the bottom corner — England are level in the final! Game on, just like Berlin.", kind: 'eng-goal' },
     ],
   },
+
+  // ─── Iconic England goals ────────────────────────────────────────────────────
+  // 1966 vs Mexico — Bobby Charlton's thunderbolt that opened England up.
+  {
+    year: 1966, opponent: 'Mexico',
+    moments: [
+      { minute: 38, text: 'Charlton strides forward, drops the shoulder and unleashes it from 25 yards — it flies in. Bobby Charlton at his imperious best.', kind: 'eng-goal' },
+    ],
+  },
+  // 1986 vs Poland — Gary Lineker's hat-trick that rescued the campaign.
+  {
+    year: 1986, opponent: 'Poland',
+    moments: [
+      { minute: 35, text: "Lineker pounces in the six-yard box — his third of the half. A hat-trick that saves England's World Cup.", kind: 'eng-goal' },
+    ],
+  },
+  // 1990 R16 vs Belgium — David Platt's last-gasp volley.
+  {
+    year: 1990, opponent: 'Belgium', round: 'R16',
+    moments: [
+      { minute: 119, text: "Gascoigne's free-kick drops, Platt swivels and hooks the volley in with the last kick of extra time! England are through, dramatically.", kind: 'eng-goal' },
+    ],
+  },
+  // Euro 96 vs Scotland — the Gazza goal.
+  {
+    year: 1996, opponent: 'Scotland',
+    moments: [
+      { minute: 79, text: "Gascoigne flicks it over Hendry's head and volleys it past Goram before it lands — THE Gazza goal. Then the dentist's chair.", kind: 'eng-goal' },
+    ],
+  },
+  // Euro 2000 vs Germany — Shearer's header, first competitive win over Germany since '66.
+  {
+    year: 2000, opponent: 'Germany',
+    moments: [
+      { minute: 53, text: "Beckham swings it in, Shearer rises and powers the header home — England's first competitive win over Germany since 1966. Charleroi roars.", kind: 'eng-goal' },
+    ],
+  },
+  // 2002 vs Argentina — Beckham's redemption penalty.
+  {
+    year: 2002, opponent: 'Argentina',
+    moments: [
+      { minute: 44, text: 'Beckham steps up, four years of pain on his shoulders, and smashes the penalty straight down the middle. Redemption. Sapporo erupts.', kind: 'eng-goal' },
+    ],
+  },
+  // Euro 2004 vs Switzerland — the teenage Rooney announces himself.
+  {
+    year: 2004, opponent: 'Switzerland',
+    moments: [
+      { minute: 23, text: 'Rooney, eighteen years old, meets the cross with a thumping header — the youngest scorer in Euros history. A star is born.', kind: 'eng-goal' },
+    ],
+  },
+  // 2018 vs Tunisia — Kane's late, late winner.
+  {
+    year: 2018, opponent: 'Tunisia',
+    moments: [
+      { minute: 91, text: "The corner comes in, it drops to Kane at the back post and he stabs it home in injury time! The captain wins it at the death.", kind: 'eng-goal' },
+    ],
+  },
 ]
 
 export function iconicFor(year: number, opponent: string, round: 'Group' | KnockoutRound): IconicMoment[] {

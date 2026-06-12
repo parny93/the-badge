@@ -159,6 +159,8 @@ const INTL_OVERRIDES: Record<string, { from?: number; to?: number }> = {
   gary_pallister:   { from: 1991, to: 1996 },  // 22 caps
   carlton_palmer:   { from: 1992, to: 1993 },  // 18 caps in 18 months
   jermaine_jenas:   { from: 2003, to: 2009 },  // 21 caps
+  joe_cole:         { from: 2001, to: 2010 },  // 56 caps; 2002/2006/2010 WCs
+  aaron_lennon:     { from: 2006, to: 2013 },  // 21 caps; 2006 & 2010 WCs
   // ── Fringe & overlooked, 1996 onwards ──
   seth_johnson:      { from: 2000, to: 2002 },
   francis_jeffers:   { from: 2001, to: 2004 },

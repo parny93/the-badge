@@ -241,6 +241,7 @@ export default function DraftScreen({ formation, squad, difficultyLevel, respins
           formation={formation}
           activeIndex={phase === 'placing' ? -1 : undefined}
           onSelectSlot={phase === 'placing' ? placeInSlot : undefined}
+          showRatings={!hard}
         />
         {phase === 'placing' && (
           <div className="absolute inset-0 pointer-events-none">

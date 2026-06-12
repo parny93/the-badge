@@ -4,6 +4,7 @@ import { Formation, GameAction, GameMode, RatedPlayer } from '@/types'
 import { FORMATIONS, calculateTeamStrength } from '@/lib/teamStrength'
 import { getEligiblePool } from '@/lib/playerPool'
 import { CHEM_LABEL } from '@/lib/chemistry'
+import { rand } from '@/lib/rng'
 import PlayerCard from '@/components/ui/PlayerCard'
 import FormationDisplay from '@/components/ui/FormationDisplay'
 
@@ -36,15 +37,25 @@ export default function FreePickScreen({ mode, squadYear, formation, squad, pick
     })
     // All-Time XI honours the upfront era range (Manager Mode is already
     // pinned to a single year). Relax rather than dead-end an empty slot.
+    let result = base
     if (mode !== 'manager') {
       const ranged = base.filter(p => {
         const y = Math.max(1950, p.peakYear)
         return y >= yearFrom && y <= yearTo
       })
-      if (ranged.length > 0) return ranged
+      if (ranged.length > 0) result = ranged
     }
-    return base
-  }, [activeSlot.position, squadYear, mode, pickedIds.join(','), yearFrom, yearTo])
+    // Blind (Hard) mode: shuffle so list ORDER can't leak rating — you'd
+    // otherwise just read top-down. Classic keeps the helpful rating sort.
+    if (hardMode) {
+      result = [...result]
+      for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1))
+        ;[result[i], result[j]] = [result[j], result[i]]
+      }
+    }
+    return result
+  }, [activeSlot.position, squadYear, mode, pickedIds.join(','), yearFrom, yearTo, hardMode])
 
   const strength = calculateTeamStrength(squad, formation)
 
@@ -89,6 +100,7 @@ export default function FreePickScreen({ mode, squadYear, formation, squad, pick
         activeIndex={pickIndex}
         onSelectSlot={(i) => dispatch({ type: 'SET_ACTIVE_SLOT', slotIndex: i })}
         compact
+        showRatings={!hardMode}
       />
 
       {/* Active slot indicator */}

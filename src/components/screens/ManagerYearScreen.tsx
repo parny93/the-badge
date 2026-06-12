@@ -18,6 +18,8 @@ const YEARS: { year: number; tournament: string; blurb: string }[] = [
   { year: 1986, tournament: '1986 World Cup', blurb: 'Lineker\'s Golden Boot, Robson, Hoddle' },
   { year: 1990, tournament: '1990 World Cup', blurb: 'Italia \'90 — Gazza, Lineker, Pearce, Waddle' },
   { year: 1996, tournament: 'Euro 96', blurb: 'Football\'s coming home — Shearer, Gascoigne' },
+  { year: 1998, tournament: '1998 World Cup', blurb: 'Owen\'s wondergoal, Beckham\'s red — France \'98' },
+  { year: 2000, tournament: 'Euro 2000', blurb: 'Shearer & Owen, the Charleroi battle with Germany' },
   { year: 2004, tournament: 'Euro 2004', blurb: 'Young Rooney explodes onto the scene' },
   { year: 2006, tournament: '2006 World Cup', blurb: 'The Golden Generation at its supposed peak' },
   { year: 2010, tournament: '2010 World Cup', blurb: 'Can YOU make Lampard & Gerrard work?' },

@@ -48,12 +48,18 @@ export default function PlayerCard({ player, selected, onClick, showAge = true, 
         </div>
         <div className="text-right flex-shrink-0">
           {hideRating ? (
-            <>
-              <div className="text-xl font-black leading-none text-amber-400">
-                &rsquo;{String(player.peakYear).slice(2)}
-              </div>
-              <div className="text-xs text-slate-500 mt-0.5">era</div>
-            </>
+            // Manager Mode (showAge) is a single fixed year, so a per-player
+            // "era" reads as random noise — hide it, pick on name and instinct.
+            showAge ? (
+              <div className="text-xs text-slate-600 font-bold uppercase tracking-widest">Hidden</div>
+            ) : (
+              <>
+                <div className="text-xl font-black leading-none text-amber-400">
+                  &rsquo;{String(player.peakYear).slice(2)}
+                </div>
+                <div className="text-xs text-slate-500 mt-0.5">era</div>
+              </>
+            )
           ) : (
             <>
               <div

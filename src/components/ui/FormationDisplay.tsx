@@ -3,6 +3,7 @@ import { RatedPlayer, Formation } from '@/types'
 import { FORMATIONS } from '@/lib/teamStrength'
 import { displaySurname } from '@/lib/names'
 import { ratingStyle } from '@/lib/ratingColor'
+import { ratingInPosition } from '@/lib/positionRating'
 
 interface Props {
   squad: (RatedPlayer | null)[]
@@ -10,6 +11,7 @@ interface Props {
   activeIndex?: number
   onSelectSlot?: (index: number) => void
   compact?: boolean
+  showRatings?: boolean   // false = blind (Hard Mode while building)
   captainId?: string | null
   flaggedIds?: string[]   // injured/suspended — red ring + dimmed
 }
@@ -78,7 +80,7 @@ function PitchMarkings() {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function FormationDisplay({ squad, formation, activeIndex, onSelectSlot, compact, captainId, flaggedIds }: Props) {
+export default function FormationDisplay({ squad, formation, activeIndex, onSelectSlot, compact, showRatings = true, captainId, flaggedIds }: Props) {
   const slots = FORMATIONS[formation]
   const pitchH = compact ? 260 : 360
 
@@ -170,14 +172,16 @@ export default function FormationDisplay({ squad, formation, activeIndex, onSele
               )}
             </div>
 
-            {/* Rating badge (non-compact only) — coloured by tier */}
-            {!compact && isFilled && (() => {
-              const rs = ratingStyle(player.peakRating, player.ratingAtYear)
+            {/* Rating badge under the name — coloured by tier, position-adjusted
+                (a player out of position reads lower). Hidden when blind. */}
+            {showRatings && isFilled && (() => {
+              const shown = ratingInPosition(player, slot.position)
+              const rs = ratingStyle(player.peakRating, shown)
               return (
                 <span
                   className="text-center font-black leading-none rounded px-1.5 py-0.5"
                   style={{
-                    fontSize: 9,
+                    fontSize: compact ? 8 : 9,
                     maxWidth: 52,
                     color: rs.color,
                     textShadow: rs.textShadow,
@@ -185,7 +189,7 @@ export default function FormationDisplay({ squad, formation, activeIndex, onSele
                     backdropFilter: 'blur(2px)',
                   }}
                 >
-                  {player.ratingAtYear}
+                  {shown}
                 </span>
               )
             })()}
