@@ -126,7 +126,7 @@ export default function SquadReviewScreen({ mode, squadYear, formation, squad, c
           onClick={() => dispatch({ type: 'CONFIRM_SQUAD' })}
           className="w-full bg-white text-slate-900 font-black text-lg py-4 rounded-2xl active:scale-95 transition-all shadow-2xl"
         >
-          {mode === 'draft' ? 'Pick Your Manager →' : 'Pick Your Bench →'}
+          {mode === 'draft' ? 'Choose a Tournament →' : 'Pick Your Bench →'}
         </button>
       </div>
     </div>

@@ -124,7 +124,7 @@ export default function BenchScreen({ mode, squadYear, squad, bench, benchIndex,
           onClick={() => dispatch({ type: 'CONFIRM_BENCH' })}
           className="w-full bg-yellow-400 text-slate-900 font-black text-lg py-4 rounded-2xl active:scale-95 transition-all shadow-2xl"
         >
-          {filledCount === bench.length ? 'Bench locked — Pick your manager →' : `Continue with ${filledCount} sub${filledCount === 1 ? '' : 's'} →`}
+          {filledCount === bench.length ? 'Bench locked — Choose a Tournament →' : `Continue with ${filledCount} sub${filledCount === 1 ? '' : 's'} →`}
         </button>
       </div>
     </div>

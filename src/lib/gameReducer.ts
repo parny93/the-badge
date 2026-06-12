@@ -133,9 +133,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const captainId = state.captainId ??
         (state.squad.filter(Boolean) as RatedPlayer[])
           .sort((a, b) => b.ratingAtYear - a.ratingAtYear)[0]?.id ?? null
-      // Draft mode drafts its bench on the wheel — skip the free-pick screen.
+      // Draft mode drafts its bench on the wheel — skip the free-pick screen
+      // and go straight to the tournament (the player is the manager).
       if (state.mode === 'draft') {
-        return { ...state, captainId, screen: 'manager-pick' }
+        return { ...state, captainId, screen: state.daily && state.worldCup ? 'tournament' : 'tournament-select' }
       }
       return { ...state, captainId, benchIndex: firstEmpty(state.bench), screen: 'bench-pick' }
     }
@@ -159,7 +160,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, benchIndex: action.slotIndex }
 
     case 'CONFIRM_BENCH':
-      return { ...state, screen: 'manager-pick' }
+      return { ...state, screen: state.daily && state.worldCup ? 'tournament' : 'tournament-select' }
 
     case 'SWAP_PLAYER': {
       // Mid-tournament rotation: starter <-> bench seat. Keepers only swap
@@ -174,14 +175,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       bench[action.benchIndex] = starter
       return { ...state, squad, bench }
     }
-
-    case 'SELECT_MANAGER':
-      // Daily Challenge: the tournament is fixed by the day's seed — skip selection.
-      return {
-        ...state,
-        managerId: action.managerId,
-        screen: state.daily && state.worldCup ? 'tournament' : 'tournament-select',
-      }
 
     case 'START_DAILY': {
       const slots = FORMATIONS[action.formation]
@@ -218,8 +211,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         case 'free-pick': return { ...state, screen: 'formation' }
         case 'squad-review': return { ...state, screen: state.mode === 'draft' ? 'draft' : 'free-pick' }
         case 'bench-pick': return { ...state, screen: 'squad-review' }
-        case 'manager-pick': return { ...state, screen: 'bench-pick' }
-        case 'tournament-select': return { ...state, screen: 'manager-pick' }
+        case 'tournament-select': return { ...state, screen: state.mode === 'draft' ? 'squad-review' : 'bench-pick' }
         default: return { ...state, screen: 'home' }
       }
     }

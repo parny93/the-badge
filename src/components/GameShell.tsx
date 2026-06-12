@@ -17,7 +17,6 @@ import DraftScreen from '@/components/screens/DraftScreen'
 import FreePickScreen from '@/components/screens/FreePickScreen'
 import SquadReviewScreen from '@/components/screens/SquadReviewScreen'
 import BenchScreen from '@/components/screens/BenchScreen'
-import ManagerScreen from '@/components/screens/ManagerScreen'
 import TournamentSelectScreen from '@/components/screens/TournamentSelectScreen'
 import TournamentScreen from '@/components/screens/TournamentScreen'
 import ResultScreen from '@/components/screens/ResultScreen'
@@ -191,10 +190,6 @@ export default function GameShell({ daily }: Props) {
           yearTo={state.yearTo}
           dispatch={dispatch}
         />
-      )}
-
-      {screen === 'manager-pick' && (
-        <ManagerScreen dispatch={dispatch} />
       )}
 
       {screen === 'tournament-select' && (
