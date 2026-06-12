@@ -14,13 +14,13 @@ export const metadata: Metadata = {
     type: 'website',
     url: 'https://thebadge.app',
     siteName: 'The Badge',
-    images: [{ url: '/api/og/home', width: 1200, height: 630, alt: 'The Badge — Build Your Golden Generation' }],
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'The Badge — Build Your Golden Generation' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'The Badge — Build Your Golden Generation',
     description: DESCRIPTION,
-    images: ['/api/og/home'],
+    images: ['/og.png'],
   },
   icons: {
     icon: '/logo.png',
