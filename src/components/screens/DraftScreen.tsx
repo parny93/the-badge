@@ -52,8 +52,10 @@ export default function DraftScreen({ formation, squad, bench, difficultyLevel, 
   const [drawn, setDrawn] = useState<RatedPlayer[]>([])
   const [drawnEra, setDrawnEra] = useState<Era | null>(null)
   const [chosen, setChosen] = useState<RatedPlayer | null>(null)
-  // Easy/Normal choose the wheel each spin; Hard is locked to the era wheel.
+  // Easy/Normal pick the wheel ONCE at the start; it then locks for the whole
+  // draft (XI + bench). Hard is always the era wheel.
   const [wheelType, setWheelType] = useState<WheelType>('era')
+  const [wheelLocked, setWheelLocked] = useState(false)
   const [reelRows, setReelRows] = useState<string[]>(['???', '???', '???', '???', '???'])
   const [reelPopped, setReelPopped] = useState(false)
   const [revealedCount, setRevealedCount] = useState(-1)
@@ -91,6 +93,8 @@ export default function DraftScreen({ formation, squad, bench, difficultyLevel, 
 
   const spin = () => {
     if (phase === 'spinning') return
+    // First spin commits the wheel type for the rest of the draft.
+    if (!wheelLocked) setWheelLocked(true)
     // Every drawn player must fit a position you still NEED — in any mode.
     // (This used to be Hard Mode only, which is how you ended up offered a
     // goalkeeper when the open slots were ST, LW and LB.)
@@ -341,28 +345,33 @@ export default function DraftScreen({ formation, squad, bench, difficultyLevel, 
                 </div>
               )}
 
-              {/* Wheel type — Easy/Normal choose; Hard is era-only */}
+              {/* Wheel type — Easy/Normal choose ONCE; Hard is era-only */}
               {!hard && (
                 <div className="w-full max-w-xs">
-                  <div className="flex items-center rounded-xl bg-slate-800/80 border border-white/10 p-1">
+                  <div className={`flex items-center rounded-xl bg-slate-800/80 border border-white/10 p-1 ${wheelLocked ? 'opacity-90' : ''}`}>
                     {(['era', 'peak'] as WheelType[]).map(w => (
                       <button
                         key={w}
-                        onClick={() => setWheelType(w)}
+                        onClick={() => { if (!wheelLocked) setWheelType(w) }}
+                        disabled={wheelLocked}
                         className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
                           wheelType === w
                             ? 'bg-fuchsia-500 text-white shadow-[0_0_16px_rgba(217,70,239,0.35)]'
-                            : 'text-slate-400 hover:text-white'
-                        }`}
+                            : wheelLocked
+                              ? 'text-slate-600'
+                              : 'text-slate-400 hover:text-white'
+                        } ${wheelLocked ? 'cursor-default' : ''}`}
                       >
                         {w === 'era' ? 'Era wheel' : 'Peak ratings'}
                       </button>
                     ))}
                   </div>
                   <p className="text-slate-500 text-xs text-center mt-2 leading-snug">
-                    {wheelType === 'era'
-                      ? 'The wheel lands on a decade and your three picks come from it.'
-                      : 'Drawn from your whole era range, every player at peak rating.'}
+                    {wheelLocked
+                      ? 'Locked in for this draft.'
+                      : wheelType === 'era'
+                        ? 'The wheel lands on a decade and your three picks come from it. Locks once you spin.'
+                        : 'Drawn from your whole era range, every player at peak rating. Locks once you spin.'}
                   </p>
                 </div>
               )}
