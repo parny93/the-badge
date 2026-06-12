@@ -1,4 +1,4 @@
-import { MatchMoment, MatchResult, RatedPlayer, KnockoutRound } from '@/types'
+import { MatchMoment, MatchResult, RatedPlayer, KnockoutRound, Position } from '@/types'
 import { Formation } from '@/types'
 import { iconicFor } from '@/data/iconicMoments'
 import { calculateTeamStrength } from './teamStrength'
@@ -200,6 +200,121 @@ export interface SimMatchInput {
   bench?: (RatedPlayer | null)[]
   penaltyTakers?: string[]                    // player-chosen shootout order (IDs)
   availabilityEvents?: AvailabilityEvent[]   // injuries / sendings-off this match
+  // When true, a knockout level at 120' stops at "it's going to penalties" and
+  // hands the on-pitch candidates back so the player can choose who steps up;
+  // the shootout itself is then resolved with runShootout().
+  deferShootout?: boolean
+}
+
+// ─── Penalty shootout ─────────────────────────────────────────────────────────
+// Pulled out of simulateMatch so it can be run on its own AFTER the player has
+// picked who takes them (the takers must be men still on the pitch at 120').
+
+export interface ShootoutInput {
+  onPitch: (RatedPlayer | null)[]   // the XI still on the pitch at full time
+  opponent: string
+  manager?: Manager
+  captainId?: string | null
+  penaltyTakers?: string[]          // chosen taker order (IDs); rest fill by rating
+  startMinute?: number
+}
+
+export function runShootout(inp: ShootoutInput): { moments: MatchMoment[]; engPen: number; oppPen: number } {
+  const { onPitch, opponent, manager, captainId } = inp
+  const moments: MatchMoment[] = []
+
+  const gk = onPitch.find(p => p?.positions[0] === 'GK') as RatedPlayer | undefined
+  const gkFactor = gk ? gk.ratingAtYear / 90 : 0.80
+  // The armband holder steadies the shootout (if he's still on); otherwise the
+  // best-rated man available.
+  const captain = (captainId
+    ? onPitch.find(p => p?.id === captainId)
+    : undefined) ?? (onPitch.filter(Boolean) as RatedPlayer[])
+    .sort((a, b) => b.ratingAtYear - a.ratingAtYear)[0]
+  const capFactor = captain ? captain.ratingAtYear / 100 : 0.80
+
+  // Takers step up in the player's chosen order first (those still on the
+  // pitch), then anyone else fills in by penalty rating.
+  const outfieldOnPitch = (onPitch.filter(Boolean) as RatedPlayer[])
+    .filter(p => p.positions[0] !== 'GK')
+  const chosen = (inp.penaltyTakers ?? [])
+    .map(id => outfieldOnPitch.find(p => p.id === id))
+    .filter(Boolean) as RatedPlayer[]
+  const byRating = outfieldOnPitch
+    .filter(p => !chosen.some(c => c.id === p.id))
+    .sort((a, b) => penaltyRating(b) - penaltyRating(a))
+  const rankedTakers = [...chosen, ...byRating]
+  const top5 = rankedTakers.slice(0, 5)
+  const avgPen = top5.length > 0
+    ? top5.reduce((s, p) => s + penaltyRating(p), 0) / top5.length
+    : 70
+
+  const engConvert = Math.min(0.92,
+    0.60 + (avgPen / 100) * 0.18 + capFactor * 0.04 + (manager?.penaltyBoost ?? 0))
+  const oppConvert = 0.72 - gkFactor * 0.06
+
+  let engPenGoals = 0
+  let oppPenGoals = 0
+  let minute = inp.startMinute ?? 121
+  let round = 0
+
+  const engKick = (taker: RatedPlayer | undefined): void => {
+    const scored = rand() < engConvert
+    if (scored) engPenGoals++
+    const surname = taker ? displaySurname(taker.name) : 'England'
+    moments.push({
+      minute: minute++,
+      text: `${surname} ${scored ? pick(PEN_ENG_SCORE) : pick(PEN_ENG_MISS)}`,
+      type: 'penalty',
+      team: 'england',
+    })
+  }
+  const oppKick = (): void => {
+    const scored = rand() < oppConvert
+    if (scored) oppPenGoals++
+    moments.push({
+      minute: minute++,
+      text: scored ? pick(PEN_OPP_SCORE) : `${opponent} — ${pick(PEN_OPP_SAVE)}`,
+      type: 'penalty',
+      team: 'opponent',
+    })
+  }
+
+  // Best of five — stop early once one side can no longer be caught.
+  while (round < 5) {
+    const engRemaining = 5 - round - 1
+    const oppRemaining = 5 - round
+    engKick(top5[round % Math.max(1, top5.length)])
+    if (engPenGoals > oppPenGoals + oppRemaining || oppPenGoals > engPenGoals + engRemaining) break
+    oppKick()
+    round++
+    if (engPenGoals > oppPenGoals + (5 - round) || oppPenGoals > engPenGoals + (5 - round)) break
+  }
+
+  // Sudden death — pairs of kicks until someone blinks; a marathon is forced
+  // to a decisive end so the shootout always resolves.
+  let sudden = 0
+  while (engPenGoals === oppPenGoals) {
+    const taker = rankedTakers[(5 + sudden) % Math.max(1, rankedTakers.length)]
+    if (sudden >= 6) {
+      const surname = taker ? displaySurname(taker.name) : 'England'
+      if (rand() < 0.5 + (manager?.penaltyBoost ?? 0)) {
+        engPenGoals++
+        moments.push({ minute: minute++, text: `${surname} ${pick(PEN_ENG_SCORE)}`, type: 'penalty', team: 'england' })
+        moments.push({ minute: minute++, text: `${opponent} — ${pick(PEN_OPP_SAVE)}`, type: 'penalty', team: 'opponent' })
+      } else {
+        oppPenGoals++
+        moments.push({ minute: minute++, text: `${surname} ${pick(PEN_ENG_MISS)}`, type: 'penalty', team: 'england' })
+        moments.push({ minute: minute++, text: pick(PEN_OPP_SCORE), type: 'penalty', team: 'opponent' })
+      }
+      break
+    }
+    engKick(taker)
+    oppKick()
+    sudden++
+  }
+
+  return { moments, engPen: engPenGoals, oppPen: oppPenGoals }
 }
 
 export function simulateMatch(input: SimMatchInput): MatchResult {
@@ -439,117 +554,30 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
   let wentToPenalties = false
   let engPen: number | undefined
   let oppPen: number | undefined
+  let pendingShootout = false
+  let shootoutCandidates: { id: string; name: string; position: Position }[] | undefined
 
   if (isKnockout && engGoals === oppGoals) {
     wentToPenalties = true
-
     moments.push({ minute: 120, text: pick(PENS_BUILD), type: 'info' })
 
     // Only players still on the pitch after 120 minutes can take a penalty —
     // nobody sent off or injured earlier steps up.
     const onPitch = availableAt(121)
-    // Penalty shootout simulation — each kick is a moment
-    const gk = onPitch.find(p => p?.positions[0] === 'GK') as RatedPlayer | undefined
-    const gkFactor   = gk   ? gk.ratingAtYear   / 90  : 0.80
-    // The actual armband holder steadies the shootout (if he's still on);
-    // otherwise the best-rated player available.
-    const captain    = (captainId
-      ? onPitch.find(p => p?.id === captainId)
-      : undefined) ?? (onPitch.filter(Boolean) as RatedPlayer[])
-      .sort((a, b) => b.ratingAtYear - a.ratingAtYear)[0]
-    const capFactor  = captain ? captain.ratingAtYear / 100 : 0.80
 
-    // Takers step up in the player's chosen order first (those still on the
-    // pitch), then anyone else fills in by penalty rating — the derived blend
-    // of goal threat per cap, shooting and the known-takers list.
-    const outfieldOnPitch = (onPitch.filter(Boolean) as RatedPlayer[])
-      .filter(p => p.positions[0] !== 'GK')
-    const chosenIds = input.penaltyTakers ?? []
-    const chosen = chosenIds
-      .map(id => outfieldOnPitch.find(p => p.id === id))
-      .filter(Boolean) as RatedPlayer[]
-    const byRating = outfieldOnPitch
-      .filter(p => !chosen.some(c => c.id === p.id))
-      .sort((a, b) => penaltyRating(b) - penaltyRating(a))
-    const rankedTakers = [...chosen, ...byRating]
-    const top5 = rankedTakers.slice(0, 5)
-    const avgPen = top5.length > 0
-      ? top5.reduce((s, p) => s + penaltyRating(p), 0) / top5.length
-      : 70
-
-    // Conversion driven by the takers' penalty ratings, the captain's calm
-    // and the gaffer's preparation; the keeper makes opponents miss.
-    const engConvert = Math.min(0.92,
-      0.60 + (avgPen / 100) * 0.18 + capFactor * 0.04 + (manager?.penaltyBoost ?? 0))
-    const oppConvert = 0.72 - gkFactor * 0.06
-
-    // ── Honest shootout: kick by kick, best of five, then sudden death. ─────
-    // The score, the commentary and the winner all come from the SAME kicks —
-    // no more "England won 2-1 but it went to pens".
-    let engPenGoals = 0
-    let oppPenGoals = 0
-    let minute = 121
-    let round = 0
-
-    const engKick = (taker: RatedPlayer | undefined): void => {
-      const scored = rand() < engConvert
-      if (scored) engPenGoals++
-      const surname = taker ? displaySurname(taker.name) : 'England'
-      moments.push({
-        minute: minute++,
-        text: `${surname} ${scored ? pick(PEN_ENG_SCORE) : pick(PEN_ENG_MISS)}`,
-        type: 'penalty',
-        team: 'england',
-      })
+    if (input.deferShootout) {
+      // Stop here and hand the candidates to the UI — the player picks who
+      // steps up, then runShootout() resolves it. Winner is undetermined.
+      pendingShootout = true
+      shootoutCandidates = (onPitch.filter(Boolean) as RatedPlayer[])
+        .filter(p => p.positions[0] !== 'GK')
+        .map(p => ({ id: p.id, name: p.name, position: p.positions[0] }))
+    } else {
+      const r = runShootout({ onPitch, opponent, manager, captainId, penaltyTakers: input.penaltyTakers })
+      moments.push(...r.moments)
+      engPen = r.engPen
+      oppPen = r.oppPen
     }
-    const oppKick = (): void => {
-      const scored = rand() < oppConvert
-      if (scored) oppPenGoals++
-      moments.push({
-        minute: minute++,
-        text: scored ? pick(PEN_OPP_SCORE) : `${opponent} — ${pick(PEN_OPP_SAVE)}`,
-        type: 'penalty',
-        team: 'opponent',
-      })
-    }
-
-    // Best of five — stop early once one side can no longer be caught.
-    while (round < 5) {
-      const engRemaining = 5 - round - 1
-      const oppRemaining = 5 - round
-      engKick(top5[round % top5.length])
-      if (engPenGoals > oppPenGoals + oppRemaining || oppPenGoals > engPenGoals + engRemaining) break
-      oppKick()
-      round++
-      if (engPenGoals > oppPenGoals + (5 - round) || oppPenGoals > engPenGoals + (5 - round)) break
-    }
-
-    // Sudden death — pairs of kicks until someone blinks. A marathon (6+
-    // extra rounds, vanishingly rare) is settled decisively by one forced
-    // round so the shootout always ends.
-    let sudden = 0
-    while (engPenGoals === oppPenGoals) {
-      const taker = rankedTakers[(5 + sudden) % Math.max(1, rankedTakers.length)]
-      if (sudden >= 6) {
-        const surname = taker ? displaySurname(taker.name) : 'England'
-        if (rand() < 0.5 + (manager?.penaltyBoost ?? 0)) {
-          engPenGoals++
-          moments.push({ minute: minute++, text: `${surname} ${pick(PEN_ENG_SCORE)}`, type: 'penalty', team: 'england' })
-          moments.push({ minute: minute++, text: `${opponent} — ${pick(PEN_OPP_SAVE)}`, type: 'penalty', team: 'opponent' })
-        } else {
-          oppPenGoals++
-          moments.push({ minute: minute++, text: `${surname} ${pick(PEN_ENG_MISS)}`, type: 'penalty', team: 'england' })
-          moments.push({ minute: minute++, text: pick(PEN_OPP_SCORE), type: 'penalty', team: 'opponent' })
-        }
-        break
-      }
-      engKick(taker)
-      oppKick()
-      sudden++
-    }
-
-    engPen = engPenGoals
-    oppPen = oppPenGoals
   }
 
   return {
@@ -559,9 +587,14 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
     awayGoals: oppGoals,
     homePenalties: engPen,
     awayPenalties: oppPen,
+    pendingShootout: pendingShootout || undefined,
+    shootoutCandidates,
     wentToPenalties,
     moments,
     // After a shootout the 120-minute score stays level — the pens decide it.
-    englandWon: wentToPenalties ? (engPen ?? 0) > (oppPen ?? 0) : engGoals > oppGoals,
+    // A pending shootout has no winner yet (null) until the player picks takers.
+    englandWon: pendingShootout ? null
+      : wentToPenalties ? (engPen ?? 0) > (oppPen ?? 0)
+      : engGoals > oppGoals,
   }
 }

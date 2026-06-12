@@ -9,16 +9,18 @@ export const metadata: Metadata = {
   title: 'The Badge — Build Your Golden Generation',
   description: DESCRIPTION,
   openGraph: {
-    title: 'The Badge',
+    title: 'The Badge — Build Your Golden Generation',
     description: DESCRIPTION,
     type: 'website',
-    images: [{ url: '/logo.png', width: 1254, height: 1254 }],
+    url: 'https://thebadge.app',
+    siteName: 'The Badge',
+    images: [{ url: '/api/og/home', width: 1200, height: 630, alt: 'The Badge — Build Your Golden Generation' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'The Badge — Build Your Golden Generation',
     description: DESCRIPTION,
-    images: ['/logo.png'],
+    images: ['/api/og/home'],
   },
   icons: {
     icon: '/logo.png',

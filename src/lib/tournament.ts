@@ -1,6 +1,6 @@
 import { WorldCupData, TournamentResult, TournamentRound, KnockoutRound, RatedPlayer } from '@/types'
 import { Formation } from '@/types'
-import { simulateMatch } from './matchSimulator'
+import { simulateMatch, runShootout } from './matchSimulator'
 import { calculateTeamStrength } from './teamStrength'
 import { Manager } from '@/data/managers'
 import { TournamentStats, createStats, attributeGoals, attributeEnglandGoals } from './tournamentStats'
@@ -153,7 +153,18 @@ export interface TournamentRun {
   exitRound: TournamentResult['exitRound'] | null
   groupPosition?: number
   stats: TournamentStats        // golden-boot race across the whole tournament
+  // Set when England's knockout tie is level at 120' and waiting on the
+  // player's penalty-taker picks. The field/exit aren't finalised until
+  // resolvePendingShootout() runs.
+  pendingShootout?: {
+    roundName: KnockoutRound
+    opponent: string
+    nextField: string[]   // winners so far; England's slot holds a placeholder
+    slotIndex: number     // index of the placeholder in nextField
+  } | null
 }
+
+const PENDING_SLOT = '__PENDING_SHOOTOUT__'
 
 function sortStandings(s: GroupTeam[]): void {
   s.sort((a, b) =>
@@ -330,6 +341,8 @@ export function playNextEnglandMatch(
   // ── Knockout round ────────────────────────────────────────────────────────
   const roundName = r.knockoutQueue.shift()!
   let englandMatch: import('@/types').MatchResult | null = null
+  let englandOpponent = ''
+  let englandSlot = -1
   const nextField: string[] = []
 
   for (let i = 0; i < r.field.length; i += 2) {
@@ -337,14 +350,21 @@ export function playNextEnglandMatch(
     const teamB = r.field[i + 1] ?? 'Unknown'
     if (teamA === 'England' || teamB === 'England') {
       const opponent = teamA === 'England' ? teamB : teamA
+      englandOpponent = opponent
+      // Defer the shootout: a level tie stops at "it's going to penalties" so
+      // the player can pick who takes them from the men still on the pitch.
       englandMatch = simulateMatch({
         englandSquad: squad, englandFormation: formation,
         opponent: opponent === 'Unknown' ? 'Rest of the World' : opponent,
         wcYear: r.worldCup.year, isKnockout: true, round: roundName, ...ctx,
+        deferShootout: true,
       })
       attributeEnglandGoals(r.stats, squad, englandMatch.homeGoals)
       attributeGoals(r.stats, opponent, r.worldCup.year, englandMatch.awayGoals)
-      nextField.push(englandMatch.englandWon ? 'England' : opponent)
+      englandSlot = nextField.length
+      nextField.push(englandMatch.pendingShootout
+        ? PENDING_SLOT
+        : (englandMatch.englandWon ? 'England' : opponent))
     } else if (teamA === 'Unknown' || teamB === 'Unknown') {
       nextField.push(teamA === 'Unknown' ? teamB : teamA)
     } else {
@@ -356,6 +376,14 @@ export function playNextEnglandMatch(
   }
 
   r.rounds.push({ type: roundName, matches: [englandMatch!] })
+
+  // Level at 120' → hold here; the field/exit are finalised once the player
+  // picks takers and resolvePendingShootout() runs.
+  if (englandMatch!.pendingShootout) {
+    r.pendingShootout = { roundName, opponent: englandOpponent, nextField, slotIndex: englandSlot }
+    return { run: r, match: englandMatch!, roundType: roundName }
+  }
+
   r.field = nextField
 
   if (!englandMatch!.englandWon) {
@@ -369,6 +397,66 @@ export function playNextEnglandMatch(
     applyRealFixture(r.field, r.worldCup.year, r.knockoutQueue[0])
   }
   return { run: r, match: englandMatch!, roundType: roundName }
+}
+
+// Resolve a held shootout once the player has chosen their takers (IDs, in
+// order). Appends the kick-by-kick moments to England's match, settles the
+// winner, advances the bracket and finalises exit/winner state.
+export function resolvePendingShootout(
+  run: TournamentRun,
+  squad: (RatedPlayer | null)[],
+  takerIds: string[],
+  ctx: TournamentContext = {},
+): { run: TournamentRun; match: import('@/types').MatchResult } {
+  const r: TournamentRun = {
+    ...run,
+    knockoutQueue: [...run.knockoutQueue],
+    field: [...run.field],
+    rounds: run.rounds.map(round => ({ ...round, matches: [...round.matches] })),
+    stats: { scorers: run.stats.scorers.map(s => ({ ...s })) },
+  }
+  const ps = r.pendingShootout
+  const lastRound = r.rounds[r.rounds.length - 1]
+  const match = lastRound.matches[0]
+  if (!ps || !match) return { run: r, match: match! }
+
+  // Who's still on the pitch at full time — the only men who can step up.
+  const events = ctx.availabilityEvents ?? []
+  const exitMin = new Map(events.map(e => [e.playerId, e.minute]))
+  const onPitch = squad.map(p => (p && exitMin.has(p.id) && 121 >= exitMin.get(p.id)!) ? null : p)
+
+  const startMinute = (match.moments[match.moments.length - 1]?.minute ?? 120) + 1
+  const { moments, engPen, oppPen } = runShootout({
+    onPitch, opponent: ps.opponent, manager: ctx.manager, captainId: ctx.captainId,
+    penaltyTakers: takerIds, startMinute,
+  })
+
+  const resolved: import('@/types').MatchResult = {
+    ...match,
+    moments: [...match.moments, ...moments],
+    homePenalties: engPen,
+    awayPenalties: oppPen,
+    pendingShootout: undefined,
+    englandWon: engPen > oppPen,
+  }
+  lastRound.matches[0] = resolved
+
+  // Drop the placeholder for the real result and advance.
+  const nextField = ps.nextField.slice()
+  nextField[ps.slotIndex] = resolved.englandWon ? 'England' : ps.opponent
+  r.field = nextField
+  r.pendingShootout = null
+
+  if (!resolved.englandWon) {
+    r.exitRound = ps.roundName
+    r.stage = 'done'
+  } else if (r.knockoutQueue.length === 0) {
+    r.exitRound = 'Winner'
+    r.stage = 'done'
+  } else if (ctx.realFixtures) {
+    applyRealFixture(r.field, r.worldCup.year, r.knockoutQueue[0])
+  }
+  return { run: r, match: resolved }
 }
 
 export function runResult(run: TournamentRun): TournamentResult {

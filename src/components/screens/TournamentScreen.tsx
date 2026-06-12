@@ -1,10 +1,12 @@
 'use client'
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { Formation, GameAction, MatchMoment, MatchResult, RatedPlayer, WorldCupData } from '@/types'
+import { DifficultyLevel, Formation, GameAction, MatchMoment, MatchResult, RatedPlayer, WorldCupData } from '@/types'
 import {
-  TournamentRun, createTournamentRun, playNextEnglandMatch, runResult,
+  TournamentRun, createTournamentRun, playNextEnglandMatch, resolvePendingShootout, runResult,
   nextOpponent, nextRoundType,
 } from '@/lib/tournament'
+import { penaltyRating } from '@/data/playerTags'
+import { ratingStyle } from '@/lib/ratingColor'
 import { topScorers, topAssists } from '@/lib/tournamentStats'
 import { AvailabilityEvent, rollAvailabilityEvents } from '@/lib/matchEvents'
 import { calculateTeamStrength, FORMATIONS } from '@/lib/teamStrength'
@@ -16,7 +18,7 @@ import FormationDisplay from '@/components/ui/FormationDisplay'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Phase = 'loading' | 'intro' | 'bracket' | 'team-sheet' | 'prematch' | 'live' | 'scoreboard'
+type Phase = 'loading' | 'intro' | 'bracket' | 'team-sheet' | 'prematch' | 'live' | 'shootout-pick' | 'scoreboard'
 
 const ROUND_LABELS: Record<string, string> = {
   Group: 'Group Stage',
@@ -65,20 +67,21 @@ interface Props {
   manager?: Manager
   captainId?: string | null
   bench?: (RatedPlayer | null)[]
-  penaltyTakers?: string[]
   realFixtures?: boolean
+  difficultyLevel?: DifficultyLevel
   dispatch: React.Dispatch<GameAction>
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function TournamentScreen({ worldCup, squad, formation, manager, captainId, bench, penaltyTakers, realFixtures, dispatch }: Props) {
+export default function TournamentScreen({ worldCup, squad, formation, manager, captainId, bench, realFixtures, difficultyLevel, dispatch }: Props) {
   const [run, setRun]               = useState<TournamentRun | null>(null)
   const [phase, setPhase]           = useState<Phase>('loading')
   const [match, setMatch]           = useState<MatchResult | null>(null)
   const [roundLabel, setRoundLabel] = useState('Group Stage')
   const [isKnockoutMatch, setIsKnockoutMatch] = useState(false)
   const [momentIdx, setMomentIdx]   = useState(0)
+  const [penTakers, setPenTakers]   = useState<string[]>([])
   const [unavailable, setUnavailable] = useState<Record<string, Unavailability>>({})
   const [news, setNews]             = useState<string[]>([])
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null)
@@ -111,7 +114,7 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
     // pitch — a sent-off player can't then score or hit the post.
     const events = rollAvailabilityEvents(squad)
     const { run: nextRun, match: m, roundType } = playNextEnglandMatch(
-      run, squad, formation, { manager, captainId, bench, penaltyTakers, realFixtures, availabilityEvents: events }
+      run, squad, formation, { manager, captainId, bench, realFixtures, availabilityEvents: events }
     )
     pendingEvents.current = events
 
@@ -120,8 +123,21 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
     setRoundLabel(ROUND_LABELS[roundType] ?? roundType)
     setIsKnockoutMatch(roundType !== 'Group')
     setMomentIdx(0)
+    setPenTakers([])
     setPhase('prematch')
-  }, [run, squad, formation, manager, captainId, bench, penaltyTakers, realFixtures])
+  }, [run, squad, formation, manager, captainId, bench, realFixtures])
+
+  // ── Resolve a held penalty shootout once the takers are chosen ─────────────
+  const takePenalties = useCallback(() => {
+    if (!run || !match) return
+    clearTimer()
+    const { run: r2, match: m2 } = resolvePendingShootout(run, squad, penTakers, {
+      manager, captainId, realFixtures, availabilityEvents: pendingEvents.current,
+    })
+    setRun(r2)
+    setMatch(m2)
+    setPhase('live')   // drip-feed resumes from the current index with the kicks
+  }, [run, match, squad, penTakers, manager, captainId, realFixtures])
 
   // ── Prematch → live auto-advance ──────────────────────────────────────────
   useEffect(() => {
@@ -142,6 +158,9 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
         setMomentIdx(i => i + 1)
         scrollRef.current?.scrollTo({ top: 99999, behavior: 'smooth' })
       }, isPenalty ? 1700 : 950)
+    } else if (match.pendingShootout) {
+      // Level after 120' — pause for the player to choose who steps up.
+      timer.current = setTimeout(() => setPhase('shootout-pick'), 800)
     } else {
       timer.current = setTimeout(() => setPhase('scoreboard'), 800)
     }
@@ -156,8 +175,9 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
       setPhase('live')
       setMomentIdx(0)
     } else if (phase === 'live') {
+      // Can't skip past a shootout you haven't picked takers for.
       setMomentIdx(match.moments.length)
-      setPhase('scoreboard')
+      setPhase(match.pendingShootout ? 'shootout-pick' : 'scoreboard')
     }
   }, [phase, match])
 
@@ -534,7 +554,7 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
   return (
     <div
       className="min-h-screen flex flex-col bg-[#0c1420] overflow-hidden"
-      onClick={phase !== 'scoreboard' ? skipPhase : undefined}
+      onClick={(phase === 'prematch' || phase === 'live') ? skipPhase : undefined}
     >
       {/* ── Top bar ─────────────────────────────────────────────── */}
       <div className="px-4 pt-5 pb-3 flex flex-col items-center gap-1 border-b border-white/8">
@@ -590,7 +610,7 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
       )}
 
       {/* ── Live moment feed ─────────────────────────────────────── */}
-      {(phase === 'live' || phase === 'scoreboard') && (
+      {(phase === 'live' || phase === 'shootout-pick' || phase === 'scoreboard') && (
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2.5">
           {visibleMoments.map((moment, i) => (
             <MomentCard key={i} moment={moment} />
@@ -614,6 +634,83 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
           )}
         </div>
       )}
+
+      {/* ── Penalty-taker picker — only when a tie reaches a shootout ── */}
+      {phase === 'shootout-pick' && match.shootoutCandidates && (() => {
+        const candidates = match.shootoutCandidates!
+        const showRatings = difficultyLevel === 'easy'
+        const rankOf = (id: string) => penTakers.indexOf(id)
+        const toggle = (id: string) => {
+          const i = rankOf(id)
+          if (i >= 0) setPenTakers(penTakers.filter(x => x !== id))
+          else if (penTakers.length < 5) setPenTakers([...penTakers, id])
+        }
+        const autoPick = () => {
+          const best = [...candidates]
+            .map(c => ({ c, pr: (() => { const p = squad.find(s => s?.id === c.id); return p ? penaltyRating(p) : 60 })() }))
+            .sort((a, b) => b.pr - a.pr).slice(0, 5).map(x => x.c.id)
+          setPenTakers(best)
+        }
+        // Chosen first (in order), then the rest.
+        const chosen = penTakers.map(id => candidates.find(c => c.id === id)).filter(Boolean) as typeof candidates
+        const rest = candidates.filter(c => rankOf(c.id) < 0)
+        const listed = [...chosen, ...rest]
+        return (
+          <div className="px-4 pb-8 pt-3 border-t border-white/8 flex flex-col gap-3">
+            <div className="text-center">
+              <div className="text-amber-400 font-black text-lg leading-tight">It&rsquo;s going to penalties.</div>
+              <p className="text-slate-400 text-xs mt-0.5">
+                Pick who steps up — only the men still on the pitch. {showRatings ? 'Numbers are penalty ratings.' : 'Ratings hidden (Easy Mode reveals them).'}
+              </p>
+            </div>
+            <button
+              onClick={autoPick}
+              className="rounded-xl border border-amber-400/40 bg-amber-400/10 text-amber-200 font-bold text-sm py-2 active:scale-95 transition-all"
+            >
+              Auto-pick best five
+            </button>
+            <div className="rounded-xl bg-white/5 border border-white/10 divide-y divide-white/5 max-h-[34vh] overflow-y-auto">
+              {listed.map(c => {
+                const rank = rankOf(c.id)
+                const isChosen = rank >= 0
+                const full = penTakers.length >= 5 && !isChosen
+                const p = squad.find(s => s?.id === c.id)
+                const pr = p ? penaltyRating(p) : 60
+                const rs = ratingStyle(95, pr)
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => toggle(c.id)}
+                    disabled={full}
+                    className={`w-full flex items-center justify-between px-3 py-2 text-left transition-colors ${
+                      isChosen ? 'bg-amber-400/10' : full ? 'opacity-40' : 'hover:bg-white/5'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5 min-w-0">
+                      <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black ${
+                        isChosen ? 'bg-amber-400 text-slate-900' : 'bg-white/10 text-slate-500'
+                      }`}>{isChosen ? rank + 1 : '·'}</span>
+                      <span className="text-[11px] text-slate-500 w-8 shrink-0">{c.position}</span>
+                      <span className="text-white text-sm font-medium truncate">{displaySurname(c.name)}</span>
+                    </span>
+                    {showRatings && (
+                      <span className="text-[10px] text-slate-500 uppercase tracking-wider shrink-0">
+                        PEN <span className="font-black text-sm" style={{ color: rs.color, textShadow: rs.textShadow }}>{pr}</span>
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); takePenalties() }}
+              className="w-full bg-amber-400 text-slate-900 font-black text-lg py-4 rounded-2xl active:scale-95 transition-all shadow-2xl"
+            >
+              {penTakers.length > 0 ? 'Take the penalties →' : 'Let them step up →'}
+            </button>
+          </div>
+        )
+      })()}
 
       {/* ── Scoreboard result panel ──────────────────────────────── */}
       {phase === 'scoreboard' && (

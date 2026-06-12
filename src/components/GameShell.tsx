@@ -17,7 +17,6 @@ import DraftScreen from '@/components/screens/DraftScreen'
 import FreePickScreen from '@/components/screens/FreePickScreen'
 import SquadReviewScreen from '@/components/screens/SquadReviewScreen'
 import BenchScreen from '@/components/screens/BenchScreen'
-import PenaltiesScreen from '@/components/screens/PenaltiesScreen'
 import TournamentSelectScreen from '@/components/screens/TournamentSelectScreen'
 import TournamentScreen from '@/components/screens/TournamentScreen'
 import ResultScreen from '@/components/screens/ResultScreen'
@@ -191,16 +190,6 @@ export default function GameShell({ daily }: Props) {
         />
       )}
 
-      {screen === 'penalties' && (
-        <PenaltiesScreen
-          mode={mode}
-          squad={squad}
-          penaltyTakers={state.penaltyTakers}
-          difficultyLevel={state.difficultyLevel}
-          dispatch={dispatch}
-        />
-      )}
-
       {screen === 'tournament-select' && (
         <><TopBar onBack={back} /><TournamentSelectScreen squad={squad} formation={formation} dispatch={dispatch} /></>
       )}
@@ -213,8 +202,8 @@ export default function GameShell({ daily }: Props) {
           manager={state.managerId ? getManager(state.managerId) : undefined}
           captainId={state.captainId}
           bench={state.bench}
-          penaltyTakers={state.penaltyTakers}
           realFixtures={state.realFixtures}
+          difficultyLevel={state.difficultyLevel}
           dispatch={dispatch}
         />
       )}
