@@ -1,5 +1,6 @@
-import { MatchMoment, MatchResult, RatedPlayer } from '@/types'
+import { MatchMoment, MatchResult, RatedPlayer, KnockoutRound } from '@/types'
 import { Formation } from '@/types'
+import { iconicFor } from '@/data/iconicMoments'
 import { calculateTeamStrength } from './teamStrength'
 import { Manager } from '@/data/managers'
 import { penaltyRating } from '@/data/playerTags'
@@ -189,6 +190,7 @@ export interface SimMatchInput {
   opponent: string
   wcYear: number
   isKnockout: boolean
+  round?: 'Group' | KnockoutRound   // for scripted iconic moments
   manager?: Manager
   captainId?: string | null
   bench?: (RatedPlayer | null)[]
@@ -196,6 +198,12 @@ export interface SimMatchInput {
 
 export function simulateMatch(input: SimMatchInput): MatchResult {
   const { englandSquad, englandFormation, opponent, wcYear, isKnockout, manager, captainId, bench } = input
+  const round = input.round ?? (isKnockout ? 'QF' : 'Group')
+
+  // Iconic scripted moments for this exact fixture (Hand of God, Zidane red…).
+  const scripted = iconicFor(wcYear, opponent, round)
+  const scriptedEngGoals = scripted.filter(s => s.kind === 'eng-goal').length
+  const scriptedOppGoals = scripted.filter(s => s.kind === 'opp-goal').length
 
   const engStrength = calculateTeamStrength(englandSquad, englandFormation, { manager, captainId, bench })
   // Tournament-knockout specialists (Southgate, Robson) raise their game
@@ -222,6 +230,11 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
   let engGoals = poissonSample(engLambda)
   let oppGoals = poissonSample(oppLambda)
 
+  // Scripted goals (Hand of God, Owen '98, Shaw final) really happen — the
+  // scoreline must include them, but England can still outscore a great side.
+  engGoals = Math.max(engGoals, scriptedEngGoals)
+  oppGoals = Math.max(oppGoals, scriptedOppGoals)
+
   // ── Tournament atmosphere — era/host flavour woven into the feed ────────────
   // A shuffled deck so a single match never repeats the same line twice, with
   // lines naming players who aren't in this squad filtered out.
@@ -237,15 +250,25 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
   const totalMoments = 5 + Math.floor(rand() * 5)
   const minutes = spread(totalMoments)
 
-  // Reserve slots for actual goals
+  // Reserve slots for the GENERIC goals (scripted goals carry their own text
+  // and minute, so we make fewer generic ones to avoid double-counting).
   const engGoalSlots: number[] = []
   const oppGoalSlots: number[] = []
 
-  for (let i = 0; i < engGoals; i++) {
+  for (let i = 0; i < engGoals - scriptedEngGoals; i++) {
     engGoalSlots.push(8 + Math.floor(rand() * 80))
   }
-  for (let i = 0; i < oppGoals; i++) {
+  for (let i = 0; i < oppGoals - scriptedOppGoals; i++) {
     oppGoalSlots.push(8 + Math.floor(rand() * 80))
+  }
+
+  // Push the scripted iconic moments at their fixed minutes.
+  for (const s of scripted) {
+    if (s.kind === 'eng-goal')      moments.push({ minute: s.minute, text: s.text, type: 'goal', team: 'england' })
+    else if (s.kind === 'opp-goal') moments.push({ minute: s.minute, text: s.text, type: 'goal', team: 'opponent' })
+    else if (s.kind === 'eng-red')  moments.push({ minute: s.minute, text: s.text, type: 'card', team: 'england' })
+    else if (s.kind === 'opp-red')  moments.push({ minute: s.minute, text: s.text, type: 'card', team: 'opponent' })
+    else                            moments.push({ minute: s.minute, text: s.text, type: 'info' })
   }
 
   // Add England goal moments

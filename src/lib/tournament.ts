@@ -248,7 +248,7 @@ export function playNextEnglandMatch(
     const opponent = r.englandFixtures[r.groupMatchesPlayed]
     const match = simulateMatch({
       englandSquad: squad, englandFormation: formation,
-      opponent, wcYear: r.worldCup.year, isKnockout: false, ...ctx,
+      opponent, wcYear: r.worldCup.year, isKnockout: false, round: 'Group', ...ctx,
     })
     attributeEnglandGoals(r.stats, squad, match.homeGoals)
     attributeGoals(r.stats, opponent, r.worldCup.year, match.awayGoals)
@@ -322,7 +322,7 @@ export function playNextEnglandMatch(
       englandMatch = simulateMatch({
         englandSquad: squad, englandFormation: formation,
         opponent: opponent === 'Unknown' ? 'Rest of the World' : opponent,
-        wcYear: r.worldCup.year, isKnockout: true, ...ctx,
+        wcYear: r.worldCup.year, isKnockout: true, round: roundName, ...ctx,
       })
       attributeEnglandGoals(r.stats, squad, englandMatch.homeGoals)
       attributeGoals(r.stats, opponent, r.worldCup.year, englandMatch.awayGoals)
