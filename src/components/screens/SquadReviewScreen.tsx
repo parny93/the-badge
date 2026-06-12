@@ -85,7 +85,7 @@ export default function SquadReviewScreen({ mode, squadYear, formation, squad, c
       {/* Player list — tap a player to hand them the armband */}
       <div>
         <p className="text-slate-500 text-xs mb-2">
-          Tap a player to hand him the armband{captainId ? '' : ' — otherwise your highest-rated player leads'}
+Captain — worth +1 overall, and he leads the team out. Tap a player to give him the armband{captainId ? '' : '; otherwise your highest-rated player leads'}
         </p>
         <div className="rounded-xl bg-white/5 border border-white/10 divide-y divide-white/5">
           {squad.map((player, i) => {

@@ -82,6 +82,10 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null)
   const [tensionLine]               = useState(() => TENSION_LINES[Math.floor(Math.random() * TENSION_LINES.length)])
 
+  const captainName = captainId
+    ? displaySurname((squad.find(p => p?.id === captainId)?.name) ?? '')
+    : ''
+
   const pendingEvents = useRef<AvailabilityEvent[]>([])
   const timer   = useRef<ReturnType<typeof setTimeout> | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
@@ -573,6 +577,11 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
             ))}
           </div>
           <p className="text-slate-300 text-base leading-relaxed max-w-xs">{tensionLine}</p>
+          {captainName && (
+            <p className="text-amber-300/90 text-sm font-semibold">
+              {captainName} leads England out, armband on.
+            </p>
+          )}
           <p className="text-slate-600 text-xs">Tap to kick off</p>
         </div>
       )}
@@ -638,9 +647,11 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
             )}
             {isChampion && (
               <p className="text-amber-400/70 text-xs mt-1">
-                {worldCup.competition === 'Euro'
-                  ? "They've only gone and done it. England are European Champions!"
-                  : "Sixty years of hurt. Finally. It was always coming home."}
+                {captainName
+                  ? `${captainName} climbs the steps and lifts the trophy. ${worldCup.competition === 'Euro' ? 'England are European Champions!' : 'It was always coming home.'}`
+                  : worldCup.competition === 'Euro'
+                    ? "They've only gone and done it. England are European Champions!"
+                    : "Sixty years of hurt. Finally. It was always coming home."}
               </p>
             )}
           </div>

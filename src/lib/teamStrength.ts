@@ -194,17 +194,14 @@ export function calculateTeamStrength(
     chemistry.notes.push({ type: 'info', text: `${ctx.manager.name}: ${ctx.manager.tactic}` })
   }
 
-  // ── Captain's armband — a touch of leadership everywhere ─────────────────
+  // ── Captain's armband — worth one rating point of leadership ─────────────
   const captain = ctx.captainId
     ? rated.find(r => r.player.id === ctx.captainId)?.player
     : undefined
   if (captain) {
-    attack += 1
-    defense += 1
-    chemScore += 2
     chemistry.notes.push({
       type: 'good',
-      text: `${displaySurname(captain.name)} wears the armband — the dressing room follows him`,
+      text: `${displaySurname(captain.name)} wears the armband — he leads England out`,
     })
   }
 
@@ -230,7 +227,8 @@ export function calculateTeamStrength(
   chemistry.score = Math.max(35, Math.min(100, Math.round(chemScore)))
   const attackR  = Math.round(attack)
   const defenseR = Math.round(defense)
-  const overall  = Math.round(attackR * 0.4 + midfield * 0.3 + defenseR * 0.3)
+  // The captain's armband is worth exactly one rating point on the overall.
+  const overall  = Math.round(attackR * 0.4 + midfield * 0.3 + defenseR * 0.3) + (captain ? 1 : 0)
 
   return { overall, attack: attackR, midfield, defense: defenseR, chemistry }
 }
