@@ -143,7 +143,6 @@ export default function GameShell({ daily }: Props) {
         <DraftScreen
           formation={formation}
           squad={squad}
-          bench={state.bench}
           difficultyLevel={state.difficultyLevel}
           respinsLeft={state.respinsLeft}
           yearFrom={state.yearFrom}
@@ -183,8 +182,6 @@ export default function GameShell({ daily }: Props) {
           mode={mode}
           squadYear={squadYear}
           squad={squad}
-          bench={state.bench}
-          benchIndex={state.benchIndex}
           hardMode={state.hardMode}
           yearFrom={state.yearFrom}
           yearTo={state.yearTo}

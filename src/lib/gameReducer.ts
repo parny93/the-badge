@@ -133,11 +133,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const captainId = state.captainId ??
         (state.squad.filter(Boolean) as RatedPlayer[])
           .sort((a, b) => b.ratingAtYear - a.ratingAtYear)[0]?.id ?? null
-      // Draft mode drafts its bench on the wheel — skip the free-pick screen
-      // and go straight to the tournament (the player is the manager).
-      if (state.mode === 'draft') {
-        return { ...state, captainId, screen: state.daily && state.worldCup ? 'tournament' : 'tournament-select' }
-      }
+      // Every mode picks its bench the same way now (pick 3 of 5, auto-fill 4).
       return { ...state, captainId, benchIndex: firstEmpty(state.bench), screen: 'bench-pick' }
     }
 
@@ -158,6 +154,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'SET_BENCH_SLOT':
       return { ...state, benchIndex: action.slotIndex }
+
+    case 'SET_BENCH':
+      return { ...state, bench: action.bench }
 
     case 'CONFIRM_BENCH':
       return { ...state, screen: state.daily && state.worldCup ? 'tournament' : 'tournament-select' }

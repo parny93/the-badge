@@ -245,6 +245,7 @@ export type GameAction =
   | { type: 'PICK_BENCH'; player: RatedPlayer; slotIndex: number }
   | { type: 'REMOVE_BENCH'; slotIndex: number }
   | { type: 'SET_BENCH_SLOT'; slotIndex: number }
+  | { type: 'SET_BENCH'; bench: (RatedPlayer | null)[] }
   | { type: 'CONFIRM_BENCH' }
   | { type: 'SWAP_PLAYER'; slotIndex: number; benchIndex: number }
   | { type: 'SET_CAPTAIN'; playerId: string }
