@@ -133,6 +133,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const captainId = state.captainId ??
         (state.squad.filter(Boolean) as RatedPlayer[])
           .sort((a, b) => b.ratingAtYear - a.ratingAtYear)[0]?.id ?? null
+      // Draft mode drafts its bench on the wheel — skip the free-pick screen.
+      if (state.mode === 'draft') {
+        return { ...state, captainId, screen: 'manager-pick' }
+      }
       return { ...state, captainId, benchIndex: firstEmpty(state.bench), screen: 'bench-pick' }
     }
 

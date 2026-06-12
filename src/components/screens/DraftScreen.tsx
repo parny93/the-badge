@@ -5,12 +5,14 @@ import { FORMATIONS } from '@/lib/teamStrength'
 import { familiarity } from '@/lib/chemistry'
 import { getDraftPool, canPlaySlot } from '@/lib/playerPool'
 import { weightedDraw, rollRunState, RunState, TIER_SHARES, SILVER_SHARES, GOLDEN_SHARES } from '@/lib/draftWeights'
+import { displaySurname } from '@/lib/names'
 import { rand } from '@/lib/rng'
 import FormationDisplay from '@/components/ui/FormationDisplay'
 
 interface Props {
   formation: Formation
   squad: (RatedPlayer | null)[]
+  bench: (RatedPlayer | null)[]
   difficultyLevel: DifficultyLevel
   respinsLeft: number
   yearFrom: number
@@ -44,7 +46,7 @@ function eraOf(peakYear: number): number {
   return Math.min(2020, Math.max(1950, Math.floor(peakYear / 10) * 10))
 }
 
-export default function DraftScreen({ formation, squad, difficultyLevel, respinsLeft, yearFrom, yearTo, daily, dispatch }: Props) {
+export default function DraftScreen({ formation, squad, bench, difficultyLevel, respinsLeft, yearFrom, yearTo, daily, dispatch }: Props) {
   const slots = FORMATIONS[formation]
   const [phase, setPhase] = useState<Phase>('idle')
   const [drawn, setDrawn] = useState<RatedPlayer[]>([])
@@ -67,6 +69,14 @@ export default function DraftScreen({ formation, squad, difficultyLevel, respins
   const filledCount = pickedIds.length
   const isComplete = filledCount === slots.length
 
+  // ── Bench drafting — the wheel keeps spinning after the XI is locked ──────
+  // Slot 0 is the sub keeper; luck decides your depth too.
+  const [benchClosed, setBenchClosed] = useState(false)
+  const benchIds = useMemo(() => bench.filter(Boolean).map(b => b!.id), [bench])
+  const benchNextIndex = bench.findIndex(b => !b)
+  const draftingBench = isComplete && !benchClosed && benchNextIndex !== -1
+  const benchDone = isComplete && !draftingBench
+
   // Positions still needed in the XI. In hard mode the wheel narrows to only
   // players who can fill one of these — positions drop out as they're filled.
   const openPositions = useMemo(() => {
@@ -84,8 +94,11 @@ export default function DraftScreen({ formation, squad, difficultyLevel, respins
     // Every drawn player must fit a position you still NEED — in any mode.
     // (This used to be Hard Mode only, which is how you ended up offered a
     // goalkeeper when the open slots were ST, LW and LB.)
-    const all = getDraftPool(pickedIds)
-    const fitting = all.filter(p => openPositions.some(pos => canPlaySlot(p, pos)))
+    // Bench spins are positionless apart from the GK/outfield split.
+    const all = getDraftPool([...pickedIds, ...benchIds])
+    const fitting = draftingBench
+      ? all.filter(p => (p.positions[0] === 'GK') === (benchNextIndex === 0))
+      : all.filter(p => openPositions.some(pos => canPlaySlot(p, pos)))
     // Era-range filter from the sliders; pre-1950 peaks count as 1950.
     const inRange = fitting.filter(p => {
       const y = Math.max(1950, p.peakYear)
@@ -187,6 +200,14 @@ export default function DraftScreen({ formation, squad, difficultyLevel, respins
   }
 
   const choosePlayer = (p: RatedPlayer) => {
+    if (draftingBench) {
+      // Bench picks need no pitch placement — straight into the next seat.
+      dispatch({ type: 'PICK_BENCH', player: p, slotIndex: benchNextIndex })
+      setDrawn([])
+      setDrawnEra(null)
+      setPhase('idle')
+      return
+    }
     setChosen(p)
     setPhase('placing')
   }
@@ -224,7 +245,9 @@ export default function DraftScreen({ formation, squad, difficultyLevel, respins
         <div>
           <div className="text-slate-400 text-xs uppercase tracking-widest">All-Time Draft</div>
           <div className="text-white font-black text-xl">
-            {filledCount} / {slots.length} <span className="text-slate-500 text-sm font-normal">drafted</span>
+            {draftingBench
+              ? <>Bench · {benchIds.length} / {bench.length} <span className="text-slate-500 text-sm font-normal">{benchNextIndex === 0 ? 'sub keeper first' : 'drafted'}</span></>
+              : <>{filledCount} / {slots.length} <span className="text-slate-500 text-sm font-normal">drafted</span></>}
           </div>
         </div>
         <button onClick={() => dispatch({ type: 'BACK' })} className="text-slate-500 hover:text-white text-sm">← Back</button>
@@ -270,8 +293,28 @@ export default function DraftScreen({ formation, squad, difficultyLevel, respins
         </div>
       )}
 
+      {/* Bench seats during bench drafting */}
+      {draftingBench && (
+        <div className="grid grid-cols-4 gap-1.5">
+          {bench.map((b, i) => (
+            <div
+              key={i}
+              className={`rounded-lg border px-1.5 py-2 text-center ${
+                i === benchNextIndex ? 'border-amber-400 bg-amber-400/10' :
+                b ? 'border-white/20 bg-white/5' : 'border-dashed border-white/15'
+              }`}
+            >
+              <div className="text-[9px] text-slate-500 font-bold tracking-wider">{i === 0 ? 'SUB GK' : `SUB ${i + 1}`}</div>
+              <div className="text-white text-[11px] font-bold leading-tight truncate mt-0.5">
+                {b ? displaySurname(b.name) : '—'}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Spin panel */}
-      {!isComplete && phase !== 'placing' && (
+      {(!isComplete || draftingBench) && phase !== 'placing' && (
         <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
 
           {/* ── IDLE ── */}
@@ -325,9 +368,19 @@ export default function DraftScreen({ formation, squad, difficultyLevel, respins
               )}
 
               <p className="text-slate-400 text-sm text-center">
-                Spin to draw three legends. Pick one. Make it work.
+                {draftingBench
+                  ? `Spin for your bench — ${benchNextIndex === 0 ? 'a sub keeper first' : 'outfield cover'}. Your depth is down to luck too.`
+                  : 'Spin to draw three legends. Pick one. Make it work.'}
                 {hard && ' Era wheel only — ratings stay hidden until your XI is locked.'}
               </p>
+              {draftingBench && (
+                <button
+                  onClick={() => setBenchClosed(true)}
+                  className="text-slate-500 hover:text-slate-300 text-xs"
+                >
+                  Stop here — continue with {benchIds.length} sub{benchIds.length === 1 ? '' : 's'} →
+                </button>
+              )}
               <button
                 onClick={spin}
                 className="relative w-full max-w-xs bg-fuchsia-500 hover:bg-fuchsia-400 active:scale-95
@@ -450,8 +503,8 @@ export default function DraftScreen({ formation, squad, difficultyLevel, respins
         </div>
       )}
 
-      {/* Complete */}
-      {isComplete && (
+      {/* Complete — XI and bench both settled */}
+      {benchDone && (
         <div className="fixed bottom-4 left-4 right-4 z-30">
           <button
             onClick={() => dispatch({ type: 'REVIEW_SQUAD' })}

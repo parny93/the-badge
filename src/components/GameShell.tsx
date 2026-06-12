@@ -144,6 +144,7 @@ export default function GameShell({ daily }: Props) {
         <DraftScreen
           formation={formation}
           squad={squad}
+          bench={state.bench}
           difficultyLevel={state.difficultyLevel}
           respinsLeft={state.respinsLeft}
           yearFrom={state.yearFrom}
