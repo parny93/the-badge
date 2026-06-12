@@ -36,6 +36,7 @@ export const INITIAL_STATE: GameState = {
   bench: Array(BENCH_SIZE).fill(null),
   benchIndex: 0,
   captainId: null,
+  penaltyTakers: [],
   managerId: null,
 }
 
@@ -112,6 +113,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         bench: Array(BENCH_SIZE).fill(null),
         benchIndex: 0,
         captainId: null,
+        penaltyTakers: [],
         screen: state.mode === 'draft' ? 'draft' : 'free-pick',
       }
     }
@@ -168,7 +170,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'SET_BENCH':
       return { ...state, bench: action.bench }
 
-    case 'CONFIRM_BENCH': {
+    case 'CONFIRM_BENCH':
+      // Next: set the penalty-taker order before locking in the tournament.
+      return { ...state, screen: 'penalties' }
+
+    case 'SET_PENALTY_TAKERS':
+      return { ...state, penaltyTakers: action.takers }
+
+    case 'CONFIRM_PENALTIES': {
       if (state.daily && state.worldCup) return { ...state, screen: 'tournament' }
       // Manager Mode: the chosen year IS the tournament — enter it directly
       // instead of asking again.
@@ -228,7 +237,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         case 'free-pick': return { ...state, screen: 'formation' }
         case 'squad-review': return { ...state, screen: state.mode === 'draft' ? 'draft' : 'free-pick' }
         case 'bench-pick': return { ...state, screen: 'squad-review' }
-        case 'tournament-select': return { ...state, screen: state.mode === 'draft' ? 'squad-review' : 'bench-pick' }
+        case 'penalties': return { ...state, screen: 'bench-pick' }
+        case 'tournament-select': return { ...state, screen: 'penalties' }
         default: return { ...state, screen: 'home' }
       }
     }

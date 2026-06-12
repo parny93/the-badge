@@ -65,13 +65,14 @@ interface Props {
   manager?: Manager
   captainId?: string | null
   bench?: (RatedPlayer | null)[]
+  penaltyTakers?: string[]
   realFixtures?: boolean
   dispatch: React.Dispatch<GameAction>
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function TournamentScreen({ worldCup, squad, formation, manager, captainId, bench, realFixtures, dispatch }: Props) {
+export default function TournamentScreen({ worldCup, squad, formation, manager, captainId, bench, penaltyTakers, realFixtures, dispatch }: Props) {
   const [run, setRun]               = useState<TournamentRun | null>(null)
   const [phase, setPhase]           = useState<Phase>('loading')
   const [match, setMatch]           = useState<MatchResult | null>(null)
@@ -110,7 +111,7 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
     // pitch — a sent-off player can't then score or hit the post.
     const events = rollAvailabilityEvents(squad)
     const { run: nextRun, match: m, roundType } = playNextEnglandMatch(
-      run, squad, formation, { manager, captainId, bench, realFixtures, availabilityEvents: events }
+      run, squad, formation, { manager, captainId, bench, penaltyTakers, realFixtures, availabilityEvents: events }
     )
     pendingEvents.current = events
 
@@ -120,7 +121,7 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
     setIsKnockoutMatch(roundType !== 'Group')
     setMomentIdx(0)
     setPhase('prematch')
-  }, [run, squad, formation, manager, captainId, bench])
+  }, [run, squad, formation, manager, captainId, bench, penaltyTakers, realFixtures])
 
   // ── Prematch → live auto-advance ──────────────────────────────────────────
   useEffect(() => {
@@ -135,11 +136,12 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
     const total = match.moments.length
 
     if (momentIdx < total) {
+      // Penalties get a longer beat between kicks — let the tension breathe.
       const isPenalty = match.moments[momentIdx]?.type === 'penalty'
       timer.current = setTimeout(() => {
         setMomentIdx(i => i + 1)
         scrollRef.current?.scrollTo({ top: 99999, behavior: 'smooth' })
-      }, isPenalty ? 1100 : 950)
+      }, isPenalty ? 1700 : 950)
     } else {
       timer.current = setTimeout(() => setPhase('scoreboard'), 800)
     }

@@ -45,6 +45,7 @@ export interface TournamentContext {
   manager?: Manager
   captainId?: string | null
   bench?: (RatedPlayer | null)[]
+  penaltyTakers?: string[]
   realFixtures?: boolean
   availabilityEvents?: import('./matchEvents').AvailabilityEvent[]
 }

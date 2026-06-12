@@ -202,6 +202,7 @@ export type GameScreen =
   | 'free-pick'         // browse-and-pick build (manager + alltime)
   | 'squad-review'      // review XI + hand out the captain's armband
   | 'bench-pick'        // tournament squad depth: 1 sub GK + 6 outfield subs
+  | 'penalties'         // set the penalty-taker order for shootouts
   | 'tournament-select' // choose which World Cup to enter your squad into
   | 'tournament'
   | 'result'
@@ -228,6 +229,7 @@ export interface GameState {
   bench: (RatedPlayer | null)[]  // BENCH_SIZE slots; 0 = sub GK
   benchIndex: number             // active bench slot
   captainId: string | null       // armband holder (one of the XI)
+  penaltyTakers: string[]        // ordered player IDs — the shootout order (XI)
   managerId: string | null       // legacy: always null now (the player is the manager);
                                  // kept so old shared run cards still render a gaffer
 }
@@ -251,6 +253,8 @@ export type GameAction =
   | { type: 'CONFIRM_BENCH' }
   | { type: 'SWAP_PLAYER'; slotIndex: number; benchIndex: number }
   | { type: 'SET_CAPTAIN'; playerId: string }
+  | { type: 'SET_PENALTY_TAKERS'; takers: string[] }
+  | { type: 'CONFIRM_PENALTIES' }
   | { type: 'SELECT_TOURNAMENT'; worldCup: WorldCupData }
   | { type: 'SET_TOURNAMENT'; result: TournamentResult }
   | { type: 'START_DAILY'; date: string; worldCup: WorldCupData; formation: Formation }

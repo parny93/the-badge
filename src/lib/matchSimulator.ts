@@ -198,6 +198,7 @@ export interface SimMatchInput {
   manager?: Manager
   captainId?: string | null
   bench?: (RatedPlayer | null)[]
+  penaltyTakers?: string[]                    // player-chosen shootout order (IDs)
   availabilityEvents?: AvailabilityEvent[]   // injuries / sendings-off this match
 }
 
@@ -458,11 +459,19 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
       .sort((a, b) => b.ratingAtYear - a.ratingAtYear)[0]
     const capFactor  = captain ? captain.ratingAtYear / 100 : 0.80
 
-    // Takers step up in penalty-rating order — the derived blend of goal
-    // threat per cap, shooting and the known-takers list.
-    const rankedTakers = (onPitch.filter(Boolean) as RatedPlayer[])
+    // Takers step up in the player's chosen order first (those still on the
+    // pitch), then anyone else fills in by penalty rating — the derived blend
+    // of goal threat per cap, shooting and the known-takers list.
+    const outfieldOnPitch = (onPitch.filter(Boolean) as RatedPlayer[])
       .filter(p => p.positions[0] !== 'GK')
+    const chosenIds = input.penaltyTakers ?? []
+    const chosen = chosenIds
+      .map(id => outfieldOnPitch.find(p => p.id === id))
+      .filter(Boolean) as RatedPlayer[]
+    const byRating = outfieldOnPitch
+      .filter(p => !chosen.some(c => c.id === p.id))
       .sort((a, b) => penaltyRating(b) - penaltyRating(a))
+    const rankedTakers = [...chosen, ...byRating]
     const top5 = rankedTakers.slice(0, 5)
     const avgPen = top5.length > 0
       ? top5.reduce((s, p) => s + penaltyRating(p), 0) / top5.length

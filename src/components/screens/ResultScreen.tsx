@@ -299,15 +299,12 @@ export default function ResultScreen({ worldCup, squad, formation, result, mode,
 
       {/*
         Reserved ad slot — post-result is the one natural break in the session.
-        Do NOT ship AdSense yet: when ads land, render the unit inside this
-        container and keep it to a single non-sticky banner.
+        Kept in the DOM as a mount point (the backend hook stays), but invisible
+        to the public until a real unit lands. When ads ship, render a single
+        non-sticky banner inside this container and drop the `hidden` class.
+        Do NOT ship AdSense yet.
       */}
-      <div
-        data-ad-slot="post-result-banner"
-        className="mt-4 rounded-xl border border-dashed border-white/10 py-6 text-center text-slate-700 text-xs"
-      >
-        ad slot reserved
-      </div>
+      <div data-ad-slot="post-result-banner" className="hidden" aria-hidden="true" />
 
       {/* Pro: branding-free share cards (stub — checkout not wired) */}
       <button
