@@ -5,6 +5,7 @@ import { calculateTeamStrength } from './teamStrength'
 import { Manager } from '@/data/managers'
 import { penaltyRating } from '@/data/playerTags'
 import { oppScorer, oppKeeper, oppDefender } from '@/data/opponentStars'
+import { rollEasterEggs } from '@/data/easterEggs'
 import { ENGLAND_PLAYERS } from '@/data/players'
 import { displaySurname } from './names'
 import { rand } from './rng'
@@ -385,6 +386,16 @@ export function simulateMatch(input: SimMatchInput): MatchResult {
   // one — but not every match; a line a game wore thin fast.
   if (atmoCursor === 0 && atmoDeck.length > 0 && rand() < 0.4) {
     moments.push({ minute: 1 + Math.floor(rand() * 88), text: atmoDeck[0], type: 'info' })
+  }
+
+  // ── Random easter eggs — Suárez's bite, Šimunić's yellows, the lot ─────────
+  for (const egg of rollEasterEggs(opponent, wcYear)) {
+    const minute = 20 + Math.floor(rand() * 68)
+    if (egg.kind === 'opp-red') {
+      moments.push({ minute, text: egg.text, type: 'card', team: 'opponent' })
+    } else {
+      moments.push({ minute, text: egg.text, type: 'info' })
+    }
   }
 
   // Sort by minute

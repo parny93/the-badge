@@ -147,17 +147,25 @@ function setsFor(nation: string): EraSet[] | undefined {
   return NATION_STARS[nation] ?? NATION_STARS[ALIAS[nation] ?? '']
 }
 
+// How far outside a defined era we'll still borrow its players. Tight, so a
+// player can only be named in years he plausibly played — no Cristiano Ronaldo
+// for Portugal in 1986 (his era starts 2004).
+const ERA_GRACE = 4
+
 export function starsFor(nation: string, year: number): OppStar[] {
   const sets = setsFor(nation)
   if (!sets || sets.length === 0) return []
   const covering = sets.find(s => year >= s.from && year <= s.to)
   if (covering) return covering.stars
-  // No exact era — use the nearest set so a recognisable name still appears.
-  return sets.reduce((best, s) => {
+  // No exact era — only borrow the nearest set if it's a transitional year
+  // within grace; otherwise nobody is named (generic commentary).
+  const nearest = sets.reduce((best, s) => {
     const d = Math.min(Math.abs(year - s.from), Math.abs(year - s.to))
     const bd = Math.min(Math.abs(year - best.from), Math.abs(year - best.to))
     return d < bd ? s : best
-  }).stars
+  })
+  const gap = Math.min(Math.abs(year - nearest.from), Math.abs(year - nearest.to))
+  return gap <= ERA_GRACE ? nearest.stars : []
 }
 
 function pickByRole(stars: OppStar[], roles: OppRole[]): string | null {

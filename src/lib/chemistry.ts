@@ -4,6 +4,7 @@ import {
 } from '@/types'
 import { displaySurname } from './names'
 import { clubOf } from '@/data/playerClubs'
+import { sparkFor } from './spark'
 
 // ─── Position coordinates (kept for familiarity() used by teamStrength.ts) ──
 
@@ -235,6 +236,18 @@ export function analyzeChemistry(
   }
   // Cap the club contribution so it complements, not replaces, position fit.
   bonus += Math.min(24, clubBonus)
+
+  // ── Spark link-up — a limited player playing out of his skin ────────────────
+  const spark = sparkFor(squad)
+  if (spark) {
+    bonus += Math.round(spark.boost * 0.35)
+    attackMod += 2
+    defenseMod += 1
+    notes.push({
+      type: 'good',
+      text: `${spark.hero} and ${spark.partner} have struck up something special — ${spark.hero} is playing the game of his life`,
+    })
+  }
 
   // ── 4. CB pace check ──────────────────────────────────────────────────────
   const cbs = filled.filter(sp => sp.slot.position === 'CB')

@@ -4,6 +4,7 @@ import { FORMATIONS } from '@/lib/teamStrength'
 import { displaySurname } from '@/lib/names'
 import { ratingStyle } from '@/lib/ratingColor'
 import { ratingInPosition } from '@/lib/positionRating'
+import { sparkFor } from '@/lib/spark'
 
 interface Props {
   squad: (RatedPlayer | null)[]
@@ -83,6 +84,8 @@ function PitchMarkings() {
 export default function FormationDisplay({ squad, formation, activeIndex, onSelectSlot, compact, showRatings = true, captainId, flaggedIds }: Props) {
   const slots = FORMATIONS[formation]
   const pitchH = compact ? 260 : 360
+  // A lucky spark lifts one limited player — shown boosted (and gold) here.
+  const spark = sparkFor(squad)
 
   return (
     <div
@@ -173,10 +176,14 @@ export default function FormationDisplay({ squad, formation, activeIndex, onSele
             </div>
 
             {/* Rating badge under the name — coloured by tier, position-adjusted
-                (a player out of position reads lower). Hidden when blind. */}
+                (a player out of position reads lower), plus any spark boost.
+                Hidden when blind. */}
             {showRatings && isFilled && (() => {
-              const shown = ratingInPosition(player, slot.position)
-              const rs = ratingStyle(player.peakRating, shown)
+              const sparked = spark?.playerId === player.id
+              const shown = ratingInPosition(player, slot.position) + (sparked ? spark!.boost : 0)
+              const rs = sparked
+                ? { color: '#fbbf24', textShadow: '0 0 10px rgba(251,191,36,0.8)' }
+                : ratingStyle(player.peakRating, shown)
               return (
                 <span
                   className="text-center font-black leading-none rounded px-1.5 py-0.5"
@@ -189,7 +196,7 @@ export default function FormationDisplay({ squad, formation, activeIndex, onSele
                     backdropFilter: 'blur(2px)',
                   }}
                 >
-                  {shown}
+                  {sparked ? `${shown}▲` : shown}
                 </span>
               )
             })()}

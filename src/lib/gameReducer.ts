@@ -1,5 +1,13 @@
-import { BENCH_SIZE, GameState, GameAction, RatedPlayer, RESPINS } from '@/types'
+import { BENCH_SIZE, GameState, GameAction, RatedPlayer, RESPINS, WorldCupData } from '@/types'
 import { FORMATIONS } from './teamStrength'
+import { WORLD_CUPS } from '@/data/worldCups'
+import { EUROS } from '@/data/euros'
+
+// Manager Mode already pins a year (its label IS the tournament), so resolve
+// that single tournament rather than asking the player to choose it again.
+function tournamentForYear(year: number): WorldCupData | null {
+  return WORLD_CUPS.find(t => t.year === year) ?? EUROS.find(t => t.year === year) ?? null
+}
 
 // Bounds for the era-range setting.
 export const ERA_MIN = 1950
@@ -160,8 +168,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'SET_BENCH':
       return { ...state, bench: action.bench }
 
-    case 'CONFIRM_BENCH':
-      return { ...state, screen: state.daily && state.worldCup ? 'tournament' : 'tournament-select' }
+    case 'CONFIRM_BENCH': {
+      if (state.daily && state.worldCup) return { ...state, screen: 'tournament' }
+      // Manager Mode: the chosen year IS the tournament — enter it directly
+      // instead of asking again.
+      if (state.mode === 'manager') {
+        const wc = tournamentForYear(state.squadYear)
+        if (wc) return { ...state, worldCup: wc, screen: 'tournament' }
+      }
+      return { ...state, screen: 'tournament-select' }
+    }
 
     case 'SWAP_PLAYER': {
       // Mid-tournament rotation: starter <-> bench seat. Keepers only swap
