@@ -65,12 +65,13 @@ interface Props {
   manager?: Manager
   captainId?: string | null
   bench?: (RatedPlayer | null)[]
+  realFixtures?: boolean
   dispatch: React.Dispatch<GameAction>
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function TournamentScreen({ worldCup, squad, formation, manager, captainId, bench, dispatch }: Props) {
+export default function TournamentScreen({ worldCup, squad, formation, manager, captainId, bench, realFixtures, dispatch }: Props) {
   const [run, setRun]               = useState<TournamentRun | null>(null)
   const [phase, setPhase]           = useState<Phase>('loading')
   const [match, setMatch]           = useState<MatchResult | null>(null)
@@ -106,7 +107,7 @@ export default function TournamentScreen({ worldCup, squad, formation, manager, 
     if (!run || run.stage === 'done') return
     clearTimer()
     const { run: nextRun, match: m, roundType } = playNextEnglandMatch(
-      run, squad, formation, { manager, captainId, bench }
+      run, squad, formation, { manager, captainId, bench, realFixtures }
     )
     // Injuries / suspensions — rolled per match, woven into the feed.
     const events = rollAvailabilityEvents(squad)

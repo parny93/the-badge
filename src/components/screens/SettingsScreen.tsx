@@ -7,6 +7,7 @@ interface Props {
   yearFrom: number
   yearTo: number
   difficultyLevel: DifficultyLevel
+  realFixtures: boolean
   dispatch: React.Dispatch<GameAction>
 }
 
@@ -44,10 +45,11 @@ const PRESETS: { label: string; from: number; to: number }[] = [
   { label: 'Modern', from: 2010, to: ERA_MAX },
 ]
 
-export default function SettingsScreen({ yearFrom, yearTo, difficultyLevel, dispatch }: Props) {
+export default function SettingsScreen({ yearFrom, yearTo, difficultyLevel, realFixtures, dispatch }: Props) {
   const [from, setFrom] = useState(yearFrom)
   const [to, setTo] = useState(yearTo)
   const [level, setLevel] = useState<DifficultyLevel>(difficultyLevel)
+  const [real, setReal] = useState(realFixtures)
 
   return (
     <div className="min-h-screen px-4 py-6 pb-28">
@@ -139,9 +141,31 @@ export default function SettingsScreen({ yearFrom, yearTo, difficultyLevel, disp
         </div>
       </div>
 
+      {/* ── Real fixtures ──────────────────────────────────────────────────── */}
+      <button
+        onClick={() => setReal(r => !r)}
+        className={`rounded-2xl border-2 p-4 text-left transition-all mb-4 flex items-start gap-3 ${
+          real ? 'border-sky-400 bg-sky-400/10' : 'border-white/10 bg-white/5 hover:border-white/25'
+        }`}
+      >
+        <span className={`mt-0.5 shrink-0 w-10 h-6 rounded-full transition-all flex items-center px-0.5 ${
+          real ? 'bg-sky-400 justify-end' : 'bg-white/15 justify-start'
+        }`}>
+          <span className="w-5 h-5 rounded-full bg-white shadow" />
+        </span>
+        <div>
+          <div className="text-white font-bold text-sm">Real fixtures</div>
+          <div className="text-slate-400 text-xs leading-snug mt-0.5">
+            Face England&rsquo;s actual knockout opponents from each tournament — France in the
+            2022 quarter-final, Italy in the Euro 2020 final, Spain in 2024. Get far enough and
+            re-write the moments that hurt. (Groups are already the real draws.)
+          </div>
+        </div>
+      </button>
+
       <div className="fixed bottom-4 left-4 right-4 z-30 max-w-md mx-auto">
         <button
-          onClick={() => dispatch({ type: 'SET_SETTINGS', yearFrom: from, yearTo: to, level })}
+          onClick={() => dispatch({ type: 'SET_SETTINGS', yearFrom: from, yearTo: to, level, realFixtures: real })}
           className="w-full bg-white text-slate-900 font-black text-lg py-4 rounded-2xl active:scale-95 transition-all shadow-2xl"
         >
           Choose How You Build →

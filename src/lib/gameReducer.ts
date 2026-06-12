@@ -23,6 +23,7 @@ export const INITIAL_STATE: GameState = {
   respinsLeft: RESPINS.normal,
   yearFrom: ERA_DEFAULT_FROM,
   yearTo: ERA_MAX,
+  realFixtures: false,
   daily: null,
   bench: Array(BENCH_SIZE).fill(null),
   benchIndex: 0,
@@ -76,6 +77,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         difficultyLevel: action.level,
         hardMode: action.level === 'hard',
         respinsLeft: RESPINS[action.level],
+        realFixtures: action.realFixtures,
         screen: 'mode-select',
       }
 

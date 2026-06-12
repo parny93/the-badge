@@ -4,6 +4,7 @@ import { simulateMatch } from './matchSimulator'
 import { calculateTeamStrength } from './teamStrength'
 import { Manager } from '@/data/managers'
 import { TournamentStats, createStats, attributeGoals, attributeEnglandGoals } from './tournamentStats'
+import { getRealOpponent } from '@/data/realFixtures'
 import { rand } from './rng'
 import { getTeamRating } from '@/data/teamRatings'
 import { KNOCKOUT_ROUNDS } from '@/data/worldCups'
@@ -44,6 +45,19 @@ export interface TournamentContext {
   manager?: Manager
   captainId?: string | null
   bench?: (RatedPlayer | null)[]
+  realFixtures?: boolean
+}
+
+// In real-fixtures mode, force England's bracket pair to the actual historical
+// opponent for the upcoming round (if one is known for this tournament).
+function applyRealFixture(field: string[], year: number, round: 'Group' | KnockoutRound): void {
+  if (round === 'Group') return
+  const real = getRealOpponent(year, round)
+  if (!real) return
+  const ei = field.indexOf('England')
+  if (ei === -1) return
+  const partner = ei % 2 === 0 ? ei + 1 : ei - 1
+  if (partner >= 0 && partner < field.length) field[partner] = real
 }
 
 // ─── Knockout simulation ──────────────────────────────────────────────────────
@@ -303,6 +317,8 @@ export function playNextEnglandMatch(
         }
         const size = getExpectedKOSize(r.worldCup.format)
         r.field = buildSeededField(qualifiers, size, fillPool)
+        // Real fixtures: pin England's first-round opponent to the real one.
+        if (ctx.realFixtures) applyRealFixture(r.field, r.worldCup.year, r.knockoutQueue[0])
         r.stage = 'knockout'
       }
     }
@@ -346,6 +362,9 @@ export function playNextEnglandMatch(
   } else if (r.knockoutQueue.length === 0) {
     r.exitRound = 'Winner'
     r.stage = 'done'
+  } else if (ctx.realFixtures) {
+    // England advanced — pin the NEXT round's opponent to the real one.
+    applyRealFixture(r.field, r.worldCup.year, r.knockoutQueue[0])
   }
   return { run: r, match: englandMatch!, roundType: roundName }
 }

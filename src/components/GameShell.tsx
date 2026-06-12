@@ -122,6 +122,7 @@ export default function GameShell({ daily }: Props) {
           yearFrom={state.yearFrom}
           yearTo={state.yearTo}
           difficultyLevel={state.difficultyLevel}
+          realFixtures={state.realFixtures}
           dispatch={dispatch}
         /></>
       )}
@@ -201,6 +202,7 @@ export default function GameShell({ daily }: Props) {
           manager={state.managerId ? getManager(state.managerId) : undefined}
           captainId={state.captainId}
           bench={state.bench}
+          realFixtures={state.realFixtures}
           dispatch={dispatch}
         />
       )}

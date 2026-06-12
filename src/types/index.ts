@@ -222,6 +222,7 @@ export interface GameState {
   respinsLeft: number            // draft wheel re-spins remaining this run
   yearFrom: number               // era range — pool restricted to peaks in [yearFrom, yearTo]
   yearTo: number
+  realFixtures: boolean          // face England's actual historical knockout opponents
   daily: string | null           // UTC date key when playing the Daily Challenge
   bench: (RatedPlayer | null)[]  // BENCH_SIZE slots; 0 = sub GK
   benchIndex: number             // active bench slot
@@ -232,7 +233,7 @@ export interface GameState {
 
 export type GameAction =
   | { type: 'START' }
-  | { type: 'SET_SETTINGS'; yearFrom: number; yearTo: number; level: DifficultyLevel }
+  | { type: 'SET_SETTINGS'; yearFrom: number; yearTo: number; level: DifficultyLevel; realFixtures: boolean }
   | { type: 'USE_RESPIN' }
   | { type: 'SELECT_MODE'; mode: GameMode }
   | { type: 'SELECT_YEAR'; year: number }
